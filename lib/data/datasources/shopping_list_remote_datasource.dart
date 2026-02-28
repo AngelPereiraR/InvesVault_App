@@ -1,0 +1,42 @@
+import 'package:dio/dio.dart';
+import '../models/shopping_list_item_model.dart';
+import '../../core/constants/api_constants.dart';
+
+class ShoppingListRemoteDatasource {
+  final Dio _dio;
+  ShoppingListRemoteDatasource(this._dio);
+
+  Future<List<ShoppingListItemModel>> generate(int warehouseId) async {
+    final response =
+        await _dio.post(ApiConstants.shoppingListGenerate(warehouseId));
+    return (response.data as List)
+        .map((e) =>
+            ShoppingListItemModel.fromJson(e as Map<String, dynamic>))
+        .toList();
+  }
+
+  Future<List<ShoppingListItemModel>> getList(int warehouseId) async {
+    final response =
+        await _dio.get(ApiConstants.shoppingList(warehouseId));
+    return (response.data as List)
+        .map((e) =>
+            ShoppingListItemModel.fromJson(e as Map<String, dynamic>))
+        .toList();
+  }
+
+  Future<ShoppingListItemModel> addItem(
+      int warehouseId, int productId, double qty) async {
+    final response = await _dio.post(
+      ApiConstants.shoppingListAdd(warehouseId),
+      data: {'product_id': productId, 'suggested_qty': qty},
+    );
+    return ShoppingListItemModel.fromJson(
+        response.data as Map<String, dynamic>);
+  }
+
+  Future<void> removeItem(int id) =>
+      _dio.delete(ApiConstants.shoppingListRemove(id));
+
+  Future<void> clearList(int warehouseId) =>
+      _dio.delete(ApiConstants.shoppingListClear(warehouseId));
+}

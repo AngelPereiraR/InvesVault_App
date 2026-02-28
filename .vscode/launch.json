@@ -1,0 +1,35 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "InvesVault – Chrome (dev)",
+      "request": "launch",
+      "type": "dart",
+      "deviceId": "chrome",
+      "args": [
+        "--dart-define-from-file=env/dev.json",
+        "--web-port=8181"
+      ]
+    },
+    {
+      "name": "InvesVault – Windows (dev)",
+      "request": "launch",
+      "type": "dart",
+      "deviceId": "windows",
+      "args": ["--dart-define-from-file=env/dev.json"]
+    },
+    {
+      "name": "InvesVault – Android (dev)",
+      "request": "launch",
+      "type": "dart",
+      "deviceId": "android",
+      "args": ["--dart-define-from-file=env/dev.json"]
+    },
+    {
+      "name": "InvesVault (prod)",
+      "request": "launch",
+      "type": "dart",
+      "args": ["--dart-define-from-file=env/prod.json"]
+    }
+  ]
+}
