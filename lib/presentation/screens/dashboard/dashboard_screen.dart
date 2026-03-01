@@ -6,6 +6,7 @@ import '../../cubits/dashboard/dashboard_cubit.dart';
 import '../../widgets/empty_view.dart';
 import '../../widgets/error_view.dart';
 import '../../widgets/loading_indicator.dart';
+import '../warehouses/warehouse_list_screen.dart' show showWarehouseDialog;
 
 const _purple = Color(0xFF3C096C);
 const _mint = Color(0xFFD8F3DC);
@@ -84,8 +85,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
               // ── SEARCH BAR ──────────────────────────────────────────
               GestureDetector(
-                onTap: () => context.push('/scanner',
-                    extra: <String, dynamic>{'onScanned': null}),
+                onTap: () => context.push('/search'),
                 child: Container(
                   padding: const EdgeInsets.symmetric(
                       horizontal: 16, vertical: 14),
@@ -108,7 +108,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       const SizedBox(width: 10),
                       Expanded(
                         child: Text(
-                          'Buscar código de barras',
+                          'Buscar productos…',
                           style: TextStyle(
                               color: Colors.grey.shade400, fontSize: 14),
                         ),
@@ -132,7 +132,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               _BigActionCard(
                 icon: Icons.add_business_outlined,
                 label: 'Añadir almacén',
-                onTap: () => context.push('/warehouses/new'),
+                onTap: () => showWarehouseDialog(context),
               ),
               const SizedBox(height: 12),
               _BigActionCard(

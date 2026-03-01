@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../cubits/auth/auth_cubit.dart';
 import '../../cubits/notification/notification_cubit.dart';
 import '../stores/store_list_screen.dart';
+import '../warehouses/warehouse_list_screen.dart';
 import 'app_drawer.dart';
 
 const _appBarBg = Color(0xFF3C096C);
@@ -38,7 +39,7 @@ class AppShell extends StatelessWidget {
               IconButton(
                 icon: const Icon(Icons.add),
                 tooltip: 'Nuevo almacén',
-                onPressed: () => context.push('/warehouses/new'),
+                onPressed: () => showWarehouseDialog(context),
               )
             else if (location == '/products')
               IconButton(

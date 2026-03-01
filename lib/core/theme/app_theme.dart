@@ -166,6 +166,13 @@ class AppTheme {
           thickness: 1,
           space: 1,
         ),
+        dialogTheme: DialogThemeData(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          backgroundColor: AppColors.surface,
+          elevation: 4,
+        ),
       );
 
   // ── Tema oscuro ─────────────────────────────────────────────────────────────

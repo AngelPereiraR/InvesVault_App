@@ -26,6 +26,13 @@
       "args": ["--dart-define-from-file=env/dev.json"]
     },
     {
+      "name": "InvesVault – RMX3997 (dev)",
+      "request": "launch",
+      "type": "dart",
+      "deviceId": "RMX3997",
+      "args": ["--dart-define-from-file=env/dev.json"]
+    },
+    {
       "name": "InvesVault (prod)",
       "request": "launch",
       "type": "dart",

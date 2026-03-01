@@ -41,6 +41,24 @@ class ProductFormCubit extends Cubit<ProductFormState> {
     }
   }
 
+  Future<void> loadForPicker() async {
+    emit(const ProductFormLoading());
+    try {
+      final results = await Future.wait([
+        _brandRepository.getBrands(),
+        _storeRepository.getStores(),
+        _productRepository.getProducts(),
+      ]);
+      final brands = results[0] as List<BrandModel>;
+      final stores = results[1] as List<StoreModel>;
+      final products = results[2] as List<ProductModel>;
+      emit(ProductFormReady(
+          brands: brands, stores: stores, allProducts: products));
+    } catch (e) {
+      emit(ProductFormError(e.toString()));
+    }
+  }
+
   Future<void> save(Map<String, dynamic> data, {int? productId}) async {
     emit(const ProductFormLoading());
     try {

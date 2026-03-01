@@ -1,4 +1,6 @@
+import 'package:dio/dio.dart';
 import 'package:equatable/equatable.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../data/models/warehouse_user_model.dart';
@@ -8,6 +10,7 @@ part 'warehouse_user_state.dart';
 
 class WarehouseUserCubit extends Cubit<WarehouseUserState> {
   final WarehouseUserRepository _repository;
+
   WarehouseUserCubit(this._repository) : super(const WarehouseUserInitial());
 
   Future<void> load(int warehouseId) async {
@@ -17,6 +20,31 @@ class WarehouseUserCubit extends Cubit<WarehouseUserState> {
       emit(WarehouseUserLoaded(users));
     } catch (e) {
       emit(WarehouseUserError(e.toString()));
+    }
+  }
+
+  Future<void> addUserByEmail(
+      int warehouseId, String email, String role) async {
+    final current = state;
+    if (current is! WarehouseUserLoaded) {
+      debugPrint('[WarehouseUserCubit] addUserByEmail blocked: state is ${state.runtimeType}');
+      return;
+    }
+    debugPrint('[WarehouseUserCubit] addUserByEmail warehouseId=$warehouseId email=$email role=$role');
+    emit(current.copyWith(isAdding: true, clearAddError: true));
+    try {
+      await _repository.addUserByEmail(warehouseId, email, role);
+      emit(const WarehouseUserActionSuccess('Usuario añadido correctamente'));
+      await load(warehouseId);
+    } on DioException catch (e) {
+      debugPrint('[WarehouseUserCubit] DioException status=${e.response?.statusCode} data=${e.response?.data}');
+      final msg = e.response?.data?['message'] as String? ??
+          e.response?.data?.toString() ??
+          'Error al añadir usuario (${e.response?.statusCode})';
+      emit(current.copyWith(isAdding: false, addError: msg));
+    } catch (e) {
+      debugPrint('[WarehouseUserCubit] Exception: $e');
+      emit(current.copyWith(isAdding: false, addError: e.toString()));
     }
   }
 

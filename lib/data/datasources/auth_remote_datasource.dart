@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import '../models/user_model.dart';
 import '../../core/constants/api_constants.dart';
 
@@ -35,5 +36,25 @@ class AuthRemoteDatasource {
     final response =
         await _dio.put(ApiConstants.userById(id), data: data);
     return UserModel.fromJson(response.data as Map<String, dynamic>);
+  }
+
+  Future<UserModel?> searchByEmail(String email) async {
+    try {
+      final response =
+          await _dio.get(ApiConstants.userByEmail(email));
+      debugPrint('[searchByEmail] status=${response.statusCode} data=${response.data}');
+      final data = response.data;
+      if (data == null) return null;
+      // API may return a single object or a list
+      if (data is List) {
+        if (data.isEmpty) return null;
+        return UserModel.fromJson(data.first as Map<String, dynamic>);
+      }
+      return UserModel.fromJson(data as Map<String, dynamic>);
+    } on DioException catch (e) {
+      debugPrint('[searchByEmail] DioError status=${e.response?.statusCode} data=${e.response?.data}');
+      if (e.response?.statusCode == 404) return null;
+      rethrow;
+    }
   }
 }

@@ -7,6 +7,7 @@ import '../../../data/models/warehouse_product_model.dart';
 import '../../../data/repositories/stock_change_repository.dart';
 import '../../../data/repositories/warehouse_product_repository.dart';
 import '../../../data/repositories/warehouse_repository.dart';
+import '../../../data/repositories/warehouse_user_repository.dart';
 
 part 'warehouse_detail_state.dart';
 
@@ -15,25 +16,44 @@ class WarehouseDetailCubit extends Cubit<WarehouseDetailState> {
   final WarehouseProductRepository _warehouseProductRepository;
   final StockChangeRepository _stockChangeRepository;
   final NotificationService _notificationService;
+  final WarehouseUserRepository _warehouseUserRepository;
+  int _lastUserId = 0;
 
   WarehouseDetailCubit(
     this._warehouseRepository,
     this._warehouseProductRepository,
     this._stockChangeRepository,
     this._notificationService,
+    this._warehouseUserRepository,
   ) : super(const WarehouseDetailInitial());
 
-  Future<void> load(int warehouseId) async {
+  Future<void> load(int warehouseId, {required int userId}) async {
+    _lastUserId = userId;
     emit(const WarehouseDetailLoading());
     try {
       final warehouse =
           await _warehouseRepository.getWarehouseById(warehouseId);
       final products =
           await _warehouseProductRepository.getProducts(warehouseId);
+
+      // Determine current user's role for this warehouse
+      String userRole = 'viewer';
+      if (warehouse.ownerId == userId) {
+        userRole = 'admin';
+      } else {
+        try {
+          final users =
+              await _warehouseUserRepository.getUsers(warehouseId);
+          final entry = users.where((u) => u.userId == userId);
+          if (entry.isNotEmpty) userRole = entry.first.role;
+        } catch (_) {}
+      }
+
       emit(WarehouseDetailLoaded(
         warehouse: warehouse,
         products: products,
         filtered: products,
+        currentUserRole: userRole,
       ));
     } catch (e) {
       emit(WarehouseDetailError(e.toString()));
@@ -109,7 +129,18 @@ class WarehouseDetailCubit extends Cubit<WarehouseDetailState> {
   Future<void> removeProduct(int id, int warehouseId) async {
     try {
       await _warehouseProductRepository.deleteProduct(id);
-      await load(warehouseId);
+      await load(warehouseId, userId: _lastUserId);
+    } catch (e) {
+      emit(WarehouseDetailError(e.toString()));
+    }
+  }
+
+  Future<void> addProduct(Map<String, dynamic> data) async {
+    final current = state;
+    if (current is! WarehouseDetailLoaded) return;
+    try {
+      await _warehouseProductRepository.addProduct(data);
+      await load(current.warehouse.id, userId: _lastUserId);
     } catch (e) {
       emit(WarehouseDetailError(e.toString()));
     }

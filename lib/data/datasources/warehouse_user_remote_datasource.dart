@@ -7,11 +7,16 @@ class WarehouseUserRemoteDatasource {
   WarehouseUserRemoteDatasource(this._dio);
 
   Future<List<WarehouseUserModel>> getUsers(int warehouseId) async {
-    final response =
-        await _dio.get(ApiConstants.warehouseUsers(warehouseId));
-    return (response.data as List)
-        .map((e) => WarehouseUserModel.fromJson(e as Map<String, dynamic>))
-        .toList();
+    try {
+      final response =
+          await _dio.get(ApiConstants.warehouseUsers(warehouseId));
+      return (response.data as List)
+          .map((e) => WarehouseUserModel.fromJson(e as Map<String, dynamic>))
+          .toList();
+    } on DioException catch (e) {
+      if (e.response?.statusCode == 404) return [];
+      rethrow;
+    }
   }
 
   Future<WarehouseUserModel> addUser(
@@ -19,6 +24,16 @@ class WarehouseUserRemoteDatasource {
     final response = await _dio.post(
       ApiConstants.warehouseUsers(warehouseId),
       data: {'user_id': userId, 'role': role},
+    );
+    return WarehouseUserModel.fromJson(
+        response.data as Map<String, dynamic>);
+  }
+
+  Future<WarehouseUserModel> addUserByEmail(
+      int warehouseId, String email, String role) async {
+    final response = await _dio.post(
+      ApiConstants.warehouseUsers(warehouseId),
+      data: {'email': email, 'role': role},
     );
     return WarehouseUserModel.fromJson(
         response.data as Map<String, dynamic>);

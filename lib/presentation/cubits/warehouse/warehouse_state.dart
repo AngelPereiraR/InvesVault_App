@@ -38,3 +38,11 @@ class WarehouseActionSuccess extends WarehouseState {
   @override
   List<Object?> get props => [message];
 }
+
+class WarehouseCreated extends WarehouseState {
+  final WarehouseModel warehouse;
+  const WarehouseCreated(this.warehouse);
+
+  @override
+  List<Object?> get props => [warehouse];
+}

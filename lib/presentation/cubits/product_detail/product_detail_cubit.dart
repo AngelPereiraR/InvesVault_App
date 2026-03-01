@@ -31,6 +31,20 @@ class ProductDetailCubit extends Cubit<ProductDetailState> {
     }
   }
 
+  Future<void> updateDetails(Map<String, dynamic> data) async {
+    final current = state;
+    if (current is! ProductDetailLoaded) return;
+    final wp = current.warehouseProduct;
+    emit(ProductDetailUpdating(wp));
+    try {
+      final updated =
+          await _warehouseProductRepository.updateProduct(wp.id, data);
+      emit(ProductDetailLoaded(updated));
+    } catch (e) {
+      emit(ProductDetailError(e.toString()));
+    }
+  }
+
   Future<void> quickUpdate({
     required double delta,
     required int userId,

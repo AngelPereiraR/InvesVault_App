@@ -26,9 +26,9 @@ class WarehouseCubit extends Cubit<WarehouseState> {
     bool isShared = false,
   }) async {
     try {
-      await _repository.createWarehouse(
+      final warehouse = await _repository.createWarehouse(
           name: name, ownerId: ownerId, isShared: isShared);
-      emit(const WarehouseActionSuccess('Almacén creado correctamente'));
+      emit(WarehouseCreated(warehouse));
       await load();
     } catch (e) {
       emit(WarehouseError(e.toString()));

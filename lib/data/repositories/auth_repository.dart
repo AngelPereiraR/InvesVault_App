@@ -20,4 +20,7 @@ class AuthRepository {
 
   Future<UserModel> updateUser(int id, Map<String, dynamic> data) =>
       _datasource.updateUser(id, data);
+
+  Future<UserModel?> searchByEmail(String email) =>
+      _datasource.searchByEmail(email);
 }

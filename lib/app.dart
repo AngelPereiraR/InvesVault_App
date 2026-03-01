@@ -138,6 +138,7 @@ class _InvesVaultAppState extends State<InvesVaultApp> {
             _warehouseProductRepo,
             _stockChangeRepo,
             widget.notificationService,
+            _warehouseUserRepo,
           ),
         ),
         BlocProvider(
@@ -173,8 +174,7 @@ class _InvesVaultAppState extends State<InvesVaultApp> {
       child: MaterialApp.router(
             title: 'InvesVault',
             theme: AppTheme.light,
-            darkTheme: AppTheme.dark,
-            themeMode: ThemeMode.system,
+            themeMode: ThemeMode.light,
             routerConfig: _router,
             debugShowCheckedModeBanner: false,
           ),

@@ -7,11 +7,16 @@ class NotificationRemoteDatasource {
   NotificationRemoteDatasource(this._dio);
 
   Future<List<NotificationModel>> getNotifications() async {
-    final response = await _dio.get(ApiConstants.notifications);
-    return (response.data as List)
-        .map((e) =>
-            NotificationModel.fromJson(e as Map<String, dynamic>))
-        .toList();
+    try {
+      final response = await _dio.get(ApiConstants.notifications);
+      return (response.data as List)
+          .map((e) =>
+              NotificationModel.fromJson(e as Map<String, dynamic>))
+          .toList();
+    } on DioException catch (e) {
+      if (e.response?.statusCode == 404) return [];
+      rethrow;
+    }
   }
 
   Future<void> markRead(int id) =>

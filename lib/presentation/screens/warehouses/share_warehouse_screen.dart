@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../cubits/auth/auth_cubit.dart';
 import '../../cubits/warehouse_user/warehouse_user_cubit.dart';
-import '../../widgets/app_button.dart';
 import '../../widgets/app_text_field.dart';
 import '../../widgets/confirm_dialog.dart';
 import '../../widgets/empty_view.dart';
 import '../../widgets/error_view.dart';
 import '../../widgets/loading_indicator.dart';
-import '../../../core/utils/validators.dart';
+
+const _purple = Color(0xFF3C096C);
 
 class ShareWarehouseScreen extends StatefulWidget {
   final int warehouseId;
@@ -19,7 +20,7 @@ class ShareWarehouseScreen extends StatefulWidget {
 }
 
 class _ShareWarehouseScreenState extends State<ShareWarehouseScreen> {
-  final _userIdCtrl = TextEditingController();
+  final _emailCtrl = TextEditingController();
   String _selectedRole = 'viewer';
 
   @override
@@ -30,8 +31,16 @@ class _ShareWarehouseScreenState extends State<ShareWarehouseScreen> {
 
   @override
   void dispose() {
-    _userIdCtrl.dispose();
+    _emailCtrl.dispose();
     super.dispose();
+  }
+
+  void _add() {
+    final email = _emailCtrl.text.trim();
+    if (email.isEmpty) return;
+    context
+        .read<WarehouseUserCubit>()
+        .addUserByEmail(widget.warehouseId, email, _selectedRole);
   }
 
   @override
@@ -39,6 +48,7 @@ class _ShareWarehouseScreenState extends State<ShareWarehouseScreen> {
     return BlocConsumer<WarehouseUserCubit, WarehouseUserState>(
       listener: (context, state) {
         if (state is WarehouseUserActionSuccess) {
+          _emailCtrl.clear();
           ScaffoldMessenger.of(context)
               .showSnackBar(SnackBar(content: Text(state.message)));
         }
@@ -49,11 +59,26 @@ class _ShareWarehouseScreenState extends State<ShareWarehouseScreen> {
         }
       },
       builder: (context, state) {
+        final loaded =
+            state is WarehouseUserLoaded ? state : null;
+
+        // Determine if the current user is admin of this warehouse.
+        // This comes directly from the loaded user list – no dependency
+        // on WarehouseCubit (which may not be populated when arriving
+        // from the Dashboard).
+        final authState = context.read<AuthCubit>().state;
+        final currentUserId =
+            authState is AuthAuthenticated ? authState.userId : -1;
+        final isAdmin = loaded != null &&
+            loaded.users.any(
+                (u) => u.userId == currentUserId && u.role == 'admin');
+
         return Scaffold(
           appBar: AppBar(title: const Text('Compartir almacén')),
           body: Column(
             children: [
-              // Add user form
+// ── Add by email (admin only) ──
+              if (isAdmin)
               Padding(
                 padding: const EdgeInsets.all(16),
                 child: Card(
@@ -62,119 +87,179 @@ class _ShareWarehouseScreenState extends State<ShareWarehouseScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('Añadir usuario',
+                        Text('Añadir colaborador',
                             style: Theme.of(context).textTheme.titleSmall),
                         const SizedBox(height: 12),
-                        AppTextField(
-                          controller: _userIdCtrl,
-                          label: 'ID de usuario',
-                          keyboardType: TextInputType.number,
-                          validator: Validators.positiveNumber,
-                        ),
-                        const SizedBox(height: 12),
-                        DropdownButtonFormField<String>(
-                          value: _selectedRole,
-                          decoration:
-                              const InputDecoration(labelText: 'Rol'),
-                          items: const [
-                            DropdownMenuItem(
-                                value: 'viewer', child: Text('Solo lectura')),
-                            DropdownMenuItem(
-                                value: 'editor', child: Text('Editor')),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: AppTextField(
+                                controller: _emailCtrl,
+                                label: 'Email del usuario',
+                                keyboardType: TextInputType.emailAddress,
+                                onFieldSubmitted: (_) => _add(),
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            DropdownButton<String>(
+                              value: _selectedRole,
+                              underline: const SizedBox(),
+                              isDense: true,
+                              style: const TextStyle(
+                                  fontSize: 13, color: _purple),
+                              items: const [
+                                DropdownMenuItem(
+                                    value: 'viewer', child: Text('Lector')),
+                                DropdownMenuItem(
+                                    value: 'editor', child: Text('Editor')),
+                              ],
+                              onChanged: (v) =>
+                                  setState(() => _selectedRole = v ?? 'viewer'),
+                            ),
+                            const SizedBox(width: 8),
+                            FilledButton(
+                              style: FilledButton.styleFrom(
+                                  backgroundColor: _purple,
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 12, vertical: 14)),
+                              onPressed:
+                                  loaded.isAdding ? null : _add,
+                              child: loaded.isAdding
+                                  ? const SizedBox(
+                                      width: 16,
+                                      height: 16,
+                                      child: CircularProgressIndicator(
+                                          strokeWidth: 2,
+                                          color: Colors.white))
+                                  : const Icon(
+                                      Icons.person_add_outlined, size: 18),
+                            ),
                           ],
-                          onChanged: (v) =>
-                              setState(() => _selectedRole = v!),
                         ),
-                        const SizedBox(height: 16),
-                        AppButton(
-                          label: 'Añadir',
-                          loading: state is WarehouseUserLoading,
-                          onPressed: () {
-                            final id =
-                                int.tryParse(_userIdCtrl.text.trim());
-                            if (id == null) return;
-                            context.read<WarehouseUserCubit>().addUser(
-                                widget.warehouseId, id, _selectedRole);
-                            _userIdCtrl.clear();
-                          },
-                        ),
+                        if (loaded.addError != null) ...[  
+                          const SizedBox(height: 6),
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Icon(Icons.error_outline,
+                                  size: 15, color: Colors.red.shade400),
+                              const SizedBox(width: 6),
+                              Expanded(
+                                child: Text(
+                                  loaded.addError!,
+                                  style: TextStyle(
+                                      fontSize: 12,
+                                      color: Colors.red.shade400),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
                       ],
                     ),
                   ),
                 ),
               ),
 
-              // Users list
+              // ── Users list ──
               Expanded(
                 child: state is WarehouseUserLoading
                     ? const LoadingIndicator()
                     : state is WarehouseUserError
                         ? ErrorView(message: state.message)
-                        : state is WarehouseUserLoaded &&
-                                state.users.isEmpty
+                        : loaded != null && loaded.users.isEmpty
                             ? const EmptyView(
                                 message: 'No hay usuarios compartidos')
-                            : state is WarehouseUserLoaded
+                            : loaded != null
                                 ? ListView.builder(
-                                    itemCount: state.users.length,
+                                    itemCount: loaded.users.length,
                                     itemBuilder: (context, i) {
-                                      final u = state.users[i];
+                                      final u = loaded.users[i];
                                       return ListTile(
-                                        leading: const CircleAvatar(
-                                            child: Icon(Icons.person)),
+                                        leading: CircleAvatar(
+                                          backgroundColor:
+                                              _purple.withOpacity(0.12),
+                                          child: Text(
+                                            (u.userName ?? '#${u.userId}')
+                                                .substring(0, 1)
+                                                .toUpperCase(),
+                                            style: const TextStyle(
+                                                color: _purple,
+                                                fontWeight: FontWeight.w600),
+                                          ),
+                                        ),
                                         title: Text(
                                             u.userName ?? 'Usuario ${u.userId}'),
                                         subtitle: Text(u.userEmail ?? ''),
                                         trailing: Row(
                                           mainAxisSize: MainAxisSize.min,
                                           children: [
-                                            DropdownButton<String>(
-                                              value: u.role,
-                                              underline: const SizedBox(),
-                                              items: const [
-                                                DropdownMenuItem(
-                                                    value: 'viewer',
-                                                    child: Text('Lector')),
-                                                DropdownMenuItem(
-                                                    value: 'editor',
-                                                    child: Text('Editor')),
-                                              ],
-                                              onChanged: (role) {
-                                                if (role != null) {
-                                                  context
-                                                      .read<WarehouseUserCubit>()
-                                                      .updateRole(
-                                                          widget.warehouseId,
-                                                          u.userId,
-                                                          role);
-                                                }
-                                              },
-                                            ),
-                                            IconButton(
-                                              icon: const Icon(
-                                                  Icons.person_remove,
-                                                  color: Colors.red),
-                                              onPressed: () async {
-                                                final confirm =
-                                                    await showConfirmDialog(
-                                                  context,
-                                                  title: 'Eliminar usuario',
-                                                  message:
-                                                      '¿Eliminar acceso de ${u.userName ?? 'este usuario'}?',
-                                                  confirmLabel: 'Eliminar',
-                                                  isDangerous: true,
-                                                );
-                                                if (confirm == true &&
-                                                    context.mounted) {
-                                                  context
-                                                      .read<
-                                                          WarehouseUserCubit>()
-                                                      .removeUser(
-                                                          widget.warehouseId,
-                                                          u.userId);
-                                                }
-                                              },
-                                            ),
+                                            if (u.role == 'admin')
+                                              Container(
+                                                padding:
+                                                    const EdgeInsets.symmetric(
+                                                        horizontal: 8,
+                                                        vertical: 4),
+                                                decoration: BoxDecoration(
+                                                  color: _purple.withOpacity(0.1),
+                                                  borderRadius:
+                                                      BorderRadius.circular(8),
+                                                ),
+                                                child: const Text('Admin',
+                                                    style: TextStyle(
+                                                        fontSize: 12,
+                                                        color: _purple,
+                                                        fontWeight:
+                                                            FontWeight.w600)),
+                                              )
+                                            else
+                                              DropdownButton<String>(
+                                                value: u.role,
+                                                underline: const SizedBox(),
+                                                items: const [
+                                                  DropdownMenuItem(
+                                                      value: 'viewer',
+                                                      child: Text('Lector')),
+                                                  DropdownMenuItem(
+                                                      value: 'editor',
+                                                      child: Text('Editor')),
+                                                ],
+                                                onChanged: isAdmin ? (role) {
+                                                  if (role != null) {
+                                                    context
+                                                        .read<WarehouseUserCubit>()
+                                                        .updateRole(
+                                                            widget.warehouseId,
+                                                            u.userId,
+                                                            role);
+                                                  }
+                                                } : null,
+                                              ),
+                                            if (u.role != 'admin' && isAdmin)
+                                              IconButton(
+                                                icon: const Icon(
+                                                    Icons.person_remove,
+                                                    color: Colors.red),
+                                                onPressed: () async {
+                                                  final confirm =
+                                                      await showConfirmDialog(
+                                                    context,
+                                                    title: 'Eliminar usuario',
+                                                    message:
+                                                        '¿Eliminar acceso de ${u.userName ?? 'este usuario'}?',
+                                                    confirmLabel: 'Eliminar',
+                                                    isDangerous: true,
+                                                  );
+                                                  if (confirm == true &&
+                                                      context.mounted) {
+                                                    context
+                                                        .read<WarehouseUserCubit>()
+                                                        .removeUser(
+                                                            widget.warehouseId,
+                                                            u.userId);
+                                                  }
+                                                },
+                                              ),
                                           ],
                                         ),
                                       );
@@ -189,3 +274,4 @@ class _ShareWarehouseScreenState extends State<ShareWarehouseScreen> {
     );
   }
 }
+

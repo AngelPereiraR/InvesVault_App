@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import '../constants/api_constants.dart';
 import '../services/storage_service.dart';
 
@@ -37,6 +38,17 @@ class DioClient {
         },
       ),
     );
+
+    if (kDebugMode) {
+      dio.interceptors.add(LogInterceptor(
+        requestHeader: true,
+        requestBody: true,
+        responseBody: true,
+        responseHeader: false,
+        error: true,
+        logPrint: (o) => debugPrint(o.toString()),
+      ));
+    }
 
     return dio;
   }

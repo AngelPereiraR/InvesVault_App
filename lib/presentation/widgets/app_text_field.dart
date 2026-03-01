@@ -13,6 +13,7 @@ class AppTextField extends StatelessWidget {
   final bool readOnly;
   final VoidCallback? onTap;
   final void Function(String)? onChanged;
+  final void Function(String)? onFieldSubmitted;
   final String? initialValue;
   final FocusNode? focusNode;
 
@@ -30,6 +31,7 @@ class AppTextField extends StatelessWidget {
     this.readOnly = false,
     this.onTap,
     this.onChanged,
+    this.onFieldSubmitted,
     this.initialValue,
     this.focusNode,
   });
@@ -53,6 +55,7 @@ class AppTextField extends StatelessWidget {
       readOnly: readOnly,
       onTap: onTap,
       onChanged: onChanged,
+      onFieldSubmitted: onFieldSubmitted,
     );
   }
 }

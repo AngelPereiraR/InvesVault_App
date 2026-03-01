@@ -13,6 +13,8 @@ abstract class ApiConstants {
   static const String register = '/auth/register';
   static const String login = '/auth/login';
   static String userById(int id) => '/auth/users/$id';
+  static String userByEmail(String email) =>
+      '/auth/users/search?email=${Uri.encodeComponent(email)}';
 
   // Warehouses
   static const String warehouses = '/warehouses';

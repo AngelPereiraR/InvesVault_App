@@ -166,7 +166,7 @@ Future<void> showStoreDialog(
     context: context,
     builder: (ctx) => Dialog(
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+        borderRadius: BorderRadius.all(Radius.circular(20)),
       ),
       insetPadding:
           const EdgeInsets.symmetric(horizontal: 24, vertical: 40),

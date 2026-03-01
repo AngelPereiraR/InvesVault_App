@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 import '../../cubits/auth/auth_cubit.dart';
 import '../../cubits/product_detail/product_detail_cubit.dart';
 import '../../cubits/stock_change/stock_change_cubit.dart';
+import '../../cubits/store/store_cubit.dart';
 import '../../widgets/error_view.dart';
 import '../../widgets/loading_indicator.dart';
 import '../../widgets/quantity_stepper.dart';
@@ -203,6 +204,19 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
 
                 const SizedBox(height: 24),
 
+                // ── Editar detalles del almacén ──────────────────────
+                Card(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: _WarehouseDetailsEditor(
+                      wp: wp,
+                      product: product,
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 24),
+
                 // Edit button
                 OutlinedButton.icon(
                   onPressed: () => context
@@ -302,4 +316,134 @@ class _InfoRow extends StatelessWidget {
           ],
         ),
       );
+}
+
+// ── Editar detalles del warehouse-product ──────────────────────────────────
+class _WarehouseDetailsEditor extends StatefulWidget {
+  final dynamic wp;
+  final dynamic product;
+  const _WarehouseDetailsEditor({required this.wp, required this.product});
+
+  @override
+  State<_WarehouseDetailsEditor> createState() =>
+      _WarehouseDetailsEditorState();
+}
+
+class _WarehouseDetailsEditorState extends State<_WarehouseDetailsEditor> {
+  late final TextEditingController _minQtyCtrl;
+  late final TextEditingController _priceCtrl;
+  int? _storeId;
+  bool _expanded = false;
+
+  @override
+  void initState() {
+    super.initState();
+    final wp = widget.wp;
+    _minQtyCtrl = TextEditingController(
+        text: wp.minQuantity != null
+            ? wp.minQuantity.toStringAsFixed(2)
+            : '');
+    _priceCtrl = TextEditingController(
+        text: wp.pricePerUnit != null
+            ? wp.pricePerUnit.toStringAsFixed(2)
+            : '');
+    _storeId = wp.storeId as int?;
+  }
+
+  @override
+  void dispose() {
+    _minQtyCtrl.dispose();
+    _priceCtrl.dispose();
+    super.dispose();
+  }
+
+  void _save() {
+    final data = <String, dynamic>{};
+    if (_minQtyCtrl.text.isNotEmpty) {
+      data['min_quantity'] = double.tryParse(_minQtyCtrl.text) ?? 0;
+    }
+    if (_priceCtrl.text.isNotEmpty) {
+      data['price_per_unit'] = double.tryParse(_priceCtrl.text) ?? 0;
+    }
+    if (_storeId != null) data['store_id'] = _storeId;
+    if (data.isEmpty) return;
+    context.read<ProductDetailCubit>().updateDetails(data);
+    setState(() => _expanded = false);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Text('Configuración del almacén',
+                style: theme.textTheme.titleSmall),
+            const Spacer(),
+            TextButton.icon(
+              icon: Icon(_expanded ? Icons.expand_less : Icons.edit_outlined,
+                  size: 18),
+              label: Text(_expanded ? 'Cancelar' : 'Editar'),
+              onPressed: () => setState(() => _expanded = !_expanded),
+            ),
+          ],
+        ),
+        if (_expanded) ...[
+          const SizedBox(height: 12),
+          TextField(
+            controller: _minQtyCtrl,
+            keyboardType:
+                const TextInputType.numberWithOptions(decimal: true),
+            decoration: const InputDecoration(
+              labelText: 'Cantidad mínima (alerta)',
+              prefixIcon: Icon(Icons.warning_amber_outlined),
+            ),
+          ),
+          const SizedBox(height: 10),
+          TextField(
+            controller: _priceCtrl,
+            keyboardType:
+                const TextInputType.numberWithOptions(decimal: true),
+            decoration: const InputDecoration(
+              labelText: 'Precio por unidad (€)',
+              prefixIcon: Icon(Icons.euro_outlined),
+            ),
+          ),
+          const SizedBox(height: 10),
+          BlocBuilder<StoreCubit, StoreState>(
+            builder: (context, state) {
+              if (state is! StoreLoaded) {
+                context.read<StoreCubit>().load();
+                return const SizedBox();
+              }
+              return DropdownButtonFormField<int?>(
+                value: _storeId,
+                decoration: const InputDecoration(
+                  labelText: 'Tienda (última compra)',
+                  prefixIcon: Icon(Icons.store_outlined),
+                ),
+                items: [
+                  const DropdownMenuItem(
+                      value: null, child: Text('Sin tienda')),
+                  ...state.stores.map((s) =>
+                      DropdownMenuItem(value: s.id, child: Text(s.name))),
+                ],
+                onChanged: (v) => setState(() => _storeId = v),
+              );
+            },
+          ),
+          const SizedBox(height: 16),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: _save,
+              child: const Text('Guardar cambios'),
+            ),
+          ),
+        ],
+      ],
+    );
+  }
 }

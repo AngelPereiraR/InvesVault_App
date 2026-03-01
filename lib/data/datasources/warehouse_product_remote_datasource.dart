@@ -7,21 +7,31 @@ class WarehouseProductRemoteDatasource {
   WarehouseProductRemoteDatasource(this._dio);
 
   Future<List<WarehouseProductModel>> getProducts(int warehouseId) async {
-    final response =
-        await _dio.get(ApiConstants.warehouseProductsList(warehouseId));
-    return (response.data as List)
-        .map((e) =>
-            WarehouseProductModel.fromJson(e as Map<String, dynamic>))
-        .toList();
+    try {
+      final response =
+          await _dio.get(ApiConstants.warehouseProductsList(warehouseId));
+      return (response.data as List)
+          .map((e) =>
+              WarehouseProductModel.fromJson(e as Map<String, dynamic>))
+          .toList();
+    } on DioException catch (e) {
+      if (e.response?.statusCode == 404) return [];
+      rethrow;
+    }
   }
 
   Future<List<WarehouseProductModel>> getLowStock(int warehouseId) async {
-    final response = await _dio
-        .get(ApiConstants.warehouseProductsLowStock(warehouseId));
-    return (response.data as List)
-        .map((e) =>
-            WarehouseProductModel.fromJson(e as Map<String, dynamic>))
-        .toList();
+    try {
+      final response = await _dio
+          .get(ApiConstants.warehouseProductsLowStock(warehouseId));
+      return (response.data as List)
+          .map((e) =>
+              WarehouseProductModel.fromJson(e as Map<String, dynamic>))
+          .toList();
+    } on DioException catch (e) {
+      if (e.response?.statusCode == 404) return [];
+      rethrow;
+    }
   }
 
   Future<WarehouseProductModel> addProduct(

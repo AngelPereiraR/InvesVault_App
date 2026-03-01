@@ -19,6 +19,7 @@ import '../../presentation/screens/stock_change/stock_change_history_screen.dart
 import '../../presentation/screens/warehouses/share_warehouse_screen.dart';
 import '../../presentation/screens/warehouses/warehouse_detail_screen.dart';
 import '../../presentation/screens/warehouses/warehouse_form_screen.dart';
+import '../../presentation/screens/products/search_screen.dart';
 import '../../presentation/screens/stores/store_list_screen.dart';
 import '../../presentation/screens/warehouses/warehouse_list_screen.dart';
 
@@ -110,7 +111,10 @@ GoRouter buildRouter() {
           );
         },
       ),
-
+      GoRoute(
+        path: '/search',
+        builder: (_, __) => const GlobalSearchScreen(),
+      ),
       // ── Shell routes (have AppBar + Drawer) ─────────────
       ShellRoute(
         navigatorKey: _shellNavigatorKey,

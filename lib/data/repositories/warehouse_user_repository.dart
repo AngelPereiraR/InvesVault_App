@@ -12,6 +12,10 @@ class WarehouseUserRepository {
           int warehouseId, int userId, String role) =>
       _datasource.addUser(warehouseId, userId, role);
 
+  Future<WarehouseUserModel> addUserByEmail(
+          int warehouseId, String email, String role) =>
+      _datasource.addUserByEmail(warehouseId, email, role);
+
   Future<WarehouseUserModel> updateRole(
           int warehouseId, int userId, String role) =>
       _datasource.updateRole(warehouseId, userId, role);

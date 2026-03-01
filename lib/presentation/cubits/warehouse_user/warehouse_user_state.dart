@@ -17,10 +17,29 @@ class WarehouseUserLoading extends WarehouseUserState {
 
 class WarehouseUserLoaded extends WarehouseUserState {
   final List<WarehouseUserModel> users;
-  const WarehouseUserLoaded(this.users);
+  final bool isAdding;
+  final String? addError;
+
+  const WarehouseUserLoaded(
+    this.users, {
+    this.isAdding = false,
+    this.addError,
+  });
+
+  WarehouseUserLoaded copyWith({
+    List<WarehouseUserModel>? users,
+    bool? isAdding,
+    String? addError,
+    bool clearAddError = false,
+  }) =>
+      WarehouseUserLoaded(
+        users ?? this.users,
+        isAdding: isAdding ?? this.isAdding,
+        addError: clearAddError ? null : (addError ?? this.addError),
+      );
 
   @override
-  List<Object?> get props => [users];
+  List<Object?> get props => [users, isAdding, addError];
 }
 
 class WarehouseUserError extends WarehouseUserState {

@@ -19,15 +19,17 @@ class ProductFormReady extends ProductFormState {
   final List<BrandModel> brands;
   final List<StoreModel> stores;
   final ProductModel? existingProduct;
+  final List<ProductModel> allProducts;
 
   const ProductFormReady({
     required this.brands,
     required this.stores,
     this.existingProduct,
+    this.allProducts = const [],
   });
 
   @override
-  List<Object?> get props => [brands, stores, existingProduct];
+  List<Object?> get props => [brands, stores, existingProduct, allProducts];
 }
 
 class ProductFormSuccess extends ProductFormState {
