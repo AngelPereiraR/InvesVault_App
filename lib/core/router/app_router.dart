@@ -12,6 +12,7 @@ import '../../presentation/screens/notifications/notification_list_screen.dart';
 import '../../presentation/screens/products/barcode_scanner_screen.dart';
 import '../../presentation/screens/products/product_detail_screen.dart';
 import '../../presentation/screens/products/product_form_screen.dart';
+import '../../presentation/screens/products/product_list_screen.dart';
 import '../../presentation/screens/settings/settings_screen.dart';
 import '../../presentation/screens/shell/app_shell.dart';
 import '../../presentation/screens/shopping_list/shopping_list_screen.dart';
@@ -20,6 +21,7 @@ import '../../presentation/screens/warehouses/share_warehouse_screen.dart';
 import '../../presentation/screens/warehouses/warehouse_detail_screen.dart';
 import '../../presentation/screens/warehouses/warehouse_form_screen.dart';
 import '../../presentation/screens/products/search_screen.dart';
+import '../../presentation/screens/brands/brand_list_screen.dart';
 import '../../presentation/screens/stores/store_list_screen.dart';
 import '../../presentation/screens/warehouses/warehouse_list_screen.dart';
 
@@ -141,7 +143,13 @@ GoRouter buildRouter() {
           // Products
           GoRoute(
             path: '/products',
-            builder: (_, __) => const WarehouseListScreen(),
+            builder: (_, __) => const ProductListScreen(),
+          ),
+
+          // Brands
+          GoRoute(
+            path: '/brands',
+            builder: (_, __) => const BrandListScreen(),
           ),
 
           // Stores

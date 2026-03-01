@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../cubits/store/store_cubit.dart';
+import '../../cubits/brand/brand_cubit.dart';
 import '../../widgets/confirm_dialog.dart';
 import '../../widgets/empty_view.dart';
 import '../../widgets/error_view.dart';
@@ -12,25 +12,28 @@ const _mint = Color(0xFFD8F3DC);
 const _accentGreen = Color(0xFF52B788);
 const _white = Color(0xFFFFFFFF);
 
-class StoreListScreen extends StatefulWidget {
-  const StoreListScreen({super.key});
+class BrandListScreen extends StatefulWidget {
+  const BrandListScreen({super.key});
 
   @override
-  State<StoreListScreen> createState() => _StoreListScreenState();
+  State<BrandListScreen> createState() => _BrandListScreenState();
 }
 
-class _StoreListScreenState extends State<StoreListScreen> {
+class _BrandListScreenState extends State<BrandListScreen> {
   @override
   void initState() {
     super.initState();
-    context.read<StoreCubit>().load();
+    context.read<BrandCubit>().load();
   }
 
   @override
   Widget build(BuildContext context) {
-    return BlocConsumer<StoreCubit, StoreState>(
+    return BlocConsumer<BrandCubit, BrandState>(
+      // Only show error as snackbar when brands were already loaded;
+      // the builder keeps the previous list visible.
+      listenWhen: (_, curr) => curr is BrandError,
       listener: (context, state) {
-        if (state is StoreError) {
+        if (state is BrandError) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(state.message),
@@ -39,32 +42,34 @@ class _StoreListScreenState extends State<StoreListScreen> {
           );
         }
       },
+      // Do NOT replace a loaded list with an error view.
+      buildWhen: (prev, curr) => !(curr is BrandError && prev is BrandLoaded),
       builder: (context, state) {
-        if (state is StoreLoading || state is StoreInitial) {
+        if (state is BrandLoading || state is BrandInitial) {
           return const LoadingIndicator();
         }
-        if (state is StoreError) {
+        if (state is BrandError) {
           return ErrorView(
             message: state.message,
-            onRetry: () => context.read<StoreCubit>().load(),
+            onRetry: () => context.read<BrandCubit>().load(),
           );
         }
-        if (state is StoreLoaded && state.stores.isEmpty) {
+        if (state is BrandLoaded && state.brands.isEmpty) {
           return EmptyView(
-            message: 'No tienes tiendas registradas',
-            actionLabel: 'Añadir tienda',
-            onAction: () => showStoreDialog(context),
+            message: 'No tienes marcas registradas',
+            actionLabel: 'Añadir marca',
+            onAction: () => showBrandDialog(context),
           );
         }
-        if (state is StoreLoaded) {
+        if (state is BrandLoaded) {
           return RefreshIndicator(
-            onRefresh: () => context.read<StoreCubit>().load(),
+            onRefresh: () => context.read<BrandCubit>().load(),
             child: ListView.separated(
               padding: const EdgeInsets.all(16),
-              itemCount: state.stores.length,
+              itemCount: state.brands.length,
               separatorBuilder: (_, __) => const SizedBox(height: 10),
               itemBuilder: (context, i) {
-                final store = state.stores[i];
+                final brand = state.brands[i];
                 return Container(
                   decoration: BoxDecoration(
                     color: _white,
@@ -87,28 +92,17 @@ class _StoreListScreenState extends State<StoreListScreen> {
                         color: _mint,
                         shape: BoxShape.circle,
                       ),
-                      child: const Icon(Icons.store_outlined,
+                      child: const Icon(Icons.label_outlined,
                           color: _purple, size: 22),
                     ),
                     title: Text(
-                      store.name,
+                      brand.name,
                       style: const TextStyle(
                         fontWeight: FontWeight.w600,
                         fontSize: 15,
                         color: _purple,
                       ),
                     ),
-                    subtitle: store.location != null
-                        ? Padding(
-                            padding: const EdgeInsets.only(top: 2),
-                            child: Text(
-                              store.location!,
-                              style: TextStyle(
-                                  fontSize: 13,
-                                  color: Colors.grey.shade500),
-                            ),
-                          )
-                        : null,
                     trailing: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
@@ -117,7 +111,7 @@ class _StoreListScreenState extends State<StoreListScreen> {
                               color: _purple.withOpacity(0.6), size: 20),
                           tooltip: 'Editar',
                           onPressed: () =>
-                              showStoreDialog(context, store: store),
+                              showBrandDialog(context, brand: brand),
                         ),
                         IconButton(
                           icon: Icon(Icons.delete_outline,
@@ -126,14 +120,14 @@ class _StoreListScreenState extends State<StoreListScreen> {
                           onPressed: () async {
                             final confirm = await showConfirmDialog(
                               context,
-                              title: 'Eliminar tienda',
+                              title: 'Eliminar marca',
                               message:
-                                  '¿Eliminar "${store.name}"? Esta acción no se puede deshacer.',
+                                  '¿Eliminar "${brand.name}"? Esta acción no se puede deshacer.',
                               confirmLabel: 'Eliminar',
                               isDangerous: true,
                             );
                             if (confirm == true && context.mounted) {
-                              context.read<StoreCubit>().delete(store.id);
+                              context.read<BrandCubit>().delete(brand.id);
                             }
                           },
                         ),
@@ -152,14 +146,11 @@ class _StoreListScreenState extends State<StoreListScreen> {
 }
 
 // ─── Create / Edit dialog (public so AppShell can invoke it) ─────────────────
-Future<void> showStoreDialog(
+Future<void> showBrandDialog(
   BuildContext context, {
-  dynamic store,
+  dynamic brand,
 }) async {
-  final nameCtrl =
-      TextEditingController(text: store?.name ?? '');
-  final locationCtrl =
-      TextEditingController(text: store?.location ?? '');
+  final nameCtrl = TextEditingController(text: brand?.name ?? '');
   final formKey = GlobalKey<FormState>();
 
   await showDialog<void>(
@@ -179,7 +170,7 @@ Future<void> showStoreDialog(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                store == null ? 'Añadir tienda' : 'Editar tienda',
+                brand == null ? 'Añadir marca' : 'Editar marca',
                 style: const TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.w700,
@@ -191,18 +182,13 @@ Future<void> showStoreDialog(
               // Name
               TextFormField(
                 controller: nameCtrl,
-                decoration: _fieldDecoration('Nombre de la tienda',
-                    Icons.store_outlined),
-                validator: (v) =>
-                    (v == null || v.trim().isEmpty) ? 'Campo obligatorio' : null,
-              ),
-              const SizedBox(height: 14),
-
-              // Location
-              TextFormField(
-                controller: locationCtrl,
                 decoration: _fieldDecoration(
-                    'Dirección (opcional)', Icons.location_on_outlined),
+                    'Nombre de la marca', Icons.label_outlined),
+                textCapitalization: TextCapitalization.words,
+                validator: (v) =>
+                    (v == null || v.trim().isEmpty)
+                        ? 'Campo obligatorio'
+                        : null,
               ),
               const SizedBox(height: 24),
 
@@ -236,23 +222,17 @@ Future<void> showStoreDialog(
                             const EdgeInsets.symmetric(vertical: 14),
                       ),
                       onPressed: () {
-                        if (!formKey.currentState!.validate()) return;
+                        if (formKey.currentState?.validate() != true) return;
                         final name = nameCtrl.text.trim();
-                        final location =
-                            locationCtrl.text.trim().isEmpty
-                                ? null
-                                : locationCtrl.text.trim();
+                        if (name.isEmpty) return;
                         Navigator.of(ctx).pop();
                         if (!context.mounted) return;
-                        if (store == null) {
-                          context
-                              .read<StoreCubit>()
-                              .create(name: name, location: location);
+                        if (brand == null) {
+                          context.read<BrandCubit>().create(name);
                         } else {
-                          context.read<StoreCubit>().update(store.id, {
-                            'name': name,
-                            if (location != null) 'location': location,
-                          });
+                          context
+                              .read<BrandCubit>()
+                              .update(brand.id as int, name);
                         }
                       },
                       child: const Text('Guardar'),

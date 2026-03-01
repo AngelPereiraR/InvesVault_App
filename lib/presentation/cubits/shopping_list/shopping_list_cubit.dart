@@ -32,10 +32,21 @@ class ShoppingListCubit extends Cubit<ShoppingListState> {
 
   Future<void> addItem(int warehouseId, int productId, double qty) async {
     try {
-      await _repository.addItem(warehouseId, productId, qty);
-      await load(warehouseId);
+      final items = await _repository.addItem(warehouseId, productId, qty);
+      emit(ShoppingListLoaded(items));
     } catch (e) {
       emit(ShoppingListError(e.toString()));
+    }
+  }
+
+  Future<void> updateItem(
+      int id, double newQty, int warehouseId) async {
+    try {
+      final items = await _repository.updateItem(id, newQty);
+      emit(ShoppingListLoaded(items));
+    } catch (e) {
+      // Reload to stay consistent
+      await load(warehouseId);
     }
   }
 

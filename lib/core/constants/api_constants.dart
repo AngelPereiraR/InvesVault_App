@@ -53,6 +53,7 @@ abstract class ApiConstants {
       '/shopping-list/$warehouseId';
   static String shoppingListAdd(int warehouseId) =>
       '/shopping-list/add/$warehouseId';
+  static String shoppingListUpdate(int id) => '/shopping-list/update/$id';
   static String shoppingListRemove(int id) => '/shopping-list/remove/$id';
   static String shoppingListClear(int warehouseId) =>
       '/shopping-list/clear/$warehouseId';

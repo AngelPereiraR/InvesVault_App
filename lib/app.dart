@@ -34,6 +34,7 @@ import 'presentation/cubits/dashboard/dashboard_cubit.dart';
 import 'presentation/cubits/notification/notification_cubit.dart';
 import 'presentation/cubits/product_detail/product_detail_cubit.dart';
 import 'presentation/cubits/product_form/product_form_cubit.dart';
+import 'presentation/cubits/product_list/product_list_cubit.dart';
 import 'presentation/cubits/shopping_list/shopping_list_cubit.dart';
 import 'presentation/cubits/stock_change/stock_change_cubit.dart';
 import 'presentation/cubits/store/store_cubit.dart';
@@ -143,6 +144,9 @@ class _InvesVaultAppState extends State<InvesVaultApp> {
         ),
         BlocProvider(
           create: (_) => WarehouseUserCubit(_warehouseUserRepo),
+        ),
+        BlocProvider(
+          create: (_) => ProductListCubit(_productRepo),
         ),
         BlocProvider(
           create: (_) => ProductFormCubit(

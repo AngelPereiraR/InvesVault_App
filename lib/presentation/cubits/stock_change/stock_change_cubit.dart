@@ -39,4 +39,25 @@ class StockChangeCubit extends Cubit<StockChangeState> {
       emit(StockChangeError(e.toString()));
     }
   }
+
+  /// Silently creates a stock change without modifying current UI state.
+  Future<void> create({
+    required int warehouseId,
+    required int productId,
+    required int changeQuantity,
+    String changeType = 'inbound',
+    String? reason,
+  }) async {
+    try {
+      await _repository.create({
+        'warehouse_id': warehouseId,
+        'product_id': productId,
+        'change_quantity': changeQuantity,
+        'change_type': changeType,
+        if (reason != null) 'reason': reason,
+      });
+    } catch (_) {
+      // Silent — stock change errors shouldn't block the shopping list flow
+    }
+  }
 }

@@ -52,6 +52,11 @@ class AppDrawer extends StatelessWidget {
                   route: '/stores',
                 ),
                 const _DrawerTile(
+                  icon: Icons.label_outlined,
+                  label: 'Marcas',
+                  route: '/brands',
+                ),
+                const _DrawerTile(
                   icon: Icons.inventory_2_outlined,
                   label: 'Inventario',
                   route: '/products',

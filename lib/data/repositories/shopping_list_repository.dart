@@ -11,9 +11,12 @@ class ShoppingListRepository {
   Future<List<ShoppingListItemModel>> getList(int warehouseId) =>
       _datasource.getList(warehouseId);
 
-  Future<ShoppingListItemModel> addItem(
+  Future<List<ShoppingListItemModel>> addItem(
           int warehouseId, int productId, double qty) =>
       _datasource.addItem(warehouseId, productId, qty);
+
+  Future<List<ShoppingListItemModel>> updateItem(int id, double newQty) =>
+      _datasource.updateItem(id, newQty);
 
   Future<void> removeItem(int id) => _datasource.removeItem(id);
 

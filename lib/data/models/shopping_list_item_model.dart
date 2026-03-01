@@ -9,6 +9,9 @@ class ShoppingListItemModel extends Equatable {
   final bool isAuto;
   final String? createdAt;
   final ProductModel? product;
+  // Live warehouse stock data for alert-gap computation
+  final double? wpMinQuantity;
+  final double? wpCurrentQty;
 
   const ShoppingListItemModel({
     required this.id,
@@ -18,7 +21,17 @@ class ShoppingListItemModel extends Equatable {
     required this.isAuto,
     this.createdAt,
     this.product,
+    this.wpMinQuantity,
+    this.wpCurrentQty,
   });
+
+  /// How many units are needed to cover the minimum-stock alert.
+  /// Returns 0 when stock already meets or exceeds the minimum.
+  double get alertGap {
+    if (wpMinQuantity == null || wpCurrentQty == null) return 0;
+    final gap = wpMinQuantity! - wpCurrentQty!;
+    return gap > 0 ? gap : 0;
+  }
 
   factory ShoppingListItemModel.fromJson(Map<String, dynamic> json) {
     final productJson = json['product'] as Map<String, dynamic>?;
@@ -31,6 +44,12 @@ class ShoppingListItemModel extends Equatable {
       isAuto: json['is_auto'] as bool? ?? true,
       createdAt: json['created_at'] as String?,
       product: productJson != null ? ProductModel.fromJson(productJson) : null,
+      wpMinQuantity: json['wp_min_quantity'] != null
+          ? double.tryParse(json['wp_min_quantity'].toString())
+          : null,
+      wpCurrentQty: json['wp_current_qty'] != null
+          ? double.tryParse(json['wp_current_qty'].toString())
+          : null,
     );
   }
 
@@ -43,5 +62,5 @@ class ShoppingListItemModel extends Equatable {
       };
 
   @override
-  List<Object?> get props => [id, warehouseId, productId, suggestedQty, isAuto];
+  List<Object?> get props => [id, warehouseId, productId, suggestedQty, isAuto, wpMinQuantity, wpCurrentQty];
 }

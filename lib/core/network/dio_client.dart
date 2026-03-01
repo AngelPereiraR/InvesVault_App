@@ -30,6 +30,16 @@ class DioClient {
           }
           return handler.next(options);
         },
+        onResponse: (response, handler) async {
+          // Silently rotate token when the backend issues a refreshed one
+          final refreshed =
+              response.headers.value('x-refreshed-token');
+          if (refreshed != null && refreshed.isNotEmpty) {
+            await storageService.saveToken(refreshed);
+            await storageService.saveLastActive();
+          }
+          return handler.next(response);
+        },
         onError: (error, handler) async {
           if (error.response?.statusCode == 401) {
             await storageService.clearAll();

@@ -4,6 +4,8 @@ import 'package:go_router/go_router.dart';
 
 import '../../cubits/auth/auth_cubit.dart';
 import '../../cubits/notification/notification_cubit.dart';
+import '../../cubits/product_list/product_list_cubit.dart';
+import '../brands/brand_list_screen.dart';
 import '../stores/store_list_screen.dart';
 import '../warehouses/warehouse_list_screen.dart';
 import 'app_drawer.dart';
@@ -45,13 +47,24 @@ class AppShell extends StatelessWidget {
               IconButton(
                 icon: const Icon(Icons.add),
                 tooltip: 'Nuevo producto',
-                onPressed: () => context.push('/products/new'),
+                onPressed: () async {
+                  await context.push('/products/new');
+                  if (context.mounted) {
+                    context.read<ProductListCubit>().load();
+                  }
+                },
               )
             else if (location == '/stores')
               IconButton(
                 icon: const Icon(Icons.add),
                 tooltip: 'Nueva tienda',
                 onPressed: () => showStoreDialog(context),
+              )
+            else if (location == '/brands')
+              IconButton(
+                icon: const Icon(Icons.add),
+                tooltip: 'Nueva marca',
+                onPressed: () => showBrandDialog(context),
               ),
 
             // Notifications
@@ -86,6 +99,7 @@ class AppShell extends StatelessWidget {
       '/dashboard': 'Inicio',
       '/warehouses': 'Almacenes',
       '/stores': 'Tiendas',
+      '/brands': 'Marcas',
       '/products': 'Inventario',
       '/shopping-list': 'Lista de compra',
       '/stock-history': 'Historial de cambios',

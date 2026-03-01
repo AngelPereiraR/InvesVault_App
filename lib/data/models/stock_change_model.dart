@@ -11,6 +11,7 @@ class StockChangeModel extends Equatable {
   final String? createdAt;
   final String? productName;
   final String? warehouseName;
+  final String? userName;
 
   const StockChangeModel({
     required this.id,
@@ -23,11 +24,13 @@ class StockChangeModel extends Equatable {
     this.createdAt,
     this.productName,
     this.warehouseName,
+    this.userName,
   });
 
   factory StockChangeModel.fromJson(Map<String, dynamic> json) {
     final product = json['product'] as Map<String, dynamic>?;
     final warehouse = json['warehouse'] as Map<String, dynamic>?;
+    final user = json['user'] as Map<String, dynamic>?;
     return StockChangeModel(
       id: json['id'] as int,
       productId: json['product_id'] as int,
@@ -39,6 +42,7 @@ class StockChangeModel extends Equatable {
       createdAt: json['created_at'] as String?,
       productName: product?['name'] as String?,
       warehouseName: warehouse?['name'] as String?,
+      userName: user?['name'] as String?,
     );
   }
 
@@ -54,5 +58,5 @@ class StockChangeModel extends Equatable {
 
   @override
   List<Object?> get props =>
-      [id, productId, warehouseId, changeQuantity, changeType, createdAt];
+      [id, productId, warehouseId, changeQuantity, changeType, createdAt, userName];
 }

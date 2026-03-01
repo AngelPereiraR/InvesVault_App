@@ -24,14 +24,28 @@ class ShoppingListRemoteDatasource {
         .toList();
   }
 
-  Future<ShoppingListItemModel> addItem(
+  Future<List<ShoppingListItemModel>> addItem(
       int warehouseId, int productId, double qty) async {
     final response = await _dio.post(
       ApiConstants.shoppingListAdd(warehouseId),
       data: {'product_id': productId, 'suggested_qty': qty},
     );
-    return ShoppingListItemModel.fromJson(
-        response.data as Map<String, dynamic>);
+    return (response.data as List)
+        .map((e) =>
+            ShoppingListItemModel.fromJson(e as Map<String, dynamic>))
+        .toList();
+  }
+
+  Future<List<ShoppingListItemModel>> updateItem(
+      int id, double newQty) async {
+    final response = await _dio.patch(
+      ApiConstants.shoppingListUpdate(id),
+      data: {'suggested_qty': newQty},
+    );
+    return (response.data as List)
+        .map((e) =>
+            ShoppingListItemModel.fromJson(e as Map<String, dynamic>))
+        .toList();
   }
 
   Future<void> removeItem(int id) =>

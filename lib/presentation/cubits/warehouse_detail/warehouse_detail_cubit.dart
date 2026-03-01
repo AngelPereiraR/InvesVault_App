@@ -90,7 +90,7 @@ class WarehouseDetailCubit extends Cubit<WarehouseDetailState> {
         'product_id': productId,
         'warehouse_id': warehouseId,
         'change_quantity': delta.abs(),
-        'change_type': delta >= 0 ? 'entrada' : 'salida',
+        'change_type': delta >= 0 ? 'inbound' : 'outbound',
         if (reason != null) 'reason': reason,
         'user_id': userId,
       });

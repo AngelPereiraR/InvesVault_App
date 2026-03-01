@@ -142,6 +142,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ),
               const SizedBox(height: 12),
               _BigActionCard(
+                icon: Icons.label_outlined,
+                label: 'Marcas',
+                onTap: () => context.go('/brands'),
+              ),
+              const SizedBox(height: 12),
+              _BigActionCard(
+                icon: Icons.inventory_2_outlined,
+                label: 'Productos',
+                onTap: () => context.go('/products'),
+              ),
+              const SizedBox(height: 12),
+              _BigActionCard(
                 icon: Icons.add_box_outlined,
                 label: 'Añadir producto',
                 onTap: () => context.push('/products/new'),
