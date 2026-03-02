@@ -10,7 +10,11 @@ class ShoppingListCubit extends Cubit<ShoppingListState> {
   final ShoppingListRepository _repository;
   ShoppingListCubit(this._repository) : super(const ShoppingListInitial());
 
+  // Track current load mode so reload operations stay consistent
+  bool _globalMode = false;
+
   Future<void> load(int warehouseId) async {
+    _globalMode = false;
     emit(const ShoppingListLoading());
     try {
       final items = await _repository.getList(warehouseId);
@@ -20,7 +24,38 @@ class ShoppingListCubit extends Cubit<ShoppingListState> {
     }
   }
 
+  Future<void> loadAll() async {
+    _globalMode = true;
+    emit(const ShoppingListLoading());
+    try {
+      final items = await _repository.getAllItems();
+      emit(ShoppingListLoaded(items));
+    } catch (e) {
+      emit(ShoppingListError(e.toString()));
+    }
+  }
+
+  Future<void> _reload(int warehouseId) async {
+    if (_globalMode) {
+      await loadAll();
+    } else {
+      await load(warehouseId);
+    }
+  }
+
+  Future<void> generateAll() async {
+    _globalMode = true;
+    emit(const ShoppingListLoading());
+    try {
+      final items = await _repository.generateAll();
+      emit(ShoppingListLoaded(items));
+    } catch (e) {
+      emit(ShoppingListError(e.toString()));
+    }
+  }
+
   Future<void> generate(int warehouseId) async {
+    _globalMode = false;
     emit(const ShoppingListLoading());
     try {
       final items = await _repository.generate(warehouseId);
@@ -33,7 +68,11 @@ class ShoppingListCubit extends Cubit<ShoppingListState> {
   Future<void> addItem(int warehouseId, int productId, double qty) async {
     try {
       final items = await _repository.addItem(warehouseId, productId, qty);
-      emit(ShoppingListLoaded(items));
+      if (_globalMode) {
+        await loadAll();
+      } else {
+        emit(ShoppingListLoaded(items));
+      }
     } catch (e) {
       emit(ShoppingListError(e.toString()));
     }
@@ -43,17 +82,21 @@ class ShoppingListCubit extends Cubit<ShoppingListState> {
       int id, double newQty, int warehouseId) async {
     try {
       final items = await _repository.updateItem(id, newQty);
-      emit(ShoppingListLoaded(items));
+      if (_globalMode) {
+        // updateItem returns only the warehouse's list — reload all so global view is fresh
+        await loadAll();
+      } else {
+        emit(ShoppingListLoaded(items));
+      }
     } catch (e) {
-      // Reload to stay consistent
-      await load(warehouseId);
+      await _reload(warehouseId);
     }
   }
 
   Future<void> removeItem(int id, int warehouseId) async {
     try {
       await _repository.removeItem(id);
-      await load(warehouseId);
+      await _reload(warehouseId);
     } catch (e) {
       emit(ShoppingListError(e.toString()));
     }

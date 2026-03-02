@@ -6,6 +6,14 @@ class ShoppingListRemoteDatasource {
   final Dio _dio;
   ShoppingListRemoteDatasource(this._dio);
 
+  Future<List<ShoppingListItemModel>> generateAll() async {
+    final response = await _dio.post(ApiConstants.shoppingListGenerateAll);
+    return (response.data as List)
+        .map((e) =>
+            ShoppingListItemModel.fromJson(e as Map<String, dynamic>))
+        .toList();
+  }
+
   Future<List<ShoppingListItemModel>> generate(int warehouseId) async {
     final response =
         await _dio.post(ApiConstants.shoppingListGenerate(warehouseId));
@@ -53,4 +61,12 @@ class ShoppingListRemoteDatasource {
 
   Future<void> clearList(int warehouseId) =>
       _dio.delete(ApiConstants.shoppingListClear(warehouseId));
+
+  Future<List<ShoppingListItemModel>> getAllItems() async {
+    final response = await _dio.get(ApiConstants.shoppingListAll);
+    return (response.data as List)
+        .map((e) =>
+            ShoppingListItemModel.fromJson(e as Map<String, dynamic>))
+        .toList();
+  }
 }

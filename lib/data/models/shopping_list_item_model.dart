@@ -12,6 +12,11 @@ class ShoppingListItemModel extends Equatable {
   // Live warehouse stock data for alert-gap computation
   final double? wpMinQuantity;
   final double? wpCurrentQty;
+  // Store this product is normally bought at
+  final int? storeId;
+  final String? storeName;
+  // Warehouse name (populated in cross-warehouse queries)
+  final String? warehouseName;
 
   const ShoppingListItemModel({
     required this.id,
@@ -23,6 +28,9 @@ class ShoppingListItemModel extends Equatable {
     this.product,
     this.wpMinQuantity,
     this.wpCurrentQty,
+    this.storeId,
+    this.storeName,
+    this.warehouseName,
   });
 
   /// How many units are needed to cover the minimum-stock alert.
@@ -50,6 +58,11 @@ class ShoppingListItemModel extends Equatable {
       wpCurrentQty: json['wp_current_qty'] != null
           ? double.tryParse(json['wp_current_qty'].toString())
           : null,
+      storeId: json['wp_store_id'] != null
+          ? int.tryParse(json['wp_store_id'].toString())
+          : null,
+      storeName: json['wp_store_name'] as String?,
+      warehouseName: json['warehouse_name'] as String?,
     );
   }
 
@@ -62,5 +75,5 @@ class ShoppingListItemModel extends Equatable {
       };
 
   @override
-  List<Object?> get props => [id, warehouseId, productId, suggestedQty, isAuto, wpMinQuantity, wpCurrentQty];
+  List<Object?> get props => [id, warehouseId, productId, suggestedQty, isAuto, wpMinQuantity, wpCurrentQty, storeId, storeName, warehouseName];
 }

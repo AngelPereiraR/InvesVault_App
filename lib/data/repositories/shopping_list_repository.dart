@@ -5,6 +5,9 @@ class ShoppingListRepository {
   final ShoppingListRemoteDatasource _datasource;
   ShoppingListRepository(this._datasource);
 
+  Future<List<ShoppingListItemModel>> generateAll() =>
+      _datasource.generateAll();
+
   Future<List<ShoppingListItemModel>> generate(int warehouseId) =>
       _datasource.generate(warehouseId);
 
@@ -22,4 +25,7 @@ class ShoppingListRepository {
 
   Future<void> clearList(int warehouseId) =>
       _datasource.clearList(warehouseId);
+
+  Future<List<ShoppingListItemModel>> getAllItems() =>
+      _datasource.getAllItems();
 }

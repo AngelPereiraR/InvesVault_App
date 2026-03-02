@@ -47,6 +47,7 @@ abstract class ApiConstants {
   static String storeById(int id) => '/stores/$id';
 
   // Shopping List
+  static const String shoppingListGenerateAll = '/shopping-list/generate/all';
   static String shoppingListGenerate(int warehouseId) =>
       '/shopping-list/generate/$warehouseId';
   static String shoppingList(int warehouseId) =>
@@ -57,6 +58,7 @@ abstract class ApiConstants {
   static String shoppingListRemove(int id) => '/shopping-list/remove/$id';
   static String shoppingListClear(int warehouseId) =>
       '/shopping-list/clear/$warehouseId';
+  static const String shoppingListAll = '/shopping-list/all/items';
 
   // Notifications
   static const String notifications = '/notifications';
