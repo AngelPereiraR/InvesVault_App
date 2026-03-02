@@ -90,16 +90,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
                 // ── Header ────────────────────────────────────────────
                 Center(
-                  child: Container(
-                    width: 72,
-                    height: 72,
-                    decoration: const BoxDecoration(
-                      color: _purple,
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(Icons.inventory_2_outlined,
-                        size: 38, color: _bg),
-                  ),
+                  child: Image.asset('assets/logo.png',
+                      width: 80, height: 80),
                 ),
                 const SizedBox(height: 12),
                 const Center(

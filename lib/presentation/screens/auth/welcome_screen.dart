@@ -86,10 +86,8 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                   Container(
                     width: 40,
                     height: 40,
-                    decoration: const BoxDecoration(
-                        color: _purple, shape: BoxShape.circle),
-                    child: const Icon(Icons.inventory_2_outlined,
-                        size: 22, color: _mint),
+                    child: Image.asset('assets/logo.png',
+                        width: 40, height: 40),
                   ),
                   const SizedBox(width: 10),
                   Column(

@@ -38,9 +38,7 @@ class _SplashScreenState extends State<SplashScreen> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.inventory,
-                size: 80,
-                color: Theme.of(context).colorScheme.primary),
+            Image.asset('assets/logo.png', width: 100, height: 100),
             const SizedBox(height: 16),
             Text('InvesVault',
                 style: Theme.of(context).textTheme.headlineMedium?.copyWith(

@@ -167,10 +167,8 @@ class _DrawerHeader extends StatelessWidget {
               Container(
                 width: 44,
                 height: 44,
-                decoration: const BoxDecoration(
-                    color: _mint, shape: BoxShape.circle),
-                child: const Icon(Icons.inventory_2_outlined,
-                    color: _purple, size: 24),
+                child: Image.asset('assets/logo.png',
+                    width: 44, height: 44),
               ),
               const SizedBox(width: 12),
               Column(
