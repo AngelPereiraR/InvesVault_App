@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:dio/dio.dart';
-import 'package:go_router/go_router.dart';
 
 import 'core/network/dio_client.dart';
 import 'core/router/app_router.dart';
@@ -82,7 +81,6 @@ class _InvesVaultAppState extends State<InvesVaultApp> {
   late final ShoppingListRepository _shoppingListRepo;
   late final NotificationRepository _notificationRepo;
   late final StockChangeRepository _stockChangeRepo;
-  late final GoRouter _router;
 
   @override
   void initState() {
@@ -112,7 +110,6 @@ class _InvesVaultAppState extends State<InvesVaultApp> {
     _shoppingListRepo = ShoppingListRepository(_shoppingListDs);
     _notificationRepo = NotificationRepository(_notificationDs);
     _stockChangeRepo = StockChangeRepository(_stockChangeDs);
-    _router = buildRouter();
   }
 
   @override
@@ -174,11 +171,13 @@ class _InvesVaultAppState extends State<InvesVaultApp> {
           create: (_) => StockChangeCubit(_stockChangeRepo),
         ),
       ],
-      child: MaterialApp.router(
+      child: MaterialApp(
         title: 'InvesVault',
         theme: AppTheme.light,
         themeMode: ThemeMode.light,
-        routerConfig: _router,
+        navigatorKey: rootNavigatorKey,
+        initialRoute: '/splash',
+        onGenerateRoute: generateRoute,
         debugShowCheckedModeBanner: false,
       ),
     );

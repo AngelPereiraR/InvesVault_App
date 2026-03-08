@@ -1,11 +1,4 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
-
-import '../../presentation/cubits/auth/auth_cubit.dart';
-import '../../presentation/widgets/confirm_dialog.dart';
 import '../../presentation/screens/auth/login_screen.dart';
 import '../../presentation/screens/auth/register_screen.dart';
 import '../../presentation/screens/auth/splash_screen.dart';
@@ -29,18 +22,10 @@ import '../../presentation/screens/stores/store_list_screen.dart';
 import '../../presentation/screens/warehouses/warehouse_list_screen.dart';
 
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
-final _dashboardNavigatorKey = GlobalKey<NavigatorState>();
-final _warehousesNavigatorKey = GlobalKey<NavigatorState>();
-final _productsNavigatorKey = GlobalKey<NavigatorState>();
-final _brandsNavigatorKey = GlobalKey<NavigatorState>();
-final _storesNavigatorKey = GlobalKey<NavigatorState>();
-final _stockHistoryNavigatorKey = GlobalKey<NavigatorState>();
-final _shoppingListNavigatorKey = GlobalKey<NavigatorState>();
-final _settingsNavigatorKey = GlobalKey<NavigatorState>();
 
 GlobalKey<NavigatorState> get rootNavigatorKey => _rootNavigatorKey;
 
-const _shellBranchRoutes = [
+const shellRootRoutes = {
   '/dashboard',
   '/warehouses',
   '/products',
@@ -49,349 +34,261 @@ const _shellBranchRoutes = [
   '/stock-history',
   '/shopping-list',
   '/settings',
-];
+};
 
-class ShellSectionHistory {
-  ShellSectionHistory._();
-
-  static final ShellSectionHistory instance = ShellSectionHistory._();
-
-  final List<String> _routes = [];
-
-  void visit(String route) {
-    _routes.remove(route);
-    _routes.add(route);
-  }
-
-  String? previousOf(String currentRoute) {
-    if (_routes.isEmpty) return null;
-    if (_routes.last != currentRoute) {
-      visit(currentRoute);
-    }
-    if (_routes.length < 2) return null;
-    _routes.removeLast();
-    return _routes.last;
-  }
-
-  void resetTo(String route) {
-    _routes
-      ..clear()
-      ..add(route);
-  }
+enum ShellNavigationMode {
+  preserveStack,
+  resetFromDashboard,
+  replaceAll,
 }
 
-int? _branchIndexForRoute(String route) {
-  final index = _shellBranchRoutes.indexOf(route);
-  return index == -1 ? null : index;
+String currentRouteName(BuildContext context) {
+  return ModalRoute.of(context)?.settings.name ?? '';
 }
 
-String _branchRouteAt(int index) => _shellBranchRoutes[index];
-
-void navigateToShellRoot(BuildContext context, String route) {
-  final branchIndex = _branchIndexForRoute(route);
-  if (branchIndex == null) {
-    context.go(route);
-    return;
-  }
-
-  final shellState = StatefulNavigationShell.maybeOf(context);
-  if (shellState == null) {
-    context.go(route);
-    return;
-  }
-
-  ShellSectionHistory.instance.visit(route);
-  shellState.goBranch(branchIndex, initialLocation: true);
-}
-
-Future<void> _showBlockedExitDialog(
-  BuildContext context, {
-  required String message,
-}) async {
-  await showConfirmDialog(
-    context,
-    title: 'Salir de InvesVault',
-    message: message,
-    confirmLabel: 'Entendido',
-    cancelLabel: 'Cancelar',
-  );
-}
-
-Future<void> _handleRegisterBlockedPop(BuildContext context) async {
-  final shouldGoBack = await showConfirmDialog(
-    context,
-    title: 'Volver al login',
-    message: '¿Quieres volver a la pantalla de acceso?',
-    confirmLabel: 'Volver',
-  );
-
-  if (shouldGoBack == true && context.mounted) {
-    context.go('/login');
-  }
-}
-
-Future<void> _handleShellRootBlockedPop(
+void navigateToShellSection(
   BuildContext context,
-  int currentBranchIndex,
-) async {
-  final currentRoute = _branchRouteAt(currentBranchIndex);
-  final previousRoute = ShellSectionHistory.instance.previousOf(currentRoute);
-  if (previousRoute != null) {
-    navigateToShellRoot(context, previousRoute);
+  String route, {
+  ShellNavigationMode mode = ShellNavigationMode.preserveStack,
+}) {
+  if (!shellRootRoutes.contains(route)) {
+    if (mode == ShellNavigationMode.preserveStack) {
+      context.push(route);
+    } else {
+      context.go(route);
+    }
     return;
   }
 
-  await _showBlockedExitDialog(
+  final current = currentRouteName(context);
+  if (current == route) return;
+
+  switch (mode) {
+    case ShellNavigationMode.preserveStack:
+      AppNavigator.instance.push(route);
+      break;
+    case ShellNavigationMode.resetFromDashboard:
+      AppNavigator.instance.resetShellFlow(route);
+      break;
+    case ShellNavigationMode.replaceAll:
+      AppNavigator.instance.replaceAll(route);
+      break;
+  }
+}
+
+void enterMainShell(BuildContext context, {String route = '/dashboard'}) {
+  navigateToShellSection(
     context,
-    message:
-        'Ya estás en la última pantalla. Usa el selector del sistema para salir si lo necesitas.',
+    route,
+    mode: ShellNavigationMode.replaceAll,
   );
 }
 
-Page<void> _blockedPopPage({
-  required BuildContext context,
-  required GoRouterState state,
-  required Widget child,
-  required Future<void> Function(BuildContext context) onBlockedPop,
-}) {
-  return MaterialPage<void>(
-    key: state.pageKey,
-    name: state.uri.toString(),
-    arguments: state.extra,
-    canPop: false,
-    onPopInvoked: (didPop, _) {
-      if (didPop) return;
-      unawaited(onBlockedPop(context));
-    },
-    child: child,
+void enterAuthFlow(BuildContext context, {String route = '/login'}) {
+  AppNavigator.instance.replaceAll(route);
+}
+
+void replaceWithAuthRoute(BuildContext context, String route) {
+  AppNavigator.instance.replaceAll(route);
+}
+
+class AppNavigator {
+  AppNavigator._();
+
+  static final AppNavigator instance = AppNavigator._();
+
+  NavigatorState? get _navigator => rootNavigatorKey.currentState;
+
+  Future<T?> push<T extends Object?>(String route, {Object? extra}) {
+    return _navigator!.pushNamed<T>(route, arguments: extra);
+  }
+
+  Future<T?> openAuxiliaryRoute<T extends Object?>(
+    String route, {
+    Object? extra,
+  }) {
+    return push<T>(route, extra: extra);
+  }
+
+  Future<T?> go<T extends Object?>(String route, {Object? extra}) {
+    return replaceAll<T>(route, extra: extra);
+  }
+
+  Future<T?> replaceAll<T extends Object?>(String route, {Object? extra}) {
+    return _navigator!.pushNamedAndRemoveUntil<T>(
+      route,
+      (currentRoute) => false,
+      arguments: extra,
+    );
+  }
+
+  void resetShellFlow(String route) {
+    final navigator = _navigator!;
+    navigator.pushNamedAndRemoveUntil('/dashboard', (route) => false);
+    if (route != '/dashboard') {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        navigator.pushNamed(route);
+      });
+    }
+  }
+
+  bool canPop() {
+    return _navigator?.canPop() ?? false;
+  }
+
+  void pop<T extends Object?>([T? result]) {
+    if (_navigator?.canPop() ?? false) {
+      _navigator?.pop(result);
+    }
+  }
+}
+
+extension AppNavigationContext on BuildContext {
+  Future<T?> push<T extends Object?>(String route, {Object? extra}) {
+    return AppNavigator.instance.push<T>(route, extra: extra);
+  }
+
+  Future<T?> openAuxiliaryRoute<T extends Object?>(
+    String route, {
+    Object? extra,
+  }) {
+    return AppNavigator.instance.openAuxiliaryRoute<T>(route, extra: extra);
+  }
+
+  Future<T?> go<T extends Object?>(String route, {Object? extra}) {
+    return AppNavigator.instance.go<T>(route, extra: extra);
+  }
+
+  void pop<T extends Object?>([T? result]) {
+    AppNavigator.instance.pop<T>(result);
+  }
+
+  bool canPop() {
+    return AppNavigator.instance.canPop();
+  }
+}
+
+Route<dynamic> generateRoute(RouteSettings settings) {
+  final route = settings.name ?? '/splash';
+  final page = _buildPage(route, settings.arguments);
+
+  return MaterialPageRoute<void>(
+    settings: RouteSettings(name: route, arguments: settings.arguments),
+    builder: (_) => page,
   );
 }
 
-Page<void> _blockedShellPage({
-  required BuildContext context,
-  required GoRouterState state,
-  required StatefulNavigationShell navigationShell,
-}) {
-  return MaterialPage<void>(
-    key: state.pageKey,
-    name: state.uri.toString(),
-    canPop: false,
-    onPopInvoked: (didPop, _) {
-      if (didPop) return;
-      unawaited(
-        _handleShellRootBlockedPop(context, navigationShell.currentIndex),
-      );
-    },
-    child: AppShell(
-      navigationShell: navigationShell,
-      currentLocation: state.uri.path,
+Widget _buildPage(String route, Object? extra) {
+  if (route == '/splash') return const SplashScreen();
+  if (route == '/welcome') return const WelcomeScreen();
+  if (route == '/login') return const LoginScreen();
+  if (route == '/register') return const RegisterScreen();
+  if (route == '/notifications') return const NotificationListScreen();
+  if (route == '/warehouses/new') return const WarehouseFormScreen();
+  if (route == '/products/new') return const ProductFormScreen();
+  if (route == '/search') return const GlobalSearchScreen();
+  if (route == '/dashboard') {
+    return const AppShell(
+      currentLocation: '/dashboard',
+      child: DashboardScreen(),
+    );
+  }
+  if (route == '/warehouses') {
+    return const AppShell(
+      currentLocation: '/warehouses',
+      child: WarehouseListScreen(),
+    );
+  }
+  if (route == '/products') {
+    return const AppShell(
+      currentLocation: '/products',
+      child: ProductListScreen(),
+    );
+  }
+  if (route == '/brands') {
+    return const AppShell(
+      currentLocation: '/brands',
+      child: BrandListScreen(),
+    );
+  }
+  if (route == '/stores') {
+    return const AppShell(
+      currentLocation: '/stores',
+      child: StoreListScreen(),
+    );
+  }
+  if (route == '/stock-history') {
+    return const AppShell(
+      currentLocation: '/stock-history',
+      child: StockChangeHistoryScreen(),
+    );
+  }
+  if (route == '/shopping-list') {
+    return const AppShell(
+      currentLocation: '/shopping-list',
+      child: ShoppingListScreen(),
+    );
+  }
+  if (route == '/settings') {
+    return const AppShell(
+      currentLocation: '/settings',
+      child: SettingsScreen(),
+    );
+  }
+  if (route == '/scanner') {
+    final args = extra as Map<String, dynamic>?;
+    return BarcodeScannerScreen(
+      onScanned: args?['onScanned'] as void Function(String)?,
+    );
+  }
+
+  final warehouseEditMatch =
+      RegExp(r'^/warehouses/(\d+)/edit$').firstMatch(route);
+  if (warehouseEditMatch != null) {
+    return WarehouseFormScreen(
+      warehouseId: int.parse(warehouseEditMatch.group(1)!),
+    );
+  }
+
+  final warehouseShareMatch =
+      RegExp(r'^/warehouses/(\d+)/share$').firstMatch(route);
+  if (warehouseShareMatch != null) {
+    return ShareWarehouseScreen(
+      warehouseId: int.parse(warehouseShareMatch.group(1)!),
+    );
+  }
+
+  final warehouseDetailMatch =
+      RegExp(r'^/warehouses/(\d+)/detail$').firstMatch(route);
+  if (warehouseDetailMatch != null) {
+    return AppShell(
+      currentLocation: route,
+      child: WarehouseDetailScreen(
+        warehouseId: int.parse(warehouseDetailMatch.group(1)!),
+      ),
+    );
+  }
+
+  final productEditMatch = RegExp(r'^/products/(\d+)/edit$').firstMatch(route);
+  if (productEditMatch != null) {
+    return ProductFormScreen(
+      productId: int.parse(productEditMatch.group(1)!),
+    );
+  }
+
+  final productDetailMatch =
+      RegExp(r'^/products/(\d+)/detail$').firstMatch(route);
+  if (productDetailMatch != null) {
+    final args = extra as Map<String, int>?;
+    return ProductDetailScreen(
+      warehouseProductId: int.parse(productDetailMatch.group(1)!),
+      warehouseId: args?['warehouseId'] ?? 0,
+    );
+  }
+
+  return Scaffold(
+    body: Center(
+      child: Text('Ruta no encontrada: $route'),
     ),
-  );
-}
-
-GoRouter buildRouter() {
-  return GoRouter(
-    navigatorKey: _rootNavigatorKey,
-    initialLocation: '/splash',
-    redirect: (context, state) {
-      final authState = context.read<AuthCubit>().state;
-      final isSplash = state.matchedLocation == '/splash';
-      final isAuth = state.matchedLocation == '/login' ||
-          state.matchedLocation == '/register' ||
-          state.matchedLocation == '/welcome';
-
-      if (isSplash) return null;
-      if (authState is AuthUnauthenticated && !isAuth) return '/login';
-      if (authState is AuthAuthenticated && isAuth) {
-        ShellSectionHistory.instance.resetTo('/dashboard');
-        return '/dashboard';
-      }
-      return null;
-    },
-    routes: [
-      GoRoute(
-        path: '/splash',
-        builder: (_, __) => const SplashScreen(),
-      ),
-      GoRoute(
-        path: '/welcome',
-        pageBuilder: (context, state) => _blockedPopPage(
-          context: context,
-          state: state,
-          onBlockedPop: (context) => _showBlockedExitDialog(
-            context,
-            message: 'Ya estás en la pantalla de bienvenida.',
-          ),
-          child: const WelcomeScreen(),
-        ),
-      ),
-      GoRoute(
-        path: '/login',
-        pageBuilder: (context, state) => _blockedPopPage(
-          context: context,
-          state: state,
-          onBlockedPop: (context) => _showBlockedExitDialog(
-            context,
-            message: 'Ya estás en la pantalla inicial de acceso.',
-          ),
-          child: const LoginScreen(),
-        ),
-      ),
-      GoRoute(
-        path: '/register',
-        pageBuilder: (context, state) => _blockedPopPage(
-          context: context,
-          state: state,
-          onBlockedPop: _handleRegisterBlockedPop,
-          child: const RegisterScreen(),
-        ),
-      ),
-      GoRoute(
-        path: '/notifications',
-        builder: (_, __) => const NotificationListScreen(),
-      ),
-
-      // ── Detail / form routes (rendered above the shell, own AppBar) ─
-      GoRoute(
-        path: '/warehouses/new',
-        builder: (_, __) => const WarehouseFormScreen(),
-      ),
-      GoRoute(
-        path: '/warehouses/:id/edit',
-        builder: (_, state) => WarehouseFormScreen(
-          warehouseId: int.parse(state.pathParameters['id']!),
-        ),
-      ),
-      GoRoute(
-        path: '/warehouses/:id/share',
-        builder: (_, state) => ShareWarehouseScreen(
-          warehouseId: int.parse(state.pathParameters['id']!),
-        ),
-      ),
-      GoRoute(
-        path: '/products/new',
-        builder: (_, __) => const ProductFormScreen(),
-      ),
-      GoRoute(
-        path: '/products/:id/edit',
-        builder: (_, state) => ProductFormScreen(
-          productId: int.parse(state.pathParameters['id']!),
-        ),
-      ),
-      GoRoute(
-        path: '/products/:warehouseProductId/detail',
-        builder: (_, state) {
-          final extra = state.extra as Map<String, int>?;
-          return ProductDetailScreen(
-            warehouseProductId:
-                int.parse(state.pathParameters['warehouseProductId']!),
-            warehouseId: extra?['warehouseId'] ?? 0,
-          );
-        },
-      ),
-      GoRoute(
-        path: '/scanner',
-        builder: (_, state) {
-          final extra = state.extra as Map<String, dynamic>?;
-          return BarcodeScannerScreen(
-            onScanned: extra?['onScanned'] as void Function(String)?,
-          );
-        },
-      ),
-      GoRoute(
-        path: '/search',
-        builder: (_, __) => const GlobalSearchScreen(),
-      ),
-      StatefulShellRoute.indexedStack(
-        parentNavigatorKey: _rootNavigatorKey,
-        pageBuilder: (context, state, navigationShell) => _blockedShellPage(
-          context: context,
-          state: state,
-          navigationShell: navigationShell,
-        ),
-        branches: [
-          StatefulShellBranch(
-            navigatorKey: _dashboardNavigatorKey,
-            routes: [
-              GoRoute(
-                path: '/dashboard',
-                builder: (_, __) => const DashboardScreen(),
-              ),
-            ],
-          ),
-          StatefulShellBranch(
-            navigatorKey: _warehousesNavigatorKey,
-            routes: [
-              GoRoute(
-                path: '/warehouses',
-                builder: (_, __) => const WarehouseListScreen(),
-                routes: [
-                  GoRoute(
-                    path: ':id/detail',
-                    builder: (_, state) => WarehouseDetailScreen(
-                      warehouseId: int.parse(state.pathParameters['id']!),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-          StatefulShellBranch(
-            navigatorKey: _productsNavigatorKey,
-            routes: [
-              GoRoute(
-                path: '/products',
-                builder: (_, __) => const ProductListScreen(),
-              ),
-            ],
-          ),
-          StatefulShellBranch(
-            navigatorKey: _brandsNavigatorKey,
-            routes: [
-              GoRoute(
-                path: '/brands',
-                builder: (_, __) => const BrandListScreen(),
-              ),
-            ],
-          ),
-          StatefulShellBranch(
-            navigatorKey: _storesNavigatorKey,
-            routes: [
-              GoRoute(
-                path: '/stores',
-                builder: (_, __) => const StoreListScreen(),
-              ),
-            ],
-          ),
-          StatefulShellBranch(
-            navigatorKey: _stockHistoryNavigatorKey,
-            routes: [
-              GoRoute(
-                path: '/stock-history',
-                builder: (_, __) => const StockChangeHistoryScreen(),
-              ),
-            ],
-          ),
-          StatefulShellBranch(
-            navigatorKey: _shoppingListNavigatorKey,
-            routes: [
-              GoRoute(
-                path: '/shopping-list',
-                builder: (_, __) => const ShoppingListScreen(),
-              ),
-            ],
-          ),
-          StatefulShellBranch(
-            navigatorKey: _settingsNavigatorKey,
-            routes: [
-              GoRoute(
-                path: '/settings',
-                builder: (_, __) => const SettingsScreen(),
-              ),
-            ],
-          ),
-        ],
-      ),
-    ],
   );
 }

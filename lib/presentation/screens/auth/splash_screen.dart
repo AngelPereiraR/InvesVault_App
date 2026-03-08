@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
 
+import '../../../core/router/app_router.dart';
 import '../../cubits/auth/auth_cubit.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -23,11 +23,11 @@ class _SplashScreenState extends State<SplashScreen> {
     if (!mounted) return;
     final state = context.read<AuthCubit>().state;
     if (state is AuthAuthenticated) {
-      context.go('/dashboard');
+      enterMainShell(context);
     } else {
       final hasSeen = await context.read<AuthCubit>().hasSeenWelcome();
       if (!mounted) return;
-      context.go(hasSeen ? '/login' : '/welcome');
+      enterAuthFlow(context, route: hasSeen ? '/login' : '/welcome');
     }
   }
 

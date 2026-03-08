@@ -1,8 +1,11 @@
+import 'package:back_button_interceptor/back_button_interceptor.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
 
+import '../../../core/router/app_router.dart';
 import '../../cubits/auth/auth_cubit.dart';
+import '../../widgets/confirm_dialog.dart';
 import '../../../core/utils/validators.dart';
 
 const _bg = Color(0xFFD8F3DC);
@@ -24,10 +27,34 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _obscure = true;
 
   @override
+  void initState() {
+    super.initState();
+    BackButtonInterceptor.add(_onBackPressed, context: context);
+  }
+
+  @override
   void dispose() {
+    BackButtonInterceptor.remove(_onBackPressed);
     _emailCtrl.dispose();
     _passwordCtrl.dispose();
     super.dispose();
+  }
+
+  Future<bool> _onBackPressed(bool stopDefaultButtonEvent, RouteInfo info) async {
+    if (!mounted || stopDefaultButtonEvent) return false;
+    if (info.ifRouteChanged(context)) return false;
+    final shouldExit = await showConfirmDialog(
+      context,
+      title: 'Salir de InvesVault',
+      message: '¿Quieres cerrar la aplicación?',
+      confirmLabel: 'Salir',
+      cancelLabel: 'Cancelar',
+      isDangerous: true,
+    );
+    if (shouldExit == true) {
+      await SystemNavigator.pop();
+    }
+    return true;
   }
 
   void _submit() {
@@ -43,7 +70,7 @@ class _LoginScreenState extends State<LoginScreen> {
     return BlocListener<AuthCubit, AuthState>(
       listener: (context, state) {
         if (state is AuthAuthenticated) {
-          context.go('/dashboard');
+          enterMainShell(context);
         } else if (state is AuthError) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
@@ -207,7 +234,8 @@ class _LoginScreenState extends State<LoginScreen> {
                               fontWeight: FontWeight.w600,
                             ),
                           ),
-                          onPressed: () => context.go('/register'),
+                            onPressed: () =>
+                                replaceWithAuthRoute(context, '/register'),
                           child: const Text('Crear cuenta'),
                         ),
                       ),

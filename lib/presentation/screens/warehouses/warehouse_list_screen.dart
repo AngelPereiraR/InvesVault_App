@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
 
+import '../../../core/router/app_router.dart';
 import '../../cubits/auth/auth_cubit.dart';
 import '../../cubits/warehouse/warehouse_cubit.dart';
 import '../../cubits/warehouse_user/warehouse_user_cubit.dart';
@@ -595,7 +595,9 @@ class _WarehouseListScreenState extends State<WarehouseListScreen> {
                   return WarehouseCard(
                     warehouse: w,
                     onTap: () =>
-                        context.push('/warehouses/${w.id}/detail'),
+                        context.openAuxiliaryRoute(
+                          '/warehouses/${w.id}/detail',
+                        ),
                     onEdit: isOwner
                         ? () => showWarehouseDialog(context, warehouseId: w.id)
                         : null,

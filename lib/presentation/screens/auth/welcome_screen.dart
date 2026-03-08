@@ -1,9 +1,12 @@
+import 'package:back_button_interceptor/back_button_interceptor.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
 
+import '../../../core/router/app_router.dart';
 import '../../cubits/auth/auth_cubit.dart';
+import '../../widgets/confirm_dialog.dart';
 
 const _purple = Color(0xFF3C096C);
 const _mint = Color(0xFFD8F3DC);
@@ -19,6 +22,12 @@ class WelcomeScreen extends StatefulWidget {
 class _WelcomeScreenState extends State<WelcomeScreen> {
   final _pageController = PageController();
   int _currentPage = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    BackButtonInterceptor.add(_onBackPressed, context: context);
+  }
 
   static const _slides = [
     _SlideData(
@@ -59,14 +68,32 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
 
   @override
   void dispose() {
+    BackButtonInterceptor.remove(_onBackPressed);
     _pageController.dispose();
     super.dispose();
+  }
+
+  Future<bool> _onBackPressed(bool stopDefaultButtonEvent, RouteInfo info) async {
+    if (!mounted || stopDefaultButtonEvent) return false;
+    if (info.ifRouteChanged(context)) return false;
+    final shouldExit = await showConfirmDialog(
+      context,
+      title: 'Salir de InvesVault',
+      message: '¿Quieres cerrar la aplicación?',
+      confirmLabel: 'Salir',
+      cancelLabel: 'Cancelar',
+      isDangerous: true,
+    );
+    if (shouldExit == true) {
+      await SystemNavigator.pop();
+    }
+    return true;
   }
 
   Future<void> _start() async {
     await context.read<AuthCubit>().markWelcomeSeen();
     if (!mounted) return;
-    context.go('/login');
+    enterAuthFlow(context);
   }
 
   @override

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
 
+import '../../../core/router/app_router.dart';
 import '../../cubits/product_form/product_form_cubit.dart';
 import '../../../data/models/product_model.dart';
 
@@ -118,7 +118,8 @@ class _GlobalSearchScreenState extends State<GlobalSearchScreen> {
                     icon: const Icon(Icons.add, color: _accentGreen),
                     label: const Text('Crear nuevo producto',
                         style: TextStyle(color: _accentGreen)),
-                    onPressed: () => context.push('/products/new'),
+                    onPressed: () =>
+                        context.openAuxiliaryRoute('/products/new'),
                   ),
                 ],
               ),
@@ -140,8 +141,10 @@ class _GlobalSearchScreenState extends State<GlobalSearchScreen> {
         foregroundColor: Colors.white,
         icon: const Icon(Icons.qr_code_scanner),
         label: const Text('Escanear'),
-        onPressed: () => context.push('/scanner',
-            extra: <String, dynamic>{'onScanned': null}),
+        onPressed: () => context.openAuxiliaryRoute(
+          '/scanner',
+          extra: <String, dynamic>{'onScanned': null},
+        ),
       ),
     );
   }
@@ -244,7 +247,7 @@ class _ProductSearchTile extends StatelessWidget {
                 label: const Text('Editar producto'),
                 onPressed: () {
                   Navigator.of(context).pop();
-                  context.push('/products/${product.id}/edit');
+                  context.openAuxiliaryRoute('/products/${product.id}/edit');
                 },
               ),
             ),

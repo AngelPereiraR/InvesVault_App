@@ -1,8 +1,10 @@
+import 'package:back_button_interceptor/back_button_interceptor.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
 
+import '../../../core/router/app_router.dart';
 import '../../cubits/auth/auth_cubit.dart';
+import '../../widgets/confirm_dialog.dart';
 import '../../../core/utils/validators.dart';
 
 const _bg = Color(0xFFD8F3DC);
@@ -29,12 +31,34 @@ class _RegisterScreenState extends State<RegisterScreen> {
   bool _acceptTerms = false;
 
   @override
+  void initState() {
+    super.initState();
+    BackButtonInterceptor.add(_onBackPressed, context: context);
+  }
+
+  @override
   void dispose() {
+    BackButtonInterceptor.remove(_onBackPressed);
     _nameCtrl.dispose();
     _emailCtrl.dispose();
     _passwordCtrl.dispose();
     _confirmCtrl.dispose();
     super.dispose();
+  }
+
+  Future<bool> _onBackPressed(bool stopDefaultButtonEvent, RouteInfo info) async {
+    if (!mounted || stopDefaultButtonEvent) return false;
+    if (info.ifRouteChanged(context)) return false;
+    final shouldGoBack = await showConfirmDialog(
+      context,
+      title: 'Volver al login',
+      message: '¿Quieres volver a la pantalla de acceso?',
+      confirmLabel: 'Volver',
+    );
+    if (shouldGoBack == true && mounted) {
+      replaceWithAuthRoute(context, '/login');
+    }
+    return true;
   }
 
   void _submit() {
@@ -58,7 +82,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
   Widget build(BuildContext context) {
     return BlocListener<AuthCubit, AuthState>(
       listener: (context, state) {
-        if (state is AuthAuthenticated) context.go('/dashboard');
+        if (state is AuthAuthenticated) {
+          enterMainShell(context);
+        }
         if (state is AuthError) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
@@ -85,7 +111,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         color: _purple,
                         size: 20,
                       ),
-                      onPressed: () => context.go('/login'),
+                      onPressed: () => replaceWithAuthRoute(context, '/login'),
                       padding: EdgeInsets.zero,
                     ),
                     const SizedBox(height: 12),
@@ -273,7 +299,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     Center(
                       child: TextButton(
                         style: TextButton.styleFrom(foregroundColor: _purple),
-                        onPressed: () => context.go('/login'),
+                        onPressed: () =>
+                            replaceWithAuthRoute(context, '/login'),
                         child: const Text(
                           '¿Ya tienes cuenta? Inicia sesión',
                           style: TextStyle(fontWeight: FontWeight.w600),

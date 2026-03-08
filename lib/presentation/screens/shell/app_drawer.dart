@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
 
 import '../../../core/router/app_router.dart';
 import '../../cubits/auth/auth_cubit.dart';
@@ -204,7 +203,7 @@ class _DrawerTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final current = GoRouterState.of(context).uri.path;
+    final current = currentRouteName(context);
     final selected = current == route ||
         (route != '/dashboard' && current.startsWith(route));
     return ListTile(
@@ -225,7 +224,11 @@ class _DrawerTile extends StatelessWidget {
       onTap: () {
         Navigator.of(context).pop();
         if (!selected) {
-          navigateToShellRoot(context, route);
+          navigateToShellSection(
+            context,
+            route,
+            mode: ShellNavigationMode.resetFromDashboard,
+          );
         }
       },
     );

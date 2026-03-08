@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
 
 import '../../../core/router/app_router.dart';
 import '../../cubits/dashboard/dashboard_cubit.dart';
@@ -68,7 +67,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       label: 'Inventario',
                       value: '${state.productCount}',
                       color: _purple,
-                      onTap: () => navigateToShellRoot(context, '/products'),
+                      onTap: () => navigateToShellSection(context, '/products'),
                     ),
                     const SizedBox(width: 10),
                     _StatButton(
@@ -76,8 +75,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       label: 'Lista compra',
                       value: '',
                       color: _accentGreen,
-                      onTap: () =>
-                          navigateToShellRoot(context, '/shopping-list'),
+                      onTap: () => navigateToShellSection(
+                        context,
+                        '/shopping-list',
+                      ),
                     ),
                   ],
                 ),
@@ -87,7 +88,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
               // ── SEARCH BAR ──────────────────────────────────────────
               GestureDetector(
-                onTap: () => context.push('/search'),
+                onTap: () => context.openAuxiliaryRoute('/search'),
                 child: Container(
                   padding:
                       const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
@@ -138,7 +139,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     label: 'Movimientos',
                     backgroundColor: _mint,
                     iconColor: _purple,
-                    onTap: () => navigateToShellRoot(context, '/stock-history'),
+                    onTap: () =>
+                      navigateToShellSection(context, '/stock-history'),
                   ),
                   _QuickActionTile(
                     icon: Icons.add_business_outlined,
@@ -152,28 +154,29 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     label: 'Tiendas',
                     backgroundColor: const Color(0xFFDFF3E4),
                     iconColor: _accentGreen,
-                    onTap: () => navigateToShellRoot(context, '/stores'),
+                    onTap: () => navigateToShellSection(context, '/stores'),
                   ),
                   _QuickActionTile(
                     icon: Icons.label_outlined,
                     label: 'Marcas',
                     backgroundColor: const Color(0xFFFDE2E4),
                     iconColor: const Color(0xFFB02A37),
-                    onTap: () => navigateToShellRoot(context, '/brands'),
+                    onTap: () => navigateToShellSection(context, '/brands'),
                   ),
                   _QuickActionTile(
                     icon: Icons.inventory_2_outlined,
                     label: 'Productos',
                     backgroundColor: const Color(0xFFE3F2FD),
                     iconColor: const Color(0xFF1565C0),
-                    onTap: () => navigateToShellRoot(context, '/products'),
+                    onTap: () => navigateToShellSection(context, '/products'),
                   ),
                   _QuickActionTile(
                     icon: Icons.add_box_outlined,
                     label: 'Nuevo producto',
                     backgroundColor: const Color(0xFFFFF3BF),
                     iconColor: const Color(0xFF9C6B00),
-                    onTap: () => context.push('/products/new'),
+                    onTap: () =>
+                        context.openAuxiliaryRoute('/products/new'),
                   ),
                 ],
               ),
@@ -185,13 +188,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 _SectionTitle(
                   title: 'Mis almacenes',
                   actionLabel: 'Ver todos',
-                  onAction: () => navigateToShellRoot(context, '/warehouses'),
+                    onAction: () =>
+                      navigateToShellSection(context, '/warehouses'),
                 ),
                 const SizedBox(height: 8),
                 for (final w in state.recentWarehouses)
                   _WarehouseRow(
                     name: w.name,
-                    onTap: () => context.push('/warehouses/${w.id}/detail'),
+                    onTap: () => context.openAuxiliaryRoute(
+                      '/warehouses/${w.id}/detail',
+                    ),
                   ),
               ],
 
@@ -226,8 +232,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     name: item.product?.name ?? 'Producto ${item.productId}',
                     qty: item.quantity,
                     min: item.minQuantity,
-                    onTap: () => context.push('/products/${item.id}/detail',
-                        extra: {'warehouseId': item.warehouseId}),
+                    onTap: () => context.openAuxiliaryRoute(
+                      '/products/${item.id}/detail',
+                      extra: {'warehouseId': item.warehouseId},
+                    ),
                   ),
               ] else
                 const EmptyView(

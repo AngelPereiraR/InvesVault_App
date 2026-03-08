@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
 
+import '../../../core/router/app_router.dart';
 import '../../cubits/product_form/product_form_cubit.dart';
 import '../../widgets/app_button.dart';
 import '../../widgets/app_text_field.dart';
@@ -116,11 +116,14 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
                       const SizedBox(width: 8),
                       IconButton.filled(
                         icon: const Icon(Icons.qr_code_scanner),
-                        onPressed: () => context.push('/scanner', extra: {
-                          'onScanned': (String code) {
-                            _barcodeCtrl.text = code;
-                          }
-                        }),
+                        onPressed: () => context.openAuxiliaryRoute(
+                          '/scanner',
+                          extra: {
+                            'onScanned': (String code) {
+                              _barcodeCtrl.text = code;
+                            }
+                          },
+                        ),
                         tooltip: 'Escanear',
                       ),
                     ],

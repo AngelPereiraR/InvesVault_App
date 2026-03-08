@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
+import '../../../core/router/app_router.dart';
 import '../../../data/models/product_model.dart';
 import '../../../data/models/warehouse_product_model.dart';
 import '../../cubits/auth/auth_cubit.dart';
@@ -222,7 +222,9 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                 // Edit button
                 OutlinedButton.icon(
                   onPressed: () =>
-                      context.push('/products/${wp.productId}/edit'),
+                      context.openAuxiliaryRoute(
+                        '/products/${wp.productId}/edit',
+                      ),
                   icon: const Icon(Icons.edit),
                   label: const Text('Editar información del producto'),
                 ),

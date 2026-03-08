@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
 
+import '../../../core/router/app_router.dart';
 import '../../cubits/auth/auth_cubit.dart';
 import '../../cubits/product_form/product_form_cubit.dart';
 import '../../cubits/store/store_cubit.dart';
@@ -149,7 +149,7 @@ class _WarehouseDetailScreenState extends State<WarehouseDetailScreen> {
                           return ProductListTile(
                             warehouseProduct: item,
                             isUpdating: isUpdating,
-                            onTap: () => context.push(
+                            onTap: () => context.openAuxiliaryRoute(
                                 '/products/${item.id}/detail',
                                 extra: {'warehouseId': widget.warehouseId}),
                             onAdd: !state.canEdit || isUpdating
@@ -301,7 +301,7 @@ class _AddProductSheetState extends State<_AddProductSheet> {
                     label: const Text('Crear nuevo producto'),
                     onPressed: () {
                       Navigator.of(context).pop();
-                      context.push('/products/new');
+                      context.openAuxiliaryRoute('/products/new');
                     },
                   ),
                   const Divider(),

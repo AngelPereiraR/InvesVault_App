@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
 
+import '../../../core/router/app_router.dart';
 import '../../cubits/product_list/product_list_cubit.dart';
 import '../../widgets/confirm_dialog.dart';
 import '../../widgets/empty_view.dart';
@@ -57,7 +57,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
             message: 'No tienes productos creados',
             actionLabel: 'Crear producto',
             onAction: () async {
-              await context.push('/products/new');
+              await context.openAuxiliaryRoute('/products/new');
               if (context.mounted) context.read<ProductListCubit>().load();
             },
           );
