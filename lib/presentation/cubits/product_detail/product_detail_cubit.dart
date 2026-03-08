@@ -37,8 +37,11 @@ class ProductDetailCubit extends Cubit<ProductDetailState> {
     final wp = current.warehouseProduct;
     emit(ProductDetailUpdating(wp));
     try {
+      await _warehouseProductRepository.updateProduct(wp.id, data);
+      final products =
+          await _warehouseProductRepository.getProducts(wp.warehouseId);
       final updated =
-          await _warehouseProductRepository.updateProduct(wp.id, data);
+          products.firstWhere((p) => p.id == wp.id, orElse: () => wp);
       emit(ProductDetailLoaded(updated));
     } catch (e) {
       emit(ProductDetailError(e.toString()));

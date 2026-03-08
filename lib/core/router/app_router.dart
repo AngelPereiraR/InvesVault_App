@@ -1,8 +1,11 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../presentation/cubits/auth/auth_cubit.dart';
+import '../../presentation/widgets/confirm_dialog.dart';
 import '../../presentation/screens/auth/login_screen.dart';
 import '../../presentation/screens/auth/register_screen.dart';
 import '../../presentation/screens/auth/splash_screen.dart';
@@ -26,7 +29,165 @@ import '../../presentation/screens/stores/store_list_screen.dart';
 import '../../presentation/screens/warehouses/warehouse_list_screen.dart';
 
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
-final _shellNavigatorKey = GlobalKey<NavigatorState>();
+final _dashboardNavigatorKey = GlobalKey<NavigatorState>();
+final _warehousesNavigatorKey = GlobalKey<NavigatorState>();
+final _productsNavigatorKey = GlobalKey<NavigatorState>();
+final _brandsNavigatorKey = GlobalKey<NavigatorState>();
+final _storesNavigatorKey = GlobalKey<NavigatorState>();
+final _stockHistoryNavigatorKey = GlobalKey<NavigatorState>();
+final _shoppingListNavigatorKey = GlobalKey<NavigatorState>();
+final _settingsNavigatorKey = GlobalKey<NavigatorState>();
+
+GlobalKey<NavigatorState> get rootNavigatorKey => _rootNavigatorKey;
+
+const _shellBranchRoutes = [
+  '/dashboard',
+  '/warehouses',
+  '/products',
+  '/brands',
+  '/stores',
+  '/stock-history',
+  '/shopping-list',
+  '/settings',
+];
+
+class ShellSectionHistory {
+  ShellSectionHistory._();
+
+  static final ShellSectionHistory instance = ShellSectionHistory._();
+
+  final List<String> _routes = [];
+
+  void visit(String route) {
+    _routes.remove(route);
+    _routes.add(route);
+  }
+
+  String? previousOf(String currentRoute) {
+    if (_routes.isEmpty) return null;
+    if (_routes.last != currentRoute) {
+      visit(currentRoute);
+    }
+    if (_routes.length < 2) return null;
+    _routes.removeLast();
+    return _routes.last;
+  }
+
+  void resetTo(String route) {
+    _routes
+      ..clear()
+      ..add(route);
+  }
+}
+
+int? _branchIndexForRoute(String route) {
+  final index = _shellBranchRoutes.indexOf(route);
+  return index == -1 ? null : index;
+}
+
+String _branchRouteAt(int index) => _shellBranchRoutes[index];
+
+void navigateToShellRoot(BuildContext context, String route) {
+  final branchIndex = _branchIndexForRoute(route);
+  if (branchIndex == null) {
+    context.go(route);
+    return;
+  }
+
+  final shellState = StatefulNavigationShell.maybeOf(context);
+  if (shellState == null) {
+    context.go(route);
+    return;
+  }
+
+  ShellSectionHistory.instance.visit(route);
+  shellState.goBranch(branchIndex, initialLocation: true);
+}
+
+Future<void> _showBlockedExitDialog(
+  BuildContext context, {
+  required String message,
+}) async {
+  await showConfirmDialog(
+    context,
+    title: 'Salir de InvesVault',
+    message: message,
+    confirmLabel: 'Entendido',
+    cancelLabel: 'Cancelar',
+  );
+}
+
+Future<void> _handleRegisterBlockedPop(BuildContext context) async {
+  final shouldGoBack = await showConfirmDialog(
+    context,
+    title: 'Volver al login',
+    message: '¿Quieres volver a la pantalla de acceso?',
+    confirmLabel: 'Volver',
+  );
+
+  if (shouldGoBack == true && context.mounted) {
+    context.go('/login');
+  }
+}
+
+Future<void> _handleShellRootBlockedPop(
+  BuildContext context,
+  int currentBranchIndex,
+) async {
+  final currentRoute = _branchRouteAt(currentBranchIndex);
+  final previousRoute = ShellSectionHistory.instance.previousOf(currentRoute);
+  if (previousRoute != null) {
+    navigateToShellRoot(context, previousRoute);
+    return;
+  }
+
+  await _showBlockedExitDialog(
+    context,
+    message:
+        'Ya estás en la última pantalla. Usa el selector del sistema para salir si lo necesitas.',
+  );
+}
+
+Page<void> _blockedPopPage({
+  required BuildContext context,
+  required GoRouterState state,
+  required Widget child,
+  required Future<void> Function(BuildContext context) onBlockedPop,
+}) {
+  return MaterialPage<void>(
+    key: state.pageKey,
+    name: state.uri.toString(),
+    arguments: state.extra,
+    canPop: false,
+    onPopInvoked: (didPop, _) {
+      if (didPop) return;
+      unawaited(onBlockedPop(context));
+    },
+    child: child,
+  );
+}
+
+Page<void> _blockedShellPage({
+  required BuildContext context,
+  required GoRouterState state,
+  required StatefulNavigationShell navigationShell,
+}) {
+  return MaterialPage<void>(
+    key: state.pageKey,
+    name: state.uri.toString(),
+    canPop: false,
+    onPopInvoked: (didPop, _) {
+      if (didPop) return;
+      unawaited(
+        _handleShellRootBlockedPop(context, navigationShell.currentIndex),
+      );
+    },
+    child: AppShell(
+      navigationShell: navigationShell,
+      currentLocation: state.uri.path,
+    ),
+  );
+}
 
 GoRouter buildRouter() {
   return GoRouter(
@@ -41,7 +202,10 @@ GoRouter buildRouter() {
 
       if (isSplash) return null;
       if (authState is AuthUnauthenticated && !isAuth) return '/login';
-      if (authState is AuthAuthenticated && isAuth) return '/dashboard';
+      if (authState is AuthAuthenticated && isAuth) {
+        ShellSectionHistory.instance.resetTo('/dashboard');
+        return '/dashboard';
+      }
       return null;
     },
     routes: [
@@ -51,15 +215,36 @@ GoRouter buildRouter() {
       ),
       GoRoute(
         path: '/welcome',
-        builder: (_, __) => const WelcomeScreen(),
+        pageBuilder: (context, state) => _blockedPopPage(
+          context: context,
+          state: state,
+          onBlockedPop: (context) => _showBlockedExitDialog(
+            context,
+            message: 'Ya estás en la pantalla de bienvenida.',
+          ),
+          child: const WelcomeScreen(),
+        ),
       ),
       GoRoute(
         path: '/login',
-        builder: (_, __) => const LoginScreen(),
+        pageBuilder: (context, state) => _blockedPopPage(
+          context: context,
+          state: state,
+          onBlockedPop: (context) => _showBlockedExitDialog(
+            context,
+            message: 'Ya estás en la pantalla inicial de acceso.',
+          ),
+          child: const LoginScreen(),
+        ),
       ),
       GoRoute(
         path: '/register',
-        builder: (_, __) => const RegisterScreen(),
+        pageBuilder: (context, state) => _blockedPopPage(
+          context: context,
+          state: state,
+          onBlockedPop: _handleRegisterBlockedPop,
+          child: const RegisterScreen(),
+        ),
       ),
       GoRoute(
         path: '/notifications',
@@ -117,63 +302,93 @@ GoRouter buildRouter() {
         path: '/search',
         builder: (_, __) => const GlobalSearchScreen(),
       ),
-      // ── Shell routes (have AppBar + Drawer) ─────────────
-      ShellRoute(
-        navigatorKey: _shellNavigatorKey,
-        builder: (context, state, child) =>
-            AppShell(child: child),
-        routes: [
-          GoRoute(
-            path: '/dashboard',
-            builder: (_, __) => const DashboardScreen(),
+      StatefulShellRoute.indexedStack(
+        parentNavigatorKey: _rootNavigatorKey,
+        pageBuilder: (context, state, navigationShell) => _blockedShellPage(
+          context: context,
+          state: state,
+          navigationShell: navigationShell,
+        ),
+        branches: [
+          StatefulShellBranch(
+            navigatorKey: _dashboardNavigatorKey,
+            routes: [
+              GoRoute(
+                path: '/dashboard',
+                builder: (_, __) => const DashboardScreen(),
+              ),
+            ],
           ),
-
-          // Warehouses
-          GoRoute(
-            path: '/warehouses',
-            builder: (_, __) => const WarehouseListScreen(),
+          StatefulShellBranch(
+            navigatorKey: _warehousesNavigatorKey,
+            routes: [
+              GoRoute(
+                path: '/warehouses',
+                builder: (_, __) => const WarehouseListScreen(),
+                routes: [
+                  GoRoute(
+                    path: ':id/detail',
+                    builder: (_, state) => WarehouseDetailScreen(
+                      warehouseId: int.parse(state.pathParameters['id']!),
+                    ),
+                  ),
+                ],
+              ),
+            ],
           ),
-          GoRoute(
-            path: '/warehouses/:id/detail',
-            builder: (_, state) => WarehouseDetailScreen(
-              warehouseId: int.parse(state.pathParameters['id']!),
-            ),
+          StatefulShellBranch(
+            navigatorKey: _productsNavigatorKey,
+            routes: [
+              GoRoute(
+                path: '/products',
+                builder: (_, __) => const ProductListScreen(),
+              ),
+            ],
           ),
-
-          // Products
-          GoRoute(
-            path: '/products',
-            builder: (_, __) => const ProductListScreen(),
+          StatefulShellBranch(
+            navigatorKey: _brandsNavigatorKey,
+            routes: [
+              GoRoute(
+                path: '/brands',
+                builder: (_, __) => const BrandListScreen(),
+              ),
+            ],
           ),
-
-          // Brands
-          GoRoute(
-            path: '/brands',
-            builder: (_, __) => const BrandListScreen(),
+          StatefulShellBranch(
+            navigatorKey: _storesNavigatorKey,
+            routes: [
+              GoRoute(
+                path: '/stores',
+                builder: (_, __) => const StoreListScreen(),
+              ),
+            ],
           ),
-
-          // Stores
-          GoRoute(
-            path: '/stores',
-            builder: (_, __) => const StoreListScreen(),
+          StatefulShellBranch(
+            navigatorKey: _stockHistoryNavigatorKey,
+            routes: [
+              GoRoute(
+                path: '/stock-history',
+                builder: (_, __) => const StockChangeHistoryScreen(),
+              ),
+            ],
           ),
-
-          // Stock history
-          GoRoute(
-            path: '/stock-history',
-            builder: (_, __) => const StockChangeHistoryScreen(),
+          StatefulShellBranch(
+            navigatorKey: _shoppingListNavigatorKey,
+            routes: [
+              GoRoute(
+                path: '/shopping-list',
+                builder: (_, __) => const ShoppingListScreen(),
+              ),
+            ],
           ),
-
-          // Shopping list
-          GoRoute(
-            path: '/shopping-list',
-            builder: (_, __) => const ShoppingListScreen(),
-          ),
-
-          // Settings
-          GoRoute(
-            path: '/settings',
-            builder: (_, __) => const SettingsScreen(),
+          StatefulShellBranch(
+            navigatorKey: _settingsNavigatorKey,
+            routes: [
+              GoRoute(
+                path: '/settings',
+                builder: (_, __) => const SettingsScreen(),
+              ),
+            ],
           ),
         ],
       ),

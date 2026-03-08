@@ -27,6 +27,26 @@ class WarehouseDetailCubit extends Cubit<WarehouseDetailState> {
     this._warehouseUserRepository,
   ) : super(const WarehouseDetailInitial());
 
+  List<WarehouseProductModel> _applySearch(
+    List<WarehouseProductModel> products,
+    String query,
+  ) {
+    if (query.isEmpty) return products;
+    return products
+        .where((p) =>
+            p.product?.name.toLowerCase().contains(query.toLowerCase()) ??
+            false)
+        .toList();
+  }
+
+  List<int> _withUpdatingId(List<int> ids, int productId) {
+    if (ids.contains(productId)) return ids;
+    return [...ids, productId];
+  }
+
+  List<int> _withoutUpdatingId(List<int> ids, int productId) =>
+      ids.where((id) => id != productId).toList();
+
   Future<void> load(int warehouseId, {required int userId}) async {
     _lastUserId = userId;
     emit(const WarehouseDetailLoading());
@@ -42,8 +62,7 @@ class WarehouseDetailCubit extends Cubit<WarehouseDetailState> {
         userRole = 'admin';
       } else {
         try {
-          final users =
-              await _warehouseUserRepository.getUsers(warehouseId);
+          final users = await _warehouseUserRepository.getUsers(warehouseId);
           final entry = users.where((u) => u.userId == userId);
           if (entry.isNotEmpty) userRole = entry.first.role;
         } catch (_) {}
@@ -63,15 +82,7 @@ class WarehouseDetailCubit extends Cubit<WarehouseDetailState> {
   void search(String query) {
     final current = state;
     if (current is! WarehouseDetailLoaded) return;
-    final filtered = query.isEmpty
-        ? current.products
-        : current.products
-            .where((p) =>
-                p.product?.name
-                    .toLowerCase()
-                    .contains(query.toLowerCase()) ??
-                false)
-            .toList();
+    final filtered = _applySearch(current.products, query);
     emit(current.copyWith(filtered: filtered, query: query));
   }
 
@@ -85,6 +96,12 @@ class WarehouseDetailCubit extends Cubit<WarehouseDetailState> {
   }) async {
     final current = state;
     if (current is! WarehouseDetailLoaded) return;
+    emit(current.copyWith(
+      updatingProductIds: _withUpdatingId(
+        current.updatingProductIds,
+        warehouseProductId,
+      ),
+    ));
     try {
       await _stockChangeRepository.create({
         'product_id': productId,
@@ -95,8 +112,8 @@ class WarehouseDetailCubit extends Cubit<WarehouseDetailState> {
         'user_id': userId,
       });
       // Reload products to get fresh quantities
-      final products = await _warehouseProductRepository
-          .getProducts(warehouseId);
+      final products =
+          await _warehouseProductRepository.getProducts(warehouseId);
       final updatedWp = products.firstWhere(
         (p) => p.id == warehouseProductId,
         orElse: () => current.products.firstWhere(
@@ -111,25 +128,35 @@ class WarehouseDetailCubit extends Cubit<WarehouseDetailState> {
           minQuantity: updatedWp.minQuantity ?? 0,
         );
       }
-      final filtered = current.query.isEmpty
-          ? products
-          : products
-              .where((p) =>
-                  p.product?.name
-                      .toLowerCase()
-                      .contains(current.query.toLowerCase()) ??
-                  false)
-              .toList();
-      emit(current.copyWith(products: products, filtered: filtered));
+      final filtered = _applySearch(products, current.query);
+      emit(current.copyWith(
+        products: products,
+        filtered: filtered,
+        updatingProductIds: _withoutUpdatingId(
+          current.updatingProductIds,
+          warehouseProductId,
+        ),
+      ));
     } catch (e) {
       emit(WarehouseDetailError(e.toString()));
     }
   }
 
   Future<void> removeProduct(int id, int warehouseId) async {
+    final current = state;
+    if (current is! WarehouseDetailLoaded) return;
+    emit(current.copyWith(
+      updatingProductIds: _withUpdatingId(current.updatingProductIds, id),
+    ));
     try {
       await _warehouseProductRepository.deleteProduct(id);
-      await load(warehouseId, userId: _lastUserId);
+      final products =
+          await _warehouseProductRepository.getProducts(warehouseId);
+      emit(current.copyWith(
+        products: products,
+        filtered: _applySearch(products, current.query),
+        updatingProductIds: _withoutUpdatingId(current.updatingProductIds, id),
+      ));
     } catch (e) {
       emit(WarehouseDetailError(e.toString()));
     }

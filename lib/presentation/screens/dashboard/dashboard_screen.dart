@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/router/app_router.dart';
 import '../../cubits/dashboard/dashboard_cubit.dart';
 import '../../widgets/empty_view.dart';
 import '../../widgets/error_view.dart';
@@ -50,34 +51,35 @@ class _DashboardScreenState extends State<DashboardScreen> {
               // ── 3 STAT BUTTONS ───────────────────────────────────────
               IntrinsicHeight(
                 child: Row(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  _StatButton(
-                    icon: Icons.warning_amber_rounded,
-                    label: 'Bajo stock',
-                    value: '${state.lowStockCount}',
-                    color: state.lowStockCount > 0
-                        ? Colors.red.shade600
-                        : _accentGreen,
-                    onTap: () {},
-                  ),
-                  const SizedBox(width: 10),
-                  _StatButton(
-                    icon: Icons.inventory_2_outlined,
-                    label: 'Inventario',
-                    value: '${state.productCount}',
-                    color: _purple,
-                    onTap: () => context.go('/products'),
-                  ),
-                  const SizedBox(width: 10),
-                  _StatButton(
-                    icon: Icons.shopping_basket_outlined,
-                    label: 'Lista compra',
-                    value: '',
-                    color: _accentGreen,
-                    onTap: () => context.go('/shopping-list'),
-                  ),
-                ],
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    _StatButton(
+                      icon: Icons.warning_amber_rounded,
+                      label: 'Bajo stock',
+                      value: '${state.lowStockCount}',
+                      color: state.lowStockCount > 0
+                          ? Colors.red.shade600
+                          : _accentGreen,
+                      onTap: () {},
+                    ),
+                    const SizedBox(width: 10),
+                    _StatButton(
+                      icon: Icons.inventory_2_outlined,
+                      label: 'Inventario',
+                      value: '${state.productCount}',
+                      color: _purple,
+                      onTap: () => navigateToShellRoot(context, '/products'),
+                    ),
+                    const SizedBox(width: 10),
+                    _StatButton(
+                      icon: Icons.shopping_basket_outlined,
+                      label: 'Lista compra',
+                      value: '',
+                      color: _accentGreen,
+                      onTap: () =>
+                          navigateToShellRoot(context, '/shopping-list'),
+                    ),
+                  ],
                 ),
               ),
 
@@ -87,13 +89,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
               GestureDetector(
                 onTap: () => context.push('/search'),
                 child: Container(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 16, vertical: 14),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                   decoration: BoxDecoration(
                     color: _white,
                     borderRadius: BorderRadius.circular(16),
-                    border: Border.all(
-                        color: Colors.grey.shade200, width: 1.5),
+                    border: Border.all(color: Colors.grey.shade200, width: 1.5),
                     boxShadow: [
                       BoxShadow(
                           color: Colors.black.withOpacity(0.04),
@@ -103,8 +104,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   ),
                   child: Row(
                     children: [
-                      Icon(Icons.search,
-                          color: Colors.grey.shade400, size: 20),
+                      Icon(Icons.search, color: Colors.grey.shade400, size: 20),
                       const SizedBox(width: 10),
                       Expanded(
                         child: Text(
@@ -122,41 +122,60 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
               const SizedBox(height: 24),
 
-              // ── 4 LARGE ACTION CARDS ─────────────────────────────────
-              _BigActionCard(
-                icon: Icons.swap_vert_circle_outlined,
-                label: 'Movimientos de Stock',
-                onTap: () => context.go('/stock-history'),
-              ),
+              // ── QUICK ACTIONS 3 x 2 ──────────────────────────────────
+              const _SectionTitle(title: 'Accesos rápidos'),
               const SizedBox(height: 12),
-              _BigActionCard(
-                icon: Icons.add_business_outlined,
-                label: 'Añadir almacén',
-                onTap: () => showWarehouseDialog(context),
-              ),
-              const SizedBox(height: 12),
-              _BigActionCard(
-                icon: Icons.store_outlined,
-                label: 'Tiendas',
-                onTap: () => context.go('/stores'),
-              ),
-              const SizedBox(height: 12),
-              _BigActionCard(
-                icon: Icons.label_outlined,
-                label: 'Marcas',
-                onTap: () => context.go('/brands'),
-              ),
-              const SizedBox(height: 12),
-              _BigActionCard(
-                icon: Icons.inventory_2_outlined,
-                label: 'Productos',
-                onTap: () => context.go('/products'),
-              ),
-              const SizedBox(height: 12),
-              _BigActionCard(
-                icon: Icons.add_box_outlined,
-                label: 'Añadir producto',
-                onTap: () => context.push('/products/new'),
+              GridView.count(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                crossAxisCount: 3,
+                crossAxisSpacing: 12,
+                mainAxisSpacing: 12,
+                childAspectRatio: 0.96,
+                children: [
+                  _QuickActionTile(
+                    icon: Icons.swap_vert_circle_outlined,
+                    label: 'Movimientos',
+                    backgroundColor: _mint,
+                    iconColor: _purple,
+                    onTap: () => navigateToShellRoot(context, '/stock-history'),
+                  ),
+                  _QuickActionTile(
+                    icon: Icons.add_business_outlined,
+                    label: 'Nuevo almacén',
+                    backgroundColor: const Color(0xFFE9D8FD),
+                    iconColor: _purple,
+                    onTap: () => showWarehouseDialog(context),
+                  ),
+                  _QuickActionTile(
+                    icon: Icons.store_outlined,
+                    label: 'Tiendas',
+                    backgroundColor: const Color(0xFFDFF3E4),
+                    iconColor: _accentGreen,
+                    onTap: () => navigateToShellRoot(context, '/stores'),
+                  ),
+                  _QuickActionTile(
+                    icon: Icons.label_outlined,
+                    label: 'Marcas',
+                    backgroundColor: const Color(0xFFFDE2E4),
+                    iconColor: const Color(0xFFB02A37),
+                    onTap: () => navigateToShellRoot(context, '/brands'),
+                  ),
+                  _QuickActionTile(
+                    icon: Icons.inventory_2_outlined,
+                    label: 'Productos',
+                    backgroundColor: const Color(0xFFE3F2FD),
+                    iconColor: const Color(0xFF1565C0),
+                    onTap: () => navigateToShellRoot(context, '/products'),
+                  ),
+                  _QuickActionTile(
+                    icon: Icons.add_box_outlined,
+                    label: 'Nuevo producto',
+                    backgroundColor: const Color(0xFFFFF3BF),
+                    iconColor: const Color(0xFF9C6B00),
+                    onTap: () => context.push('/products/new'),
+                  ),
+                ],
               ),
 
               const SizedBox(height: 28),
@@ -166,14 +185,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 _SectionTitle(
                   title: 'Mis almacenes',
                   actionLabel: 'Ver todos',
-                  onAction: () => context.go('/warehouses'),
+                  onAction: () => navigateToShellRoot(context, '/warehouses'),
                 ),
                 const SizedBox(height: 8),
                 for (final w in state.recentWarehouses)
                   _WarehouseRow(
                     name: w.name,
-                    onTap: () =>
-                        context.push('/warehouses/${w.id}/detail'),
+                    onTap: () => context.push('/warehouses/${w.id}/detail'),
                   ),
               ],
 
@@ -208,8 +226,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     name: item.product?.name ?? 'Producto ${item.productId}',
                     qty: item.quantity,
                     min: item.minQuantity,
-                    onTap: () => context.push(
-                        '/products/${item.id}/detail',
+                    onTap: () => context.push('/products/${item.id}/detail',
                         extra: {'warehouseId': item.warehouseId}),
                   ),
               ] else
@@ -274,9 +291,7 @@ class _StatButton extends StatelessWidget {
                         color: color)),
               Text(label,
                   textAlign: TextAlign.center,
-                  style: TextStyle(
-                      fontSize: 11,
-                      color: Colors.grey.shade600)),
+                  style: TextStyle(fontSize: 11, color: Colors.grey.shade600)),
             ],
           ),
         ),
@@ -285,54 +300,62 @@ class _StatButton extends StatelessWidget {
   }
 }
 
-// ─── Large action card (full width) ───────────────────────────────────────────
-class _BigActionCard extends StatelessWidget {
+// ─── Quick action tile (3 x 2 grid) ──────────────────────────────────────────
+class _QuickActionTile extends StatelessWidget {
   final IconData icon;
   final String label;
+  final Color backgroundColor;
+  final Color iconColor;
   final VoidCallback onTap;
 
-  const _BigActionCard({
+  const _QuickActionTile({
     required this.icon,
     required this.label,
+    required this.backgroundColor,
+    required this.iconColor,
     required this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        width: double.infinity,
-        padding:
-            const EdgeInsets.symmetric(vertical: 20, horizontal: 20),
-        decoration: BoxDecoration(
-          color: _mint,
-          borderRadius: BorderRadius.circular(18),
-        ),
-        child: Row(
-          children: [
-            Container(
-              width: 54,
-              height: 54,
-              decoration: BoxDecoration(
-                color: _white.withOpacity(0.7),
-                shape: BoxShape.circle,
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(20),
+        onTap: onTap,
+        child: Ink(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 16),
+          decoration: BoxDecoration(
+            color: backgroundColor,
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                width: 52,
+                height: 52,
+                decoration: BoxDecoration(
+                  color: _white.withOpacity(0.75),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(icon, color: iconColor, size: 26),
               ),
-              child: Icon(icon, color: _purple, size: 28),
-            ),
-            const SizedBox(width: 16),
-            Text(
-              label,
-              style: const TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w700,
-                color: _purple,
+              const SizedBox(height: 12),
+              Text(
+                label,
+                textAlign: TextAlign.center,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                  color: iconColor,
+                  height: 1.15,
+                ),
               ),
-            ),
-            const Spacer(),
-            Icon(Icons.arrow_forward_ios_rounded,
-                color: _purple.withOpacity(0.5), size: 16),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -358,17 +381,15 @@ class _SectionTitle extends StatelessWidget {
       children: [
         Text(title,
             style: const TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w700,
-                color: _purple)),
+                fontSize: 16, fontWeight: FontWeight.w700, color: _purple)),
         if (actionLabel != null && onAction != null)
           TextButton(
             style: TextButton.styleFrom(
                 foregroundColor: _accentGreen, padding: EdgeInsets.zero),
             onPressed: onAction,
             child: Text(actionLabel!,
-                style: const TextStyle(
-                    fontSize: 13, fontWeight: FontWeight.w600)),
+                style:
+                    const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
           ),
       ],
     );
@@ -388,8 +409,7 @@ class _WarehouseRow extends StatelessWidget {
       onTap: onTap,
       child: Container(
         margin: const EdgeInsets.only(bottom: 8),
-        padding:
-            const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         decoration: BoxDecoration(
           color: _white,
           borderRadius: BorderRadius.circular(14),
@@ -440,8 +460,7 @@ class _LowStockRow extends StatelessWidget {
       onTap: onTap,
       child: Container(
         margin: const EdgeInsets.only(bottom: 8),
-        padding:
-            const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         decoration: BoxDecoration(
           color: Colors.red.shade50,
           borderRadius: BorderRadius.circular(14),
@@ -460,17 +479,15 @@ class _LowStockRow extends StatelessWidget {
                       style: const TextStyle(
                           fontSize: 14, fontWeight: FontWeight.w600)),
                   Text('Stock: ${qty.toInt()} / Mín: ${min?.toInt() ?? 0}',
-                      style: TextStyle(
-                          fontSize: 12, color: Colors.grey.shade600)),
+                      style:
+                          TextStyle(fontSize: 12, color: Colors.grey.shade600)),
                 ],
               ),
             ),
-            Icon(Icons.chevron_right,
-                color: Colors.red.shade300, size: 20),
+            Icon(Icons.chevron_right, color: Colors.red.shade300, size: 20),
           ],
         ),
       ),
     );
   }
 }
-

@@ -6,6 +6,7 @@ import '../../cubits/auth/auth_cubit.dart';
 import '../../cubits/product_form/product_form_cubit.dart';
 import '../../cubits/store/store_cubit.dart';
 import '../../cubits/warehouse_detail/warehouse_detail_cubit.dart';
+import '../../widgets/confirm_dialog.dart';
 import '../../widgets/empty_view.dart';
 import '../../widgets/error_view.dart';
 import '../../widgets/loading_indicator.dart';
@@ -17,8 +18,7 @@ class WarehouseDetailScreen extends StatefulWidget {
   const WarehouseDetailScreen({super.key, required this.warehouseId});
 
   @override
-  State<WarehouseDetailScreen> createState() =>
-      _WarehouseDetailScreenState();
+  State<WarehouseDetailScreen> createState() => _WarehouseDetailScreenState();
 }
 
 class _WarehouseDetailScreenState extends State<WarehouseDetailScreen> {
@@ -29,7 +29,9 @@ class _WarehouseDetailScreenState extends State<WarehouseDetailScreen> {
     super.initState();
     final authState = context.read<AuthCubit>().state;
     final userId = authState is AuthAuthenticated ? authState.userId : 0;
-    context.read<WarehouseDetailCubit>().load(widget.warehouseId, userId: userId);
+    context
+        .read<WarehouseDetailCubit>()
+        .load(widget.warehouseId, userId: userId);
   }
 
   @override
@@ -56,8 +58,7 @@ class _WarehouseDetailScreenState extends State<WarehouseDetailScreen> {
   @override
   Widget build(BuildContext context) {
     final authState = context.read<AuthCubit>().state;
-    final userId =
-        authState is AuthAuthenticated ? authState.userId : 0;
+    final userId = authState is AuthAuthenticated ? authState.userId : 0;
 
     return BlocBuilder<WarehouseDetailCubit, WarehouseDetailState>(
       builder: (context, state) {
@@ -87,26 +88,25 @@ class _WarehouseDetailScreenState extends State<WarehouseDetailScreen> {
                   LowStockBadge(count: lowCount),
                   const Spacer(),
                   if (state.isAdmin)
-                  TextButton.icon(
-                    onPressed: () => context
-                        .push('/warehouses/${widget.warehouseId}/share'),
-                    icon: const Icon(Icons.share),
-                    label: const Text('Compartir'),
-                  ),
+                    TextButton.icon(
+                      onPressed: () => context
+                          .push('/warehouses/${widget.warehouseId}/share'),
+                      icon: const Icon(Icons.share),
+                      label: const Text('Compartir'),
+                    ),
                   if (state.canEdit)
-                  IconButton(
-                    icon: const Icon(Icons.add),
-                    tooltip: 'Añadir producto',
-                    onPressed: _showAddProductSheet,
-                  ),
+                    IconButton(
+                      icon: const Icon(Icons.add),
+                      tooltip: 'Añadir producto',
+                      onPressed: _showAddProductSheet,
+                    ),
                 ],
               ),
             ),
 
             // ── Search ─
             Padding(
-              padding: const EdgeInsets.symmetric(
-                  horizontal: 16, vertical: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               child: TextField(
                 controller: _searchCtrl,
                 decoration: InputDecoration(
@@ -117,9 +117,7 @@ class _WarehouseDetailScreenState extends State<WarehouseDetailScreen> {
                           icon: const Icon(Icons.clear),
                           onPressed: () {
                             _searchCtrl.clear();
-                            context
-                                .read<WarehouseDetailCubit>()
-                                .search('');
+                            context.read<WarehouseDetailCubit>().search('');
                           },
                         )
                       : null,
@@ -146,15 +144,17 @@ class _WarehouseDetailScreenState extends State<WarehouseDetailScreen> {
                         separatorBuilder: (_, __) => const Divider(),
                         itemBuilder: (context, i) {
                           final item = state.filtered[i];
+                          final isUpdating =
+                              state.updatingProductIds.contains(item.id);
                           return ProductListTile(
                             warehouseProduct: item,
+                            isUpdating: isUpdating,
                             onTap: () => context.push(
                                 '/products/${item.id}/detail',
-                                extra: {
-                                  'warehouseId': widget.warehouseId
-                                }),
-                            onAdd: () =>
-                                context
+                                extra: {'warehouseId': widget.warehouseId}),
+                            onAdd: !state.canEdit || isUpdating
+                                ? null
+                                : () => context
                                     .read<WarehouseDetailCubit>()
                                     .quickUpdate(
                                       warehouseProductId: item.id,
@@ -163,18 +163,40 @@ class _WarehouseDetailScreenState extends State<WarehouseDetailScreen> {
                                       userId: userId,
                                       delta: 1.0,
                                     ),
-                            onRemove: () async {
-                              if ((item.quantity - 1) < 0) return;
-                              context
-                                  .read<WarehouseDetailCubit>()
-                                  .quickUpdate(
-                                    warehouseProductId: item.id,
-                                    productId: item.productId,
-                                    warehouseId: widget.warehouseId,
-                                    userId: userId,
-                                    delta: -1.0,
-                                  );
-                            },
+                            onRemove: !state.canEdit || isUpdating
+                                ? null
+                                : () async {
+                                    if ((item.quantity - 1) < 0) return;
+                                    context
+                                        .read<WarehouseDetailCubit>()
+                                        .quickUpdate(
+                                          warehouseProductId: item.id,
+                                          productId: item.productId,
+                                          warehouseId: widget.warehouseId,
+                                          userId: userId,
+                                          delta: -1.0,
+                                        );
+                                  },
+                            onDelete: !state.canEdit || isUpdating
+                                ? null
+                                : () async {
+                                    final confirm = await showConfirmDialog(
+                                      context,
+                                      title: 'Eliminar producto',
+                                      message:
+                                          '¿Quieres eliminar "${item.product?.name ?? 'este producto'}" de este almacén?',
+                                      confirmLabel: 'Eliminar',
+                                      isDangerous: true,
+                                    );
+                                    if (confirm == true && context.mounted) {
+                                      context
+                                          .read<WarehouseDetailCubit>()
+                                          .removeProduct(
+                                            item.id,
+                                            widget.warehouseId,
+                                          );
+                                    }
+                                  },
                           );
                         },
                       ),
@@ -299,7 +321,8 @@ class _AddProductSheetState extends State<_AddProductSheet> {
                     const SizedBox(height: 8),
                     Builder(builder: (_) {
                       final filtered = state.allProducts
-                          .where((p) => _query.isEmpty ||
+                          .where((p) =>
+                              _query.isEmpty ||
                               p.name
                                   .toLowerCase()
                                   .contains(_query.toLowerCase()))
@@ -327,8 +350,8 @@ class _AddProductSheetState extends State<_AddProductSheet> {
                     // Qty
                     TextField(
                       controller: _qtyCtrl,
-                      keyboardType: const TextInputType.numberWithOptions(
-                          decimal: true),
+                      keyboardType:
+                          const TextInputType.numberWithOptions(decimal: true),
                       decoration: const InputDecoration(
                         labelText: 'Cantidad inicial',
                         prefixIcon: Icon(Icons.inventory_outlined),
@@ -339,8 +362,8 @@ class _AddProductSheetState extends State<_AddProductSheet> {
                     // Min qty
                     TextField(
                       controller: _minQtyCtrl,
-                      keyboardType: const TextInputType.numberWithOptions(
-                          decimal: true),
+                      keyboardType:
+                          const TextInputType.numberWithOptions(decimal: true),
                       decoration: const InputDecoration(
                         labelText: 'Cantidad mínima (alerta, opcional)',
                         prefixIcon: Icon(Icons.warning_amber_outlined),
@@ -351,8 +374,8 @@ class _AddProductSheetState extends State<_AddProductSheet> {
                     // Price
                     TextField(
                       controller: _priceCtrl,
-                      keyboardType: const TextInputType.numberWithOptions(
-                          decimal: true),
+                      keyboardType:
+                          const TextInputType.numberWithOptions(decimal: true),
                       decoration: const InputDecoration(
                         labelText: 'Precio por unidad (€, opcional)',
                         prefixIcon: Icon(Icons.euro_outlined),
@@ -378,12 +401,10 @@ class _AddProductSheetState extends State<_AddProductSheet> {
                             items: [
                               const DropdownMenuItem(
                                   value: null, child: Text('Sin tienda')),
-                              ...storeState.stores.map((s) =>
-                                  DropdownMenuItem(
-                                      value: s.id, child: Text(s.name))),
+                              ...storeState.stores.map((s) => DropdownMenuItem(
+                                  value: s.id, child: Text(s.name))),
                             ],
-                            onChanged: (v) =>
-                                setState(() => _storeId = v),
+                            onChanged: (v) => setState(() => _storeId = v),
                           );
                         },
                       ),
@@ -407,4 +428,3 @@ class _AddProductSheetState extends State<_AddProductSheet> {
     );
   }
 }
-

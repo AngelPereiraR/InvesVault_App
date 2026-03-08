@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/router/app_router.dart';
 import '../../cubits/auth/auth_cubit.dart';
 
 const _purple = Color(0xFF3C096C);
@@ -77,17 +78,13 @@ class AppDrawer extends StatelessWidget {
                 // PRÓXIMAMENTE (datos)
                 const _SectionHeader('Próximamente'),
                 const _ComingSoonTile(
-                    icon: Icons.upload_outlined,
-                    label: 'Importar datos'),
+                    icon: Icons.upload_outlined, label: 'Importar datos'),
                 const _ComingSoonTile(
-                    icon: Icons.download_outlined,
-                    label: 'Exportar datos'),
+                    icon: Icons.download_outlined, label: 'Exportar datos'),
                 const _ComingSoonTile(
-                    icon: Icons.delete_outline,
-                    label: 'Datos eliminados'),
+                    icon: Icons.delete_outline, label: 'Datos eliminados'),
                 const _ComingSoonTile(
-                    icon: Icons.backup_outlined,
-                    label: 'Copia de seguridad'),
+                    icon: Icons.backup_outlined, label: 'Copia de seguridad'),
                 const _DrawerTile(
                   icon: Icons.settings_outlined,
                   label: 'Configuración',
@@ -99,24 +96,18 @@ class AppDrawer extends StatelessWidget {
                 // SOPORTE (Próximamente)
                 const _SectionHeader('Soporte · Próximamente'),
                 const _ComingSoonTile(
-                    icon: Icons.support_agent_outlined,
-                    label: 'Asistencia'),
+                    icon: Icons.support_agent_outlined, label: 'Asistencia'),
+                const _ComingSoonTile(icon: Icons.help_outline, label: 'Ayuda'),
                 const _ComingSoonTile(
-                    icon: Icons.help_outline,
-                    label: 'Ayuda'),
+                    icon: Icons.newspaper_outlined, label: 'Noticias'),
                 const _ComingSoonTile(
-                    icon: Icons.newspaper_outlined,
-                    label: 'Noticias'),
-                const _ComingSoonTile(
-                    icon: Icons.lightbulb_outline,
-                    label: 'Sugerencias'),
+                    icon: Icons.lightbulb_outline, label: 'Sugerencias'),
 
                 const _Divider(),
 
                 // ACCIONES FINALES
                 ListTile(
-                  leading: const Icon(Icons.restart_alt,
-                      color: Colors.orange),
+                  leading: const Icon(Icons.restart_alt, color: Colors.orange),
                   title: const Text('Reiniciar',
                       style: TextStyle(color: Colors.orange)),
                   onTap: () async {
@@ -125,8 +116,7 @@ class AppDrawer extends StatelessWidget {
                   },
                 ),
                 ListTile(
-                  leading:
-                      const Icon(Icons.logout, color: Colors.red),
+                  leading: const Icon(Icons.logout, color: Colors.red),
                   title: const Text('Cerrar sesión',
                       style: TextStyle(color: Colors.red)),
                   onTap: () {
@@ -167,8 +157,7 @@ class _DrawerHeader extends StatelessWidget {
               Container(
                 width: 44,
                 height: 44,
-                child: Image.asset('assets/logo.png',
-                    width: 44, height: 44),
+                child: Image.asset('assets/logo.png', width: 44, height: 44),
               ),
               const SizedBox(width: 12),
               Column(
@@ -180,8 +169,7 @@ class _DrawerHeader extends StatelessWidget {
                           fontSize: 18,
                           fontWeight: FontWeight.w700)),
                   Text('v1.0.0',
-                      style: TextStyle(
-                          color: Colors.white54, fontSize: 11)),
+                      style: TextStyle(color: Colors.white54, fontSize: 11)),
                 ],
               ),
             ],
@@ -195,8 +183,7 @@ class _DrawerHeader extends StatelessWidget {
                   fontWeight: FontWeight.w600)),
           const SizedBox(height: 2),
           Text(userEmail,
-              style: const TextStyle(
-                  color: Colors.white60, fontSize: 12)),
+              style: const TextStyle(color: Colors.white60, fontSize: 12)),
         ],
       ),
     );
@@ -223,24 +210,23 @@ class _DrawerTile extends StatelessWidget {
     return ListTile(
       dense: true,
       leading: Icon(icon,
-          size: 22,
-          color: selected ? _purple : Colors.blueGrey.shade700),
+          size: 22, color: selected ? _purple : Colors.blueGrey.shade700),
       title: Text(label,
           style: TextStyle(
             fontSize: 14,
-            fontWeight:
-                selected ? FontWeight.w700 : FontWeight.w400,
+            fontWeight: selected ? FontWeight.w700 : FontWeight.w400,
             color: selected ? _purple : Colors.blueGrey.shade900,
           )),
       selected: selected,
       selectedTileColor: _mint,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       horizontalTitleGap: 6,
-      contentPadding:
-          const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
       onTap: () {
         Navigator.of(context).pop();
-        context.go(route);
+        if (!selected) {
+          navigateToShellRoot(context, route);
+        }
       },
     );
   }
@@ -272,8 +258,7 @@ class _ComingSoonTile extends StatelessWidget {
                 color: _accentGreen)),
       ),
       horizontalTitleGap: 6,
-      contentPadding:
-          const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
       onTap: null,
     );
   }

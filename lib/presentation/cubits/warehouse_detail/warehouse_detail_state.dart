@@ -21,6 +21,7 @@ class WarehouseDetailLoaded extends WarehouseDetailState {
   final List<WarehouseProductModel> filtered;
   final String query;
   final String currentUserRole; // 'admin', 'editor', 'viewer'
+  final List<int> updatingProductIds;
 
   const WarehouseDetailLoaded({
     required this.warehouse,
@@ -28,6 +29,7 @@ class WarehouseDetailLoaded extends WarehouseDetailState {
     required this.filtered,
     this.query = '',
     this.currentUserRole = 'viewer',
+    this.updatingProductIds = const [],
   });
 
   bool get canEdit => currentUserRole == 'admin' || currentUserRole == 'editor';
@@ -39,6 +41,7 @@ class WarehouseDetailLoaded extends WarehouseDetailState {
     List<WarehouseProductModel>? filtered,
     String? query,
     String? currentUserRole,
+    List<int>? updatingProductIds,
   }) =>
       WarehouseDetailLoaded(
         warehouse: warehouse ?? this.warehouse,
@@ -46,10 +49,18 @@ class WarehouseDetailLoaded extends WarehouseDetailState {
         filtered: filtered ?? this.filtered,
         query: query ?? this.query,
         currentUserRole: currentUserRole ?? this.currentUserRole,
+        updatingProductIds: updatingProductIds ?? this.updatingProductIds,
       );
 
   @override
-  List<Object?> get props => [warehouse, products, filtered, query, currentUserRole];
+  List<Object?> get props => [
+        warehouse,
+        products,
+        filtered,
+        query,
+        currentUserRole,
+        updatingProductIds,
+      ];
 }
 
 class WarehouseDetailError extends WarehouseDetailState {

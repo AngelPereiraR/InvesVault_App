@@ -13,13 +13,18 @@ import 'app_drawer.dart';
 const _appBarBg = Color(0xFF3C096C);
 
 class AppShell extends StatelessWidget {
-  final Widget child;
-  const AppShell({super.key, required this.child});
+  final StatefulNavigationShell navigationShell;
+  final String currentLocation;
+
+  const AppShell({
+    super.key,
+    required this.navigationShell,
+    required this.currentLocation,
+  });
 
   @override
   Widget build(BuildContext context) {
-    final location = GoRouterState.of(context).uri.path;
-    final title = _titleFor(location);
+    final title = _titleFor(currentLocation);
 
     return BlocListener<AuthCubit, AuthState>(
       listener: (context, state) {
@@ -37,13 +42,13 @@ class AppShell extends StatelessWidget {
           iconTheme: const IconThemeData(color: Colors.white),
           actions: [
             // Context-sensitive add button
-            if (location == '/warehouses')
+            if (currentLocation == '/warehouses')
               IconButton(
                 icon: const Icon(Icons.add),
                 tooltip: 'Nuevo almacén',
                 onPressed: () => showWarehouseDialog(context),
               )
-            else if (location == '/products')
+            else if (currentLocation == '/products')
               IconButton(
                 icon: const Icon(Icons.add),
                 tooltip: 'Nuevo producto',
@@ -54,13 +59,13 @@ class AppShell extends StatelessWidget {
                   }
                 },
               )
-            else if (location == '/stores')
+            else if (currentLocation == '/stores')
               IconButton(
                 icon: const Icon(Icons.add),
                 tooltip: 'Nueva tienda',
                 onPressed: () => showStoreDialog(context),
               )
-            else if (location == '/brands')
+            else if (currentLocation == '/brands')
               IconButton(
                 icon: const Icon(Icons.add),
                 tooltip: 'Nueva marca',
@@ -86,7 +91,7 @@ class AppShell extends StatelessWidget {
           ],
         ),
         drawer: const AppDrawer(),
-        body: child,
+        body: navigationShell,
       ),
     );
   }

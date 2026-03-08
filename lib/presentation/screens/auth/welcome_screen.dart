@@ -50,8 +50,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
     _SlideData(
       icon: Icons.smartphone_outlined,
       title: 'Todo el poder en tu mano',
-      subtitle:
-          'Desde el escaneo rápido de productos hasta el seguimiento de '
+      subtitle: 'Desde el escaneo rápido de productos hasta el seguimiento de '
           'movimientos de stock. Nuestra aplicación te da las herramientas '
           'para optimizar tu almacén, organizar tus listas de compras y '
           'colaborar con tu equipo, todo desde tu móvil.',
@@ -86,8 +85,8 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                   Container(
                     width: 40,
                     height: 40,
-                    child: Image.asset('assets/logo.png',
-                        width: 40, height: 40),
+                    child:
+                        Image.asset('assets/logo.png', width: 40, height: 40),
                   ),
                   const SizedBox(width: 10),
                   Column(
@@ -153,7 +152,8 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                       width: _currentPage == i ? 24 : 8,
                       height: 8,
                       decoration: BoxDecoration(
-                        color: _currentPage == i ? _mint : _white.withOpacity(0.4),
+                        color:
+                            _currentPage == i ? _mint : _white.withOpacity(0.4),
                         borderRadius: BorderRadius.circular(4),
                       ),
                     ),

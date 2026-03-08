@@ -149,8 +149,7 @@ class _InvesVaultAppState extends State<InvesVaultApp> {
           create: (_) => ProductListCubit(_productRepo),
         ),
         BlocProvider(
-          create: (_) => ProductFormCubit(
-              _productRepo, _brandRepo, _storeRepo),
+          create: (_) => ProductFormCubit(_productRepo, _brandRepo, _storeRepo),
         ),
         BlocProvider(
           create: (_) => ProductDetailCubit(
@@ -176,12 +175,12 @@ class _InvesVaultAppState extends State<InvesVaultApp> {
         ),
       ],
       child: MaterialApp.router(
-            title: 'InvesVault',
-            theme: AppTheme.light,
-            themeMode: ThemeMode.light,
-            routerConfig: _router,
-            debugShowCheckedModeBanner: false,
-          ),
+        title: 'InvesVault',
+        theme: AppTheme.light,
+        themeMode: ThemeMode.light,
+        routerConfig: _router,
+        debugShowCheckedModeBanner: false,
+      ),
     );
   }
 }

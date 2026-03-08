@@ -59,192 +59,176 @@ class _LoginScreenState extends State<LoginScreen> {
           children: [
             SafeArea(
               child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 24),
-            child: Form(
-              key: _formKey,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // ── Header ─────────────────────────────────────────────
-                  const SizedBox(height: 32),
-                  Center(
-                    child: Image.asset('assets/logo.png',
-                        width: 90, height: 90),
-                  ),
-                  const SizedBox(height: 16),
-                  Center(
-                    child: Text(
-                      'InvesVault',
-                      style: const TextStyle(
-                        fontSize: 28,
-                        fontWeight: FontWeight.w700,
-                        color: _purple,
-                        letterSpacing: 0.5,
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 28, vertical: 24),
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const SizedBox(height: 32),
+                      Center(
+                        child: Image.asset('assets/logo.png',
+                            width: 90, height: 90),
                       ),
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-                  Center(
-                    child: Text(
-                      'Gestión de inventario inteligente',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: _purple.withOpacity(0.6),
-                      ),
-                    ),
-                  ),
-
-                  const SizedBox(height: 40),
-
-                  // ── Title ──────────────────────────────────────────────
-                  Center(
-                    child: Column(
-                      children: [
-                        const Text(
-                          '¡Bienvenid@!',
+                      const SizedBox(height: 16),
+                      const Center(
+                        child: Text(
+                          'InvesVault',
                           style: TextStyle(
-                            fontSize: 22,
+                            fontSize: 28,
                             fontWeight: FontWeight.w700,
                             color: _purple,
+                            letterSpacing: 0.5,
                           ),
                         ),
-                        const SizedBox(height: 4),
-                        Text(
-                          'Ten el control del inventario de tu hogar, oficina, almacén, etc. ',
+                      ),
+                      const SizedBox(height: 6),
+                      Center(
+                        child: Text(
+                          'Gestión de inventario inteligente',
                           style: TextStyle(
                             fontSize: 14,
                             color: _purple.withOpacity(0.6),
                           ),
                         ),
-                      ],
-                    )
-                  ),
-
-                  const SizedBox(height: 28),
-
-                  // ── Email field ────────────────────────────────────────
-                  _Field(
-                    controller: _emailCtrl,
-                    label: 'Correo electrónico',
-                    icon: Icons.email_outlined,
-                    keyboardType: TextInputType.emailAddress,
-                    validator: Validators.email,
-                  ),
-                  const SizedBox(height: 16),
-
-                  // ── Password field ─────────────────────────────────────
-                  _Field(
-                    controller: _passwordCtrl,
-                    label: 'Contraseña',
-                    icon: Icons.lock_outlined,
-                    obscureText: _obscure,
-                    validator: Validators.password,
-                    suffix: IconButton(
-                      icon: Icon(
-                        _obscure
-                            ? Icons.visibility_outlined
-                            : Icons.visibility_off_outlined,
-                        color: _purple.withOpacity(0.6),
                       ),
-                      onPressed: () =>
-                          setState(() => _obscure = !_obscure),
-                    ),
-                  ),
-
-                  // ── Forgot password ────────────────────────────────────
-                  Align(
-                    alignment: Alignment.centerRight,
-                    child: TextButton(
-                      style: TextButton.styleFrom(
-                        foregroundColor: _purple,
-                        padding: EdgeInsets.zero,
-                      ),
-                      onPressed: () {}, // TODO: forgot password flow
-                      child: const Text(
-                        '¿Olvidaste tu contraseña?',
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
+                      const SizedBox(height: 40),
+                      Center(
+                        child: Column(
+                          children: [
+                            const Text(
+                              '¡Bienvenid@!',
+                              style: TextStyle(
+                                fontSize: 22,
+                                fontWeight: FontWeight.w700,
+                                color: _purple,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              'Ten el control del inventario de tu hogar, oficina, almacén, etc. ',
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: _purple.withOpacity(0.6),
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                          ],
                         ),
                       ),
-                    ),
-                  ),
-
-                  const SizedBox(height: 24),
-
-                  // ── Login button ───────────────────────────────────────
-                  BlocBuilder<AuthCubit, AuthState>(
-                    builder: (context, state) => SizedBox(
-                      width: double.infinity,
-                      height: 52,
-                      child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: _purple,
-                          foregroundColor: _white,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(14),
+                      const SizedBox(height: 28),
+                      _Field(
+                        controller: _emailCtrl,
+                        label: 'Correo electrónico',
+                        icon: Icons.email_outlined,
+                        keyboardType: TextInputType.emailAddress,
+                        validator: Validators.email,
+                      ),
+                      const SizedBox(height: 16),
+                      _Field(
+                        controller: _passwordCtrl,
+                        label: 'Contraseña',
+                        icon: Icons.lock_outlined,
+                        obscureText: _obscure,
+                        validator: Validators.password,
+                        suffix: IconButton(
+                          icon: Icon(
+                            _obscure
+                                ? Icons.visibility_outlined
+                                : Icons.visibility_off_outlined,
+                            color: _purple.withOpacity(0.6),
                           ),
-                          elevation: 0,
-                          textStyle: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w700,
+                          onPressed: () => setState(() => _obscure = !_obscure),
+                        ),
+                      ),
+                      Align(
+                        alignment: Alignment.centerRight,
+                        child: TextButton(
+                          style: TextButton.styleFrom(
+                            foregroundColor: _purple,
+                            padding: EdgeInsets.zero,
+                          ),
+                          onPressed: () {},
+                          child: const Text(
+                            '¿Olvidaste tu contraseña?',
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                            ),
                           ),
                         ),
-                        onPressed: state is AuthLoading ? null : _submit,
-                        child: state is AuthLoading
-                            ? const SizedBox(
-                                width: 22,
-                                height: 22,
-                                child: CircularProgressIndicator(
-                                    strokeWidth: 2.5,
-                                    color: _white),
-                              )
-                            : const Text('Iniciar sesión'),
                       ),
-                    ),
-                  ),
-
-                  const SizedBox(height: 14),
-
-                  // ── Register button ────────────────────────────────────
-                  SizedBox(
-                    width: double.infinity,
-                    height: 52,
-                    child: OutlinedButton(
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: _purple,
-                        side: const BorderSide(color: _purple, width: 1.5),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(14),
-                        ),
-                        textStyle: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
+                      const SizedBox(height: 24),
+                      BlocBuilder<AuthCubit, AuthState>(
+                        builder: (context, state) => SizedBox(
+                          width: double.infinity,
+                          height: 52,
+                          child: ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: _purple,
+                              foregroundColor: _white,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(14),
+                              ),
+                              elevation: 0,
+                              textStyle: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                            onPressed: state is AuthLoading ? null : _submit,
+                            child: state is AuthLoading
+                                ? const SizedBox(
+                                    width: 22,
+                                    height: 22,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2.5,
+                                      color: _white,
+                                    ),
+                                  )
+                                : const Text('Iniciar sesión'),
+                          ),
                         ),
                       ),
-                      onPressed: () => context.go('/register'),
-                      child: const Text('Crear cuenta'),
-                    ),
+                      const SizedBox(height: 14),
+                      SizedBox(
+                        width: double.infinity,
+                        height: 52,
+                        child: OutlinedButton(
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: _purple,
+                            side: const BorderSide(color: _purple, width: 1.5),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(14),
+                            ),
+                            textStyle: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          onPressed: () => context.go('/register'),
+                          child: const Text('Crear cuenta'),
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+                    ],
                   ),
-
-                  const SizedBox(height: 24),
-                ],
+                ),
               ),
             ),
-          ),
-        ),
-
-            // Settings icon overlay
             SafeArea(
               child: Align(
                 alignment: Alignment.topRight,
                 child: Padding(
                   padding: const EdgeInsets.only(top: 4, right: 4),
                   child: IconButton(
-                    icon: Icon(Icons.settings_outlined,
-                        color: _purple.withOpacity(0.7)),
+                    icon: Icon(
+                      Icons.settings_outlined,
+                      color: _purple.withOpacity(0.7),
+                    ),
                     tooltip: 'Ajustes',
-                    onPressed: () {}, // TODO: settings
+                    onPressed: () {},
                   ),
                 ),
               ),

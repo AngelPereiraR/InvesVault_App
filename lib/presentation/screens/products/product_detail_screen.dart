@@ -3,6 +3,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
+import '../../../data/models/product_model.dart';
+import '../../../data/models/warehouse_product_model.dart';
 import '../../cubits/auth/auth_cubit.dart';
 import '../../cubits/notification/notification_cubit.dart';
 import '../../cubits/product_detail/product_detail_cubit.dart';
@@ -28,7 +30,8 @@ class ProductDetailScreen extends StatefulWidget {
 class _ProductDetailScreenState extends State<ProductDetailScreen> {
   double _delta = 1.0;
   bool _isAdding = true;
-  String _historyFilter = 'all'; // 'all' | 'inbound' | 'outbound' | 'adjustment'
+  String _historyFilter =
+      'all'; // 'all' | 'inbound' | 'outbound' | 'adjustment'
 
   @override
   void initState() {
@@ -43,8 +46,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
 
   void _applyDelta() {
     final authState = context.read<AuthCubit>().state;
-    final userId =
-        authState is AuthAuthenticated ? authState.userId : 0;
+    final userId = authState is AuthAuthenticated ? authState.userId : 0;
     context.read<ProductDetailCubit>().quickUpdate(
           delta: _isAdding ? _delta : -_delta,
           userId: userId,
@@ -71,8 +73,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
           }
         },
         builder: (context, state) {
-          if (state is ProductDetailLoading ||
-              state is ProductDetailInitial) {
+          if (state is ProductDetailLoading || state is ProductDetailInitial) {
             return const LoadingIndicator();
           }
           if (state is ProductDetailError) {
@@ -105,9 +106,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                 if (product?.brand != null)
                   Text(product!.brand!.name,
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: Theme.of(context)
-                              .colorScheme
-                              .onSurfaceVariant)),
+                          color:
+                              Theme.of(context).colorScheme.onSurfaceVariant)),
                 const SizedBox(height: 24),
 
                 // Stock info
@@ -120,8 +120,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                   if (wp.pricePerUnit != null)
                     _InfoRow('Precio/unidad',
                         '${wp.pricePerUnit!.toStringAsFixed(2)} €'),
-                  if (wp.store != null)
-                    _InfoRow('Tienda', wp.store!.name),
+                  if (wp.store != null) _InfoRow('Tienda', wp.store!.name),
                   _InfoRow('Código de barras',
                       product?.barcode ?? 'No especificado'),
                 ]),
@@ -161,8 +160,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text('Actualización rápida',
-                            style:
-                                Theme.of(context).textTheme.titleSmall),
+                            style: Theme.of(context).textTheme.titleSmall),
                         const SizedBox(height: 12),
                         Row(
                           children: [
@@ -223,8 +221,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
 
                 // Edit button
                 OutlinedButton.icon(
-                  onPressed: () => context
-                      .push('/products/${wp.productId}/edit'),
+                  onPressed: () =>
+                      context.push('/products/${wp.productId}/edit'),
                   icon: const Icon(Icons.edit),
                   label: const Text('Editar información del producto'),
                 ),
@@ -259,7 +257,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                         label: 'Salidas',
                         selected: _historyFilter == 'outbound',
                         color: Colors.red,
-                        onTap: () => setState(() => _historyFilter = 'outbound'),
+                        onTap: () =>
+                            setState(() => _historyFilter = 'outbound'),
                       ),
                       const SizedBox(width: 6),
                       _HistoryTypeChip(
@@ -305,8 +304,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                         shrinkWrap: true,
                         physics: const NeverScrollableScrollPhysics(),
                         itemCount: filtered.length,
-                        separatorBuilder: (_, __) =>
-                            const SizedBox(height: 6),
+                        separatorBuilder: (_, __) => const SizedBox(height: 6),
                         itemBuilder: (context, i) {
                           final c = filtered[i];
                           final isInbound = c.changeType == 'inbound';
@@ -321,7 +319,11 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                               : isAdjustment
                                   ? Icons.tune_rounded
                                   : Icons.arrow_circle_up_rounded;
-                          final sign = isInbound ? '+' : isAdjustment ? '±' : '-';
+                          final sign = isInbound
+                              ? '+'
+                              : isAdjustment
+                                  ? '±'
+                                  : '-';
                           final dateStr = DateFormat('dd/MM/yy HH:mm').format(
                               DateTime.tryParse(c.createdAt ?? '') ??
                                   DateTime.now());
@@ -338,8 +340,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                                   CircleAvatar(
                                     radius: 20,
                                     backgroundColor: iconColor.withAlpha(30),
-                                    child: Icon(icon,
-                                        color: iconColor, size: 20),
+                                    child:
+                                        Icon(icon, color: iconColor, size: 20),
                                   ),
                                   const SizedBox(width: 12),
                                   Expanded(
@@ -389,8 +391,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                                         Row(
                                           children: [
                                             const Icon(Icons.person_outline,
-                                                size: 12,
-                                                color: Colors.grey),
+                                                size: 12, color: Colors.grey),
                                             const SizedBox(width: 3),
                                             Text(
                                               c.userName ?? 'Sistema',
@@ -402,8 +403,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                                             ),
                                             const SizedBox(width: 8),
                                             const Icon(Icons.access_time,
-                                                size: 12,
-                                                color: Colors.grey),
+                                                size: 12, color: Colors.grey),
                                             const SizedBox(width: 3),
                                             Text(
                                               dateStr,
@@ -465,9 +465,7 @@ class _InfoRow extends StatelessWidget {
           children: [
             Text(label,
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Theme.of(context)
-                        .colorScheme
-                        .onSurfaceVariant)),
+                    color: Theme.of(context).colorScheme.onSurfaceVariant)),
             Text(value, style: Theme.of(context).textTheme.bodyMedium),
           ],
         ),
@@ -476,8 +474,8 @@ class _InfoRow extends StatelessWidget {
 
 // ── Editar detalles del warehouse-product ──────────────────────────────────
 class _WarehouseDetailsEditor extends StatefulWidget {
-  final dynamic wp;
-  final dynamic product;
+  final WarehouseProductModel wp;
+  final ProductModel? product;
   const _WarehouseDetailsEditor({required this.wp, required this.product});
 
   @override
@@ -491,19 +489,32 @@ class _WarehouseDetailsEditorState extends State<_WarehouseDetailsEditor> {
   int? _storeId;
   bool _expanded = false;
 
+  void _syncFromWidget() {
+    final wp = widget.wp;
+    _minQtyCtrl.text =
+        wp.minQuantity != null ? wp.minQuantity!.toStringAsFixed(2) : '';
+    _priceCtrl.text =
+        wp.pricePerUnit != null ? wp.pricePerUnit!.toStringAsFixed(2) : '';
+    _storeId = wp.storeId;
+  }
+
   @override
   void initState() {
     super.initState();
-    final wp = widget.wp;
-    _minQtyCtrl = TextEditingController(
-        text: wp.minQuantity != null
-            ? wp.minQuantity.toStringAsFixed(2)
-            : '');
-    _priceCtrl = TextEditingController(
-        text: wp.pricePerUnit != null
-            ? wp.pricePerUnit.toStringAsFixed(2)
-            : '');
-    _storeId = wp.storeId as int?;
+    _minQtyCtrl = TextEditingController();
+    _priceCtrl = TextEditingController();
+    _syncFromWidget();
+  }
+
+  @override
+  void didUpdateWidget(covariant _WarehouseDetailsEditor oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.wp.id != widget.wp.id ||
+        oldWidget.wp.minQuantity != widget.wp.minQuantity ||
+        oldWidget.wp.pricePerUnit != widget.wp.pricePerUnit ||
+        oldWidget.wp.storeId != widget.wp.storeId) {
+      _syncFromWidget();
+    }
   }
 
   @override
@@ -514,14 +525,15 @@ class _WarehouseDetailsEditorState extends State<_WarehouseDetailsEditor> {
   }
 
   void _save() {
-    final data = <String, dynamic>{};
-    if (_minQtyCtrl.text.isNotEmpty) {
-      data['min_quantity'] = double.tryParse(_minQtyCtrl.text) ?? 0;
-    }
+    final data = <String, dynamic>{
+      'min_quantity': _minQtyCtrl.text.isEmpty
+          ? null
+          : (double.tryParse(_minQtyCtrl.text) ?? 0),
+      'store_id': _storeId,
+    };
     if (_priceCtrl.text.isNotEmpty) {
       data['price_per_unit'] = double.tryParse(_priceCtrl.text) ?? 0;
     }
-    if (_storeId != null) data['store_id'] = _storeId;
     if (data.isEmpty) return;
     context.read<ProductDetailCubit>().updateDetails(data);
     setState(() => _expanded = false);
@@ -550,8 +562,7 @@ class _WarehouseDetailsEditorState extends State<_WarehouseDetailsEditor> {
           const SizedBox(height: 12),
           TextField(
             controller: _minQtyCtrl,
-            keyboardType:
-                const TextInputType.numberWithOptions(decimal: true),
+            keyboardType: const TextInputType.numberWithOptions(decimal: true),
             decoration: const InputDecoration(
               labelText: 'Cantidad mínima (alerta)',
               prefixIcon: Icon(Icons.warning_amber_outlined),
@@ -560,8 +571,7 @@ class _WarehouseDetailsEditorState extends State<_WarehouseDetailsEditor> {
           const SizedBox(height: 10),
           TextField(
             controller: _priceCtrl,
-            keyboardType:
-                const TextInputType.numberWithOptions(decimal: true),
+            keyboardType: const TextInputType.numberWithOptions(decimal: true),
             decoration: const InputDecoration(
               labelText: 'Precio por unidad (€)',
               prefixIcon: Icon(Icons.euro_outlined),
@@ -623,8 +633,7 @@ class _HistoryTypeChip extends StatelessWidget {
       onTap: onTap,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
-        padding:
-            const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
         decoration: BoxDecoration(
           color: selected ? color : color.withAlpha(20),
           borderRadius: BorderRadius.circular(20),

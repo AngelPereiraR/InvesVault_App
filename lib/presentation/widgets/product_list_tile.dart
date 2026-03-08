@@ -7,6 +7,8 @@ class ProductListTile extends StatelessWidget {
   final VoidCallback? onTap;
   final VoidCallback? onAdd;
   final VoidCallback? onRemove;
+  final VoidCallback? onDelete;
+  final bool isUpdating;
 
   const ProductListTile({
     super.key,
@@ -14,6 +16,8 @@ class ProductListTile extends StatelessWidget {
     this.onTap,
     this.onAdd,
     this.onRemove,
+    this.onDelete,
+    this.isUpdating = false,
   });
 
   @override
@@ -23,7 +27,7 @@ class ProductListTile extends StatelessWidget {
     final isLow = warehouseProduct.isLowStock;
 
     return ListTile(
-      onTap: onTap,
+      onTap: isUpdating ? null : onTap,
       leading: product?.imageUrl != null
           ? ClipRRect(
               borderRadius: BorderRadius.circular(8),
@@ -45,9 +49,7 @@ class ProductListTile extends StatelessWidget {
       subtitle: Text(
         'Stock: ${warehouseProduct.quantity.toStringAsFixed(2)} '
         '${product?.defaultUnit ?? ''}',
-        style: isLow
-            ? TextStyle(color: theme.colorScheme.error)
-            : null,
+        style: isLow ? TextStyle(color: theme.colorScheme.error) : null,
       ),
       trailing: Row(
         mainAxisSize: MainAxisSize.min,
@@ -58,18 +60,47 @@ class ProductListTile extends StatelessWidget {
               child: Icon(Icons.warning_amber_rounded,
                   color: theme.colorScheme.error, size: 18),
             ),
-          if (onRemove != null)
-            IconButton(
-              icon: const Icon(Icons.remove_circle_outline),
-              onPressed: onRemove,
-              tooltip: 'Reducir stock',
-            ),
-          if (onAdd != null)
-            IconButton(
-              icon: const Icon(Icons.add_circle_outline),
-              onPressed: onAdd,
-              tooltip: 'Aumentar stock',
-            ),
+          if (isUpdating)
+            const SizedBox(
+              width: 20,
+              height: 20,
+              child: CircularProgressIndicator(strokeWidth: 2.2),
+            )
+          else ...[
+            if (onRemove != null)
+              IconButton(
+                icon: const Icon(Icons.remove_circle_outline),
+                onPressed: onRemove,
+                tooltip: 'Reducir stock',
+              ),
+            if (onAdd != null)
+              IconButton(
+                icon: const Icon(Icons.add_circle_outline),
+                onPressed: onAdd,
+                tooltip: 'Aumentar stock',
+              ),
+            if (onDelete != null)
+              PopupMenuButton<String>(
+                tooltip: 'Más acciones',
+                onSelected: (value) {
+                  if (value == 'delete') {
+                    onDelete?.call();
+                  }
+                },
+                itemBuilder: (context) => const [
+                  PopupMenuItem<String>(
+                    value: 'delete',
+                    child: Row(
+                      children: [
+                        Icon(Icons.delete_outline, color: Colors.red),
+                        SizedBox(width: 10),
+                        Text('Eliminar del almacén'),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+          ],
         ],
       ),
     );
