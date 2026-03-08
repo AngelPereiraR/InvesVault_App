@@ -106,13 +106,25 @@ class AppDrawer extends StatelessWidget {
 
                 // ACCIONES FINALES
                 ListTile(
-                  leading: const Icon(Icons.restart_alt, color: Colors.orange),
-                  title: const Text('Reiniciar',
-                      style: TextStyle(color: Colors.orange)),
-                  onTap: () async {
-                    Navigator.of(context).pop();
-                    await context.read<AuthCubit>().logout();
-                  },
+                  enabled: false,
+                  leading:
+                      Icon(Icons.restart_alt, color: Colors.blueGrey.shade300),
+                  title: Text('Reiniciar',
+                      style: TextStyle(color: Colors.blueGrey.shade400)),
+                  trailing: Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: _accentGreen.withOpacity(0.15),
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: const Text('Próximamente',
+                        style: TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w600,
+                            color: _accentGreen)),
+                  ),
+                  onTap: null,
                 ),
                 ListTile(
                   leading: const Icon(Icons.logout, color: Colors.red),
@@ -167,7 +179,7 @@ class _DrawerHeader extends StatelessWidget {
                           color: Colors.white,
                           fontSize: 18,
                           fontWeight: FontWeight.w700)),
-                  Text('v1.0.0',
+                    Text('v1.0.1',
                       style: TextStyle(color: Colors.white54, fontSize: 11)),
                 ],
               ),
