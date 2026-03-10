@@ -65,10 +65,16 @@ class _ProductListScreenState extends State<ProductListScreen> {
         if (state is ProductListLoaded) {
           return RefreshIndicator(
             onRefresh: () => context.read<ProductListCubit>().load(),
-            child: ListView.separated(
+            child: GridView.builder(
               padding: const EdgeInsets.all(16),
+              gridDelegate:
+                  const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+                crossAxisSpacing: 10,
+                mainAxisSpacing: 10,
+                childAspectRatio: 1.65,
+              ),
               itemCount: state.products.length,
-              separatorBuilder: (_, __) => const SizedBox(height: 10),
               itemBuilder: (context, i) {
                 final product = state.products[i];
                 final brandName = product.brand?.name;
@@ -76,7 +82,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
                   if (brandName != null) brandName,
                   if (product.barcode != null) 'Cód: ${product.barcode}',
                   'Unidad: ${product.defaultUnit}',
-                ].join('  ·  ');
+                ].join(' · ');
 
                 return Container(
                   decoration: BoxDecoration(
@@ -90,74 +96,73 @@ class _ProductListScreenState extends State<ProductListScreen> {
                       ),
                     ],
                   ),
-                  child: ListTile(
-                    contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 16, vertical: 8),
-                    leading: Container(
-                      width: 44,
-                      height: 44,
-                      decoration: const BoxDecoration(
-                        color: _mint,
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Icon(Icons.inventory_2_outlined,
-                          color: _purple, size: 22),
-                    ),
-                    title: Text(
-                      product.name,
-                      style: const TextStyle(
-                        fontWeight: FontWeight.w600,
-                        fontSize: 15,
-                        color: _purple,
-                      ),
-                    ),
-                    subtitle: subtitle.isNotEmpty
-                        ? Padding(
-                            padding: const EdgeInsets.only(top: 2),
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(10, 10, 10, 6),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Container(
+                              width: 34,
+                              height: 34,
+                              decoration: const BoxDecoration(
+                                color: _mint,
+                                shape: BoxShape.circle,
+                              ),
+                              child: const Icon(Icons.inventory_2_outlined,
+                                  color: _purple, size: 18),
+                            ),
+                            const Spacer(),
+                            _ProductPopupMenu(
+                              onEdit: () async {
+                                await context
+                                    .push('/products/${product.id}/edit');
+                                if (context.mounted) {
+                                  context.read<ProductListCubit>().load();
+                                }
+                              },
+                              onDelete: () async {
+                                final confirm = await showConfirmDialog(
+                                  context,
+                                  title: 'Eliminar producto',
+                                  message:
+                                      '¿Eliminar "${product.name}"? Esta acción no se puede deshacer.',
+                                  confirmLabel: 'Eliminar',
+                                  isDangerous: true,
+                                );
+                                if (confirm == true && context.mounted) {
+                                  context
+                                      .read<ProductListCubit>()
+                                      .delete(product.id);
+                                }
+                              },
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          product.name,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 13,
+                            color: _purple,
+                          ),
+                        ),
+                        if (subtitle.isNotEmpty)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 4),
                             child: Text(
                               subtitle,
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
                               style: TextStyle(
-                                  fontSize: 12,
+                                  fontSize: 11,
                                   color: Colors.grey.shade500),
                             ),
-                          )
-                        : null,
-                    trailing: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        IconButton(
-                          icon: Icon(Icons.edit_outlined,
-                              color: _purple.withValues(alpha: 0.6),
-                              size: 20),
-                          tooltip: 'Editar',
-                          onPressed: () async {
-                            await context
-                                .push('/products/${product.id}/edit');
-                            if (context.mounted) {
-                              context.read<ProductListCubit>().load();
-                            }
-                          },
-                        ),
-                        IconButton(
-                          icon: Icon(Icons.delete_outline,
-                              color: Colors.red.shade300, size: 20),
-                          tooltip: 'Eliminar',
-                          onPressed: () async {
-                            final confirm = await showConfirmDialog(
-                              context,
-                              title: 'Eliminar producto',
-                              message:
-                                  '¿Eliminar "${product.name}"? Esta acción no se puede deshacer.',
-                              confirmLabel: 'Eliminar',
-                              isDangerous: true,
-                            );
-                            if (confirm == true && context.mounted) {
-                              context
-                                  .read<ProductListCubit>()
-                                  .delete(product.id);
-                            }
-                          },
-                        ),
+                          ),
                       ],
                     ),
                   ),
@@ -168,6 +173,34 @@ class _ProductListScreenState extends State<ProductListScreen> {
         }
         return const SizedBox();
       },
+    );
+  }
+}
+
+// ─── Product popup menu ───────────────────────────────────────────────────────
+class _ProductPopupMenu extends StatelessWidget {
+  final VoidCallback onEdit;
+  final VoidCallback onDelete;
+
+  const _ProductPopupMenu({required this.onEdit, required this.onDelete});
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 30,
+      height: 30,
+      child: PopupMenuButton<String>(
+        padding: EdgeInsets.zero,
+        iconSize: 18,
+        onSelected: (v) {
+          if (v == 'edit') onEdit();
+          if (v == 'delete') onDelete();
+        },
+        itemBuilder: (_) => const [
+          PopupMenuItem(value: 'edit', child: Text('Editar')),
+          PopupMenuItem(value: 'delete', child: Text('Eliminar')),
+        ],
+      ),
     );
   }
 }

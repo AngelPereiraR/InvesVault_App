@@ -82,7 +82,7 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
             appBar: AppBar(
                 title:
                     Text(isEdit ? 'Editar producto' : 'Nuevo producto')),
-            body: const LoadingIndicator(),
+            body: const SafeArea(top: false, child: LoadingIndicator()),
           );
         }
         if (state is! ProductFormReady) return const SizedBox();
@@ -91,7 +91,9 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
         return Scaffold(
           appBar: AppBar(
               title: Text(isEdit ? 'Editar producto' : 'Nuevo producto')),
-          body: SingleChildScrollView(
+          body: SafeArea(
+            top: false,
+            child: SingleChildScrollView(
             padding: const EdgeInsets.all(24),
             child: Form(
               key: _formKey,
@@ -160,7 +162,7 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
                 ],
               ),
             ),
-          ),
+          )),
         );
       },
     );

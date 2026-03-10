@@ -1,4 +1,5 @@
-import 'package:equatable/equatable.dart';
+﻿import 'package:equatable/equatable.dart';
+import '../../../core/utils/error_messages.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../data/models/notification_model.dart';
@@ -18,7 +19,7 @@ class NotificationCubit extends Cubit<NotificationState> {
       emit(NotificationLoaded(
           notifications: notifications, unreadCount: unreadCount));
     } catch (e) {
-      emit(NotificationError(e.toString()));
+      emit(NotificationError(friendlyError(e)));
     }
   }
 
@@ -27,7 +28,7 @@ class NotificationCubit extends Cubit<NotificationState> {
       await _repository.markRead(id);
       await load();
     } catch (e) {
-      emit(NotificationError(e.toString()));
+      emit(NotificationError(friendlyError(e)));
     }
   }
 
@@ -36,7 +37,7 @@ class NotificationCubit extends Cubit<NotificationState> {
       await _repository.markAllRead();
       await load();
     } catch (e) {
-      emit(NotificationError(e.toString()));
+      emit(NotificationError(friendlyError(e)));
     }
   }
 
@@ -45,7 +46,7 @@ class NotificationCubit extends Cubit<NotificationState> {
       await _repository.deleteNotification(id);
       await load();
     } catch (e) {
-      emit(NotificationError(e.toString()));
+      emit(NotificationError(friendlyError(e)));
     }
   }
 
@@ -54,7 +55,7 @@ class NotificationCubit extends Cubit<NotificationState> {
       await _repository.clearAll();
       emit(const NotificationLoaded(notifications: [], unreadCount: 0));
     } catch (e) {
-      emit(NotificationError(e.toString()));
+      emit(NotificationError(friendlyError(e)));
     }
   }
 }

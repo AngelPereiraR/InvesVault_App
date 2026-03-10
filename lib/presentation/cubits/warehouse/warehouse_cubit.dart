@@ -1,4 +1,5 @@
-import 'package:equatable/equatable.dart';
+﻿import 'package:equatable/equatable.dart';
+import '../../../core/utils/error_messages.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../data/models/warehouse_model.dart';
@@ -16,7 +17,7 @@ class WarehouseCubit extends Cubit<WarehouseState> {
       final warehouses = await _repository.getWarehouses();
       emit(WarehouseLoaded(warehouses));
     } catch (e) {
-      emit(WarehouseError(e.toString()));
+      emit(WarehouseError(friendlyError(e)));
     }
   }
 
@@ -31,7 +32,7 @@ class WarehouseCubit extends Cubit<WarehouseState> {
       emit(WarehouseCreated(warehouse));
       await load();
     } catch (e) {
-      emit(WarehouseError(e.toString()));
+      emit(WarehouseError(friendlyError(e)));
     }
   }
 
@@ -41,7 +42,7 @@ class WarehouseCubit extends Cubit<WarehouseState> {
       emit(const WarehouseActionSuccess('Almacén actualizado correctamente'));
       await load();
     } catch (e) {
-      emit(WarehouseError(e.toString()));
+      emit(WarehouseError(friendlyError(e)));
     }
   }
 
@@ -51,7 +52,7 @@ class WarehouseCubit extends Cubit<WarehouseState> {
       emit(const WarehouseActionSuccess('Almacén eliminado correctamente'));
       await load();
     } catch (e) {
-      emit(WarehouseError(e.toString()));
+      emit(WarehouseError(friendlyError(e)));
     }
   }
 }

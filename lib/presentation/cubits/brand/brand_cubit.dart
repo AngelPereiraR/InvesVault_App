@@ -1,4 +1,5 @@
-import 'package:equatable/equatable.dart';
+﻿import 'package:equatable/equatable.dart';
+import '../../../core/utils/error_messages.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../data/models/brand_model.dart';
@@ -16,7 +17,7 @@ class BrandCubit extends Cubit<BrandState> {
       final brands = await _repository.getBrands();
       emit(BrandLoaded(brands));
     } catch (e) {
-      emit(BrandError(e.toString()));
+      emit(BrandError(friendlyError(e)));
     }
   }
 
@@ -25,7 +26,7 @@ class BrandCubit extends Cubit<BrandState> {
       await _repository.createBrand(name);
       await load();
     } catch (e) {
-      emit(BrandError(e.toString()));
+      emit(BrandError(friendlyError(e)));
     }
   }
 
@@ -34,7 +35,7 @@ class BrandCubit extends Cubit<BrandState> {
       await _repository.updateBrand(id, name);
       await load();
     } catch (e) {
-      emit(BrandError(e.toString()));
+      emit(BrandError(friendlyError(e)));
     }
   }
 
@@ -43,7 +44,7 @@ class BrandCubit extends Cubit<BrandState> {
       await _repository.deleteBrand(id);
       await load();
     } catch (e) {
-      emit(BrandError(e.toString()));
+      emit(BrandError(friendlyError(e)));
     }
   }
 }

@@ -49,7 +49,7 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
           ),
         ],
       ),
-      body: Stack(
+      body: SafeArea(top: false, child: Stack(
         children: [
           MobileScanner(
             controller: _ctrl,
@@ -88,7 +88,7 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
             ),
           ),
         ],
-      ),
+      )),
     );
   }
 }

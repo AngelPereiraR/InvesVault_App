@@ -1,4 +1,5 @@
-import 'package:equatable/equatable.dart';
+﻿import 'package:equatable/equatable.dart';
+import '../../../core/utils/error_messages.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../data/models/product_model.dart';
@@ -16,7 +17,7 @@ class ProductListCubit extends Cubit<ProductListState> {
       final products = await _repository.getProducts();
       emit(ProductListLoaded(products));
     } catch (e) {
-      emit(ProductListError(e.toString()));
+      emit(ProductListError(friendlyError(e)));
     }
   }
 
@@ -25,7 +26,7 @@ class ProductListCubit extends Cubit<ProductListState> {
       await _repository.deleteProduct(id);
       await load();
     } catch (e) {
-      emit(ProductListError(e.toString()));
+      emit(ProductListError(friendlyError(e)));
     }
   }
 }

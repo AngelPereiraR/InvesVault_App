@@ -1,4 +1,5 @@
-import 'package:equatable/equatable.dart';
+﻿import 'package:equatable/equatable.dart';
+import '../../../core/utils/error_messages.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../core/services/storage_service.dart';
@@ -71,7 +72,7 @@ class AuthCubit extends Cubit<AuthState> {
         role: user['role'] as String,
       ));
     } catch (e) {
-      emit(AuthError(e.toString()));
+      emit(AuthError(friendlyError(e)));
     }
   }
 
@@ -101,7 +102,7 @@ class AuthCubit extends Cubit<AuthState> {
         role: user['role'] as String,
       ));
     } catch (e) {
-      emit(AuthError(e.toString()));
+      emit(AuthError(friendlyError(e)));
     }
   }
 
@@ -132,7 +133,7 @@ class AuthCubit extends Cubit<AuthState> {
           email: user.email,
           role: user.role));
     } catch (e) {
-      emit(AuthError(e.toString()));
+      emit(AuthError(friendlyError(e)));
     }
   }
 }

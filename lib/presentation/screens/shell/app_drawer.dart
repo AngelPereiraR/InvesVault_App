@@ -29,8 +29,10 @@ class AppDrawer extends StatelessWidget {
 
           // ── Scrollable menu ─────────────────────────────────────────
           Expanded(
-            child: ListView(
-              padding: EdgeInsets.zero,
+            child: SafeArea(
+              top: false,
+              child: ListView(
+                padding: EdgeInsets.zero,
               children: [
                 const SizedBox(height: 8),
 
@@ -43,7 +45,7 @@ class AppDrawer extends StatelessWidget {
                 ),
                 const _DrawerTile(
                   icon: Icons.warehouse_outlined,
-                  label: 'Almacenes',
+                  label: 'Inventario',
                   route: '/warehouses',
                 ),
                 const _DrawerTile(
@@ -58,7 +60,7 @@ class AppDrawer extends StatelessWidget {
                 ),
                 const _DrawerTile(
                   icon: Icons.inventory_2_outlined,
-                  label: 'Inventario',
+                  label: 'Catálogo',
                   route: '/products',
                 ),
                 const _DrawerTile(
@@ -139,6 +141,7 @@ class AppDrawer extends StatelessWidget {
                 const SizedBox(height: 16),
               ],
             ),
+            ),
           ),
         ],
       ),
@@ -179,7 +182,7 @@ class _DrawerHeader extends StatelessWidget {
                           color: Colors.white,
                           fontSize: 18,
                           fontWeight: FontWeight.w700)),
-                    Text('v1.0.1',
+                    Text('v1.0.2',
                       style: TextStyle(color: Colors.white54, fontSize: 11)),
                 ],
               ),

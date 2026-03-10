@@ -1,5 +1,6 @@
-import 'package:dio/dio.dart';
+﻿import 'package:dio/dio.dart';
 import 'package:equatable/equatable.dart';
+import '../../../core/utils/error_messages.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -19,7 +20,7 @@ class WarehouseUserCubit extends Cubit<WarehouseUserState> {
       final users = await _repository.getUsers(warehouseId);
       emit(WarehouseUserLoaded(users));
     } catch (e) {
-      emit(WarehouseUserError(e.toString()));
+      emit(WarehouseUserError(friendlyError(e)));
     }
   }
 
@@ -44,7 +45,7 @@ class WarehouseUserCubit extends Cubit<WarehouseUserState> {
       emit(current.copyWith(isAdding: false, addError: msg));
     } catch (e) {
       debugPrint('[WarehouseUserCubit] Exception: $e');
-      emit(current.copyWith(isAdding: false, addError: e.toString()));
+      emit(current.copyWith(isAdding: false, addError: friendlyError(e)));
     }
   }
 
@@ -55,7 +56,7 @@ class WarehouseUserCubit extends Cubit<WarehouseUserState> {
       emit(const WarehouseUserActionSuccess('Usuario añadido correctamente'));
       await load(warehouseId);
     } catch (e) {
-      emit(WarehouseUserError(e.toString()));
+      emit(WarehouseUserError(friendlyError(e)));
     }
   }
 
@@ -66,7 +67,7 @@ class WarehouseUserCubit extends Cubit<WarehouseUserState> {
       emit(const WarehouseUserActionSuccess('Rol actualizado correctamente'));
       await load(warehouseId);
     } catch (e) {
-      emit(WarehouseUserError(e.toString()));
+      emit(WarehouseUserError(friendlyError(e)));
     }
   }
 
@@ -76,7 +77,7 @@ class WarehouseUserCubit extends Cubit<WarehouseUserState> {
       emit(const WarehouseUserActionSuccess('Usuario eliminado correctamente'));
       await load(warehouseId);
     } catch (e) {
-      emit(WarehouseUserError(e.toString()));
+      emit(WarehouseUserError(friendlyError(e)));
     }
   }
 }

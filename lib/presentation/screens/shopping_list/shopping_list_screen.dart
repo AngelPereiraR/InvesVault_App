@@ -81,6 +81,17 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
     setState(() => _buyQtyMap[itemId] = (current + delta).clamp(1, max));
   }
 
+  //  Warehouse name helper (client-side fallback when API omits it) 
+  String? _warehouseNameFor(int warehouseId) {
+    final state = context.read<WarehouseCubit>().state;
+    if (state is WarehouseLoaded) {
+      try {
+        return state.warehouses.firstWhere((w) => w.id == warehouseId).name;
+      } catch (_) {}
+    }
+    return null;
+  }
+
   //  Buy logic 
   Future<void> _buy(List items) async {
     final toProcess = List.of(_checkedSet);
@@ -161,119 +172,114 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
       buildWhen: (prev, curr) =>
           !(curr is ShoppingListError && prev is ShoppingListLoaded),
       builder: (context, state) {
-        if (state is ShoppingListLoading || state is ShoppingListInitial) {
-          return const LoadingIndicator();
+        // Derive data for the toolbar (always present)
+        final List items =
+            state is ShoppingListLoaded ? state.items : const [];
+        final storeMap = <int?, String?>{};
+        for (final item in items) {
+          storeMap[item.storeId] = item.storeName;
         }
-        if (state is ShoppingListError) {
-          return ErrorView(
-            message: state.message,
-            onRetry: () => context.read<ShoppingListCubit>().loadAll(),
-          );
-        }
-        if (state is ShoppingListLoaded && state.items.isEmpty) {
-          return const EmptyView(
-            message: 'No hay productos en ninguna lista de compra',
-            icon: Icons.store_outlined,
-          );
-        }
-        if (state is ShoppingListLoaded) {
-          final items = state.items;
+        final storeIds = storeMap.keys.whereType<int>().toList()..sort();
+        final hasNoStore = storeMap.containsKey(null);
+        final filteredItems = items.isEmpty
+            ? items
+            : (_selectedStoreFilter == null
+                ? items
+                : (_selectedStoreFilter == -1
+                    ? items.where((i) => i.storeId == null).toList()
+                    : items
+                        .where((i) => i.storeId == _selectedStoreFilter)
+                        .toList()));
 
-          // Build unique store map
-          final storeMap = <int?, String?>{};
-          for (final item in items) {
-            storeMap[item.storeId] = item.storeName;
-          }
-          final storeIds = storeMap.keys.whereType<int>().toList()..sort();
-          final hasNoStore = storeMap.containsKey(null);
-
-          // Filter items
-          final filteredItems = _selectedStoreFilter == null
-              ? items
-              : (_selectedStoreFilter == -1
-                  ? items.where((i) => i.storeId == null).toList()
-                  : items
-                      .where((i) => i.storeId == _selectedStoreFilter)
-                      .toList());
-
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              //  Store filter chips + add button 
-              Container(
-                color: _white,
-                padding: const EdgeInsets.symmetric(
-                    horizontal: 12, vertical: 10),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: SingleChildScrollView(
-                        scrollDirection: Axis.horizontal,
-                        child: Row(
-                          children: [
-                            _StoreChip(
-                              label: 'Todas',
-                              selected: _selectedStoreFilter == null,
-                              onTap: () =>
-                                  setState(() => _selectedStoreFilter = null),
-                            ),
-                            if (hasNoStore)
-                              _StoreChip(
-                                label: 'Sin tienda',
-                                selected: _selectedStoreFilter == -1,
-                                onTap: () =>
-                                    setState(() => _selectedStoreFilter = -1),
-                              ),
-                            for (final sid in storeIds)
-                              _StoreChip(
-                                label: storeMap[sid] ?? 'Tienda $sid',
-                                selected: _selectedStoreFilter == sid,
-                                onTap: () =>
-                                    setState(() => _selectedStoreFilter = sid),
-                              ),
-                          ],
-                        ),
-                      ),
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.auto_awesome,
-                          color: _accentGreen),
-                      tooltip: 'Generar automáticamente',
-                      onPressed: () =>
-                          _showGenerateDialog(context),
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.add_circle_outline,
-                          color: _purple),
-                      tooltip: 'Añadir producto',
-                      onPressed: () =>
-                          _showAddDialogWithWarehouseSelection(context),
-                    ),
-                  ],
-                ),
-              ),
-
-              //  Items list 
-              Expanded(
-                child: filteredItems.isEmpty
-                    ? const EmptyView(
-                        message: 'No hay productos en esta tienda',
-                        icon: Icons.store_outlined,
-                      )
-                    : ListView(
-                        padding: const EdgeInsets.all(16),
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            //  Store filter chips + action buttons (always visible) 
+            Container(
+              color: _white,
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Row(
                         children: [
-                          ...filteredItems.map((item) =>
-                              _buildItemCard(item, showWarehouse: true)),
-                          const SizedBox(height: 12),
-                          _buildBuyButton(filteredItems),
+                          _StoreChip(
+                            label: 'Todas',
+                            selected: _selectedStoreFilter == null,
+                            onTap: () =>
+                                setState(() => _selectedStoreFilter = null),
+                          ),
+                          if (hasNoStore)
+                            _StoreChip(
+                              label: 'Sin tienda',
+                              selected: _selectedStoreFilter == -1,
+                              onTap: () =>
+                                  setState(() => _selectedStoreFilter = -1),
+                            ),
+                          for (final sid in storeIds)
+                            _StoreChip(
+                              label: storeMap[sid] ?? 'Tienda $sid',
+                              selected: _selectedStoreFilter == sid,
+                              onTap: () =>
+                                  setState(() => _selectedStoreFilter = sid),
+                            ),
                         ],
                       ),
+                    ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.auto_awesome, color: _accentGreen),
+                    tooltip: 'Generar automáticamente',
+                    onPressed: () => _showGenerateDialog(context),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.add_circle_outline, color: _purple),
+                    tooltip: 'Añadir producto',
+                    onPressed: () =>
+                        _showAddDialogWithWarehouseSelection(context),
+                  ),
+                ],
               ),
-            ],
-          );
-        }
-        return const SizedBox();
+            ),
+
+            //  Content area 
+            Expanded(
+              child: () {
+                if (state is ShoppingListLoading ||
+                    state is ShoppingListInitial) {
+                  return const LoadingIndicator();
+                }
+                if (state is ShoppingListError) {
+                  return ErrorView(
+                    message: state.message,
+                    onRetry: () =>
+                        context.read<ShoppingListCubit>().loadAll(),
+                  );
+                }
+                if (filteredItems.isEmpty) {
+                  return EmptyView(
+                    message: items.isEmpty
+                        ? 'No hay productos en ninguna lista de compra.\nPulsa ✨ para generarla automáticamente.'
+                        : 'No hay productos en esta tienda',
+                    icon: Icons.store_outlined,
+                  );
+                }
+                return ListView(
+                  padding: const EdgeInsets.all(16),
+                  children: [
+                    ...filteredItems.map(
+                        (item) => _buildItemCard(item, showWarehouse: true)),
+                    const SizedBox(height: 12),
+                    _buildBuyButton(filteredItems),
+                  ],
+                );
+              }(),
+            ),
+          ],
+        );
       },
     );
   }
@@ -509,10 +515,12 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
                           : null,
                     ),
                   ),
-                  if (showWarehouse && item.warehouseName != null) ...[
+                  if (showWarehouse) ...[
                     const SizedBox(height: 2),
                     Text(
-                      item.warehouseName as String,
+                      (item.warehouseName as String?) ??
+                          _warehouseNameFor(item.warehouseId as int) ??
+                          'Almacén ${item.warehouseId}',
                       style: TextStyle(
                           fontSize: 11,
                           color: _purple.withValues(alpha: 0.55),
@@ -590,7 +598,16 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
           IconButton(
             icon: Icon(Icons.delete_outline,
                 color: Colors.red.shade300, size: 20),
-            onPressed: () {
+            onPressed: () async {
+              final confirm = await showConfirmDialog(
+                context,
+                title: 'Eliminar producto',
+                message:
+                    '¿Eliminar "${item.product?.name ?? 'este producto'}" de la lista?',
+                confirmLabel: 'Eliminar',
+                isDangerous: true,
+              );
+              if (confirm != true || !context.mounted) return;
               setState(() {
                 _checkedSet.remove(item.id as int);
                 _planned.remove(item.id as int);

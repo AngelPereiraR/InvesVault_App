@@ -1,4 +1,5 @@
-import 'package:equatable/equatable.dart';
+﻿import 'package:equatable/equatable.dart';
+import '../../../core/utils/error_messages.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../data/models/shopping_list_item_model.dart';
@@ -20,7 +21,7 @@ class ShoppingListCubit extends Cubit<ShoppingListState> {
       final items = await _repository.getList(warehouseId);
       emit(ShoppingListLoaded(items));
     } catch (e) {
-      emit(ShoppingListError(e.toString()));
+      emit(ShoppingListError(friendlyError(e)));
     }
   }
 
@@ -31,7 +32,7 @@ class ShoppingListCubit extends Cubit<ShoppingListState> {
       final items = await _repository.getAllItems();
       emit(ShoppingListLoaded(items));
     } catch (e) {
-      emit(ShoppingListError(e.toString()));
+      emit(ShoppingListError(friendlyError(e)));
     }
   }
 
@@ -50,7 +51,7 @@ class ShoppingListCubit extends Cubit<ShoppingListState> {
       final items = await _repository.generateAll();
       emit(ShoppingListLoaded(items));
     } catch (e) {
-      emit(ShoppingListError(e.toString()));
+      emit(ShoppingListError(friendlyError(e)));
     }
   }
 
@@ -61,7 +62,7 @@ class ShoppingListCubit extends Cubit<ShoppingListState> {
       final items = await _repository.generate(warehouseId);
       emit(ShoppingListLoaded(items));
     } catch (e) {
-      emit(ShoppingListError(e.toString()));
+      emit(ShoppingListError(friendlyError(e)));
     }
   }
 
@@ -74,7 +75,7 @@ class ShoppingListCubit extends Cubit<ShoppingListState> {
         emit(ShoppingListLoaded(items));
       }
     } catch (e) {
-      emit(ShoppingListError(e.toString()));
+      emit(ShoppingListError(friendlyError(e)));
     }
   }
 
@@ -98,7 +99,7 @@ class ShoppingListCubit extends Cubit<ShoppingListState> {
       await _repository.removeItem(id);
       await _reload(warehouseId);
     } catch (e) {
-      emit(ShoppingListError(e.toString()));
+      emit(ShoppingListError(friendlyError(e)));
     }
   }
 
@@ -108,7 +109,7 @@ class ShoppingListCubit extends Cubit<ShoppingListState> {
       await _repository.clearList(warehouseId);
       emit(const ShoppingListLoaded([]));
     } catch (e) {
-      emit(ShoppingListError(e.toString()));
+      emit(ShoppingListError(friendlyError(e)));
     }
   }
 }

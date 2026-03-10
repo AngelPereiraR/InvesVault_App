@@ -21,10 +21,29 @@ class DashboardScreen extends StatefulWidget {
 }
 
 class _DashboardScreenState extends State<DashboardScreen> {
+  final _scrollCtrl = ScrollController();
+  final _lowStockKey = GlobalKey();
+
   @override
   void initState() {
     super.initState();
     context.read<DashboardCubit>().load();
+  }
+
+  @override
+  void dispose() {
+    _scrollCtrl.dispose();
+    super.dispose();
+  }
+
+  void _scrollToLowStock() {
+    final ctx = _lowStockKey.currentContext;
+    if (ctx == null) return;
+    Scrollable.ensureVisible(
+      ctx,
+      duration: const Duration(milliseconds: 400),
+      curve: Curves.easeInOut,
+    );
   }
 
   @override
@@ -45,6 +64,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         return RefreshIndicator(
           onRefresh: () => context.read<DashboardCubit>().refresh(),
           child: ListView(
+            controller: _scrollCtrl,
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
             children: [
               // ── 3 STAT BUTTONS ───────────────────────────────────────
@@ -59,12 +79,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       color: state.lowStockCount > 0
                           ? Colors.red.shade600
                           : _accentGreen,
-                      onTap: () {},
+                      onTap: state.lowStockCount > 0
+                          ? _scrollToLowStock
+                          : () {},
                     ),
                     const SizedBox(width: 10),
                     _StatButton(
                       icon: Icons.inventory_2_outlined,
-                      label: 'Inventario',
+                      label: 'Catálogo',
                       value: '${state.productCount}',
                       color: _purple,
                       onTap: () => navigateToShellSection(context, '/products'),
@@ -191,14 +213,27 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     onAction: () =>
                       navigateToShellSection(context, '/warehouses'),
                 ),
-                const SizedBox(height: 8),
-                for (final w in state.recentWarehouses)
-                  _WarehouseRow(
-                    name: w.name,
-                    onTap: () => context.openAuxiliaryRoute(
-                      '/warehouses/${w.id}/detail',
+                const SizedBox(height: 10),
+                GridView.count(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  crossAxisCount: 2,
+                  crossAxisSpacing: 10,
+                  mainAxisSpacing: 10,
+                  childAspectRatio: 2.6,
+                  children: [
+                    for (final w in state.recentWarehouses)
+                      _WarehouseButton(
+                        name: w.name,
+                        onTap: () => context.openAuxiliaryRoute(
+                          '/warehouses/${w.id}/detail',
+                        ),
+                      ),
+                    _WarehouseAddButton(
+                      onTap: () => showWarehouseDialog(context),
                     ),
-                  ),
+                  ],
+                ),
               ],
 
               const SizedBox(height: 24),
@@ -206,6 +241,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               // ── LOW STOCK ─────────────────────────────────────────────
               if (state.lowStockItems.isNotEmpty) ...[
                 Row(
+                  key: _lowStockKey,
                   children: [
                     const _SectionTitle(title: 'Stock crítico'),
                     const SizedBox(width: 8),
@@ -404,43 +440,92 @@ class _SectionTitle extends StatelessWidget {
   }
 }
 
-// ─── Warehouse row ─────────────────────────────────────────────────────────────
-class _WarehouseRow extends StatelessWidget {
+// ─── Warehouse button chip ────────────────────────────────────────────────────
+class _WarehouseButton extends StatelessWidget {
   final String name;
   final VoidCallback onTap;
 
-  const _WarehouseRow({required this.name, required this.onTap});
+  const _WarehouseButton({required this.name, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        margin: const EdgeInsets.only(bottom: 8),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         decoration: BoxDecoration(
           color: _white,
           borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: _purple.withOpacity(0.15)),
           boxShadow: [
             BoxShadow(
-                color: Colors.black.withOpacity(0.04),
+                color: Colors.black.withOpacity(0.05),
                 blurRadius: 6,
                 offset: const Offset(0, 2)),
           ],
         ),
         child: Row(
           children: [
-            const Icon(Icons.warehouse_outlined, color: _purple, size: 22),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Text(name,
-                  style: const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: _purple)),
+            Container(
+              width: 32,
+              height: 32,
+              decoration: const BoxDecoration(
+                  color: _mint, shape: BoxShape.circle),
+              child: const Icon(Icons.warehouse_outlined,
+                  color: _purple, size: 18),
             ),
-            Icon(Icons.chevron_right,
-                color: _purple.withOpacity(0.4), size: 20),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                name,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: _purple),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ─── Add warehouse button ─────────────────────────────────────────────────────
+class _WarehouseAddButton extends StatelessWidget {
+  final VoidCallback onTap;
+  const _WarehouseAddButton({required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        decoration: BoxDecoration(
+          color: _mint.withOpacity(0.5),
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: _accentGreen.withOpacity(0.4)),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 32,
+              height: 32,
+              decoration: BoxDecoration(
+                  color: _accentGreen.withOpacity(0.15),
+                  shape: BoxShape.circle),
+              child: const Icon(Icons.add,
+                  color: _accentGreen, size: 20),
+            ),
+            const SizedBox(width: 10),
+            const Text('Nuevo',
+                style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: _accentGreen)),
           ],
         ),
       ),

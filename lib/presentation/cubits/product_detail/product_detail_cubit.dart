@@ -1,4 +1,5 @@
-import 'package:equatable/equatable.dart';
+﻿import 'package:equatable/equatable.dart';
+import '../../../core/utils/error_messages.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../core/services/notification_service.dart';
@@ -27,7 +28,7 @@ class ProductDetailCubit extends Cubit<ProductDetailState> {
       final wp = products.firstWhere((p) => p.id == warehouseProductId);
       emit(ProductDetailLoaded(wp));
     } catch (e) {
-      emit(ProductDetailError(e.toString()));
+      emit(ProductDetailError(friendlyError(e)));
     }
   }
 
@@ -44,7 +45,7 @@ class ProductDetailCubit extends Cubit<ProductDetailState> {
           products.firstWhere((p) => p.id == wp.id, orElse: () => wp);
       emit(ProductDetailLoaded(updated));
     } catch (e) {
-      emit(ProductDetailError(e.toString()));
+      emit(ProductDetailError(friendlyError(e)));
     }
   }
 
@@ -81,7 +82,7 @@ class ProductDetailCubit extends Cubit<ProductDetailState> {
       }
       emit(ProductDetailLoaded(updated));
     } catch (e) {
-      emit(ProductDetailError(e.toString()));
+      emit(ProductDetailError(friendlyError(e)));
     }
   }
 }

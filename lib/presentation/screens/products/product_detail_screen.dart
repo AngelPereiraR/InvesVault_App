@@ -57,7 +57,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Detalle de producto')),
-      body: BlocConsumer<ProductDetailCubit, ProductDetailState>(
+      body: SafeArea(top: false, child: BlocConsumer<ProductDetailCubit, ProductDetailState>(
         listener: (context, state) {
           if (state is ProductDetailLoaded) {
             context
@@ -436,7 +436,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
             ),
           );
         },
-      ),
+      )),
     );
   }
 }

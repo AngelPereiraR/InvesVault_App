@@ -5,13 +5,13 @@ import '../../../core/router/app_router.dart';
 import '../../cubits/auth/auth_cubit.dart';
 import '../../cubits/warehouse/warehouse_cubit.dart';
 import '../../cubits/warehouse_user/warehouse_user_cubit.dart';
+import '../../../data/models/warehouse_model.dart';
 import '../../../data/models/warehouse_user_model.dart';
 import '../../widgets/app_text_field.dart';
 import '../../widgets/confirm_dialog.dart';
 import '../../widgets/empty_view.dart';
 import '../../widgets/error_view.dart';
 import '../../widgets/loading_indicator.dart';
-import '../../widgets/warehouse_card.dart';
 import '../../../core/utils/validators.dart';
 
 const _purple = Color(0xFF3C096C);
@@ -494,9 +494,21 @@ class _CollaboratorsTab extends StatelessWidget {
                                   size: 18),
                               color: Colors.red.shade400,
                               tooltip: 'Eliminar',
-                              onPressed: () => ctx
-                                  .read<WarehouseUserCubit>()
-                                  .removeUser(activeWarehouseId!, u.userId),
+                              onPressed: () async {
+                                final confirm = await showConfirmDialog(
+                                  ctx,
+                                  title: 'Eliminar colaborador',
+                                  message:
+                                      '¿Eliminar a "${u.userName ?? u.userEmail ?? 'este colaborador'}" del almacén?',
+                                  confirmLabel: 'Eliminar',
+                                  isDangerous: true,
+                                );
+                                if (confirm == true && ctx.mounted) {
+                                  ctx
+                                      .read<WarehouseUserCubit>()
+                                      .removeUser(activeWarehouseId!, u.userId);
+                                }
+                              },
                             ),
                         ],
                       ),
@@ -585,21 +597,27 @@ class _WarehouseListScreenState extends State<WarehouseListScreen> {
                 authState is AuthAuthenticated ? authState.userId : -1;
             return RefreshIndicator(
               onRefresh: () => context.read<WarehouseCubit>().load(),
-              child: ListView.separated(
+              child: GridView.builder(
                 padding: const EdgeInsets.all(16),
+                gridDelegate:
+                    const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2,
+                  crossAxisSpacing: 10,
+                  mainAxisSpacing: 10,
+                  childAspectRatio: 1.7,
+                ),
                 itemCount: state.warehouses.length,
-                separatorBuilder: (_, __) => const SizedBox(height: 8),
                 itemBuilder: (context, i) {
                   final w = state.warehouses[i];
                   final isOwner = w.ownerId == currentUserId;
-                  return WarehouseCard(
+                  return _WarehouseGridCard(
                     warehouse: w,
-                    onTap: () =>
-                        context.openAuxiliaryRoute(
-                          '/warehouses/${w.id}/detail',
-                        ),
+                    onTap: () => context.openAuxiliaryRoute(
+                      '/warehouses/${w.id}/detail',
+                    ),
                     onEdit: isOwner
-                        ? () => showWarehouseDialog(context, warehouseId: w.id)
+                        ? () =>
+                            showWarehouseDialog(context, warehouseId: w.id)
                         : null,
                     onDelete: isOwner
                         ? () async {
@@ -623,6 +641,98 @@ class _WarehouseListScreenState extends State<WarehouseListScreen> {
           }
           return const SizedBox();
         },
+      ),
+    );
+  }
+}
+
+// ─── Warehouse grid card ──────────────────────────────────────────────────────
+const _mint = Color(0xFFD8F3DC);
+
+class _WarehouseGridCard extends StatelessWidget {
+  final WarehouseModel warehouse;
+  final VoidCallback? onTap;
+  final VoidCallback? onEdit;
+  final VoidCallback? onDelete;
+
+  const _WarehouseGridCard({
+    required this.warehouse,
+    this.onTap,
+    this.onEdit,
+    this.onDelete,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      clipBehavior: Clip.hardEdge,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+      child: InkWell(
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(12, 10, 4, 10),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    width: 36,
+                    height: 36,
+                    decoration: const BoxDecoration(
+                        color: _mint, shape: BoxShape.circle),
+                    child: const Icon(Icons.warehouse_outlined,
+                        color: _purple, size: 20),
+                  ),
+                  const Spacer(),
+                  if (onEdit != null || onDelete != null)
+                    SizedBox(
+                      width: 30,
+                      height: 30,
+                      child: PopupMenuButton<String>(
+                        padding: EdgeInsets.zero,
+                        iconSize: 18,
+                        onSelected: (v) {
+                          if (v == 'edit') onEdit?.call();
+                          if (v == 'delete') onDelete?.call();
+                        },
+                        itemBuilder: (_) => [
+                          if (onEdit != null)
+                            const PopupMenuItem(
+                                value: 'edit', child: Text('Editar')),
+                          if (onDelete != null)
+                            const PopupMenuItem(
+                                value: 'delete', child: Text('Eliminar')),
+                        ],
+                      ),
+                    ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Text(
+                warehouse.name,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: _purple),
+              ),
+              if (warehouse.isShared)
+                const Padding(
+                  padding: EdgeInsets.only(top: 4),
+                  child: Text(
+                    'Compartido',
+                    style: TextStyle(
+                        fontSize: 10,
+                        color: _purple,
+                        fontWeight: FontWeight.w500),
+                  ),
+                ),
+            ],
+          ),
+        ),
       ),
     );
   }

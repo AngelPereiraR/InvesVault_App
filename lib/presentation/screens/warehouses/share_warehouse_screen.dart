@@ -75,7 +75,7 @@ class _ShareWarehouseScreenState extends State<ShareWarehouseScreen> {
 
         return Scaffold(
           appBar: AppBar(title: const Text('Compartir almacén')),
-          body: Column(
+          body: SafeArea(top: false, child: Column(
             children: [
 // ── Add by email (admin only) ──
               if (isAdmin)
@@ -268,7 +268,7 @@ class _ShareWarehouseScreenState extends State<ShareWarehouseScreen> {
                                 : const SizedBox(),
               ),
             ],
-          ),
+          )),
         );
       },
     );

@@ -77,7 +77,9 @@ class _WarehouseFormScreenState extends State<WarehouseFormScreen> {
       child: Scaffold(
         appBar: AppBar(
             title: Text(isEdit ? 'Editar almacén' : 'Nuevo almacén')),
-        body: Padding(
+        body: SafeArea(
+          top: false,
+          child: Padding(
           padding: const EdgeInsets.all(24),
           child: Form(
             key: _formKey,
@@ -107,7 +109,7 @@ class _WarehouseFormScreenState extends State<WarehouseFormScreen> {
               ],
             ),
           ),
-        ),
+        )),
       ),
     );
   }

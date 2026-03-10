@@ -1,4 +1,5 @@
-import 'package:equatable/equatable.dart';
+﻿import 'package:equatable/equatable.dart';
+import '../../../core/utils/error_messages.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../core/services/notification_service.dart';
@@ -75,7 +76,7 @@ class WarehouseDetailCubit extends Cubit<WarehouseDetailState> {
         currentUserRole: userRole,
       ));
     } catch (e) {
-      emit(WarehouseDetailError(e.toString()));
+      emit(WarehouseDetailError(friendlyError(e)));
     }
   }
 
@@ -138,7 +139,7 @@ class WarehouseDetailCubit extends Cubit<WarehouseDetailState> {
         ),
       ));
     } catch (e) {
-      emit(WarehouseDetailError(e.toString()));
+      emit(WarehouseDetailError(friendlyError(e)));
     }
   }
 
@@ -158,7 +159,7 @@ class WarehouseDetailCubit extends Cubit<WarehouseDetailState> {
         updatingProductIds: _withoutUpdatingId(current.updatingProductIds, id),
       ));
     } catch (e) {
-      emit(WarehouseDetailError(e.toString()));
+      emit(WarehouseDetailError(friendlyError(e)));
     }
   }
 
@@ -169,7 +170,7 @@ class WarehouseDetailCubit extends Cubit<WarehouseDetailState> {
       await _warehouseProductRepository.addProduct(data);
       await load(current.warehouse.id, userId: _lastUserId);
     } catch (e) {
-      emit(WarehouseDetailError(e.toString()));
+      emit(WarehouseDetailError(friendlyError(e)));
     }
   }
 }

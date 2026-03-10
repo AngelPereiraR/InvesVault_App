@@ -1,4 +1,5 @@
-import 'package:equatable/equatable.dart';
+﻿import 'package:equatable/equatable.dart';
+import '../../../core/utils/error_messages.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../data/models/stock_change_model.dart';
@@ -16,7 +17,7 @@ class StockChangeCubit extends Cubit<StockChangeState> {
       final changes = await _repository.getByProduct(productId);
       emit(StockChangeLoaded(changes));
     } catch (e) {
-      emit(StockChangeError(e.toString()));
+      emit(StockChangeError(friendlyError(e)));
     }
   }
 
@@ -26,7 +27,7 @@ class StockChangeCubit extends Cubit<StockChangeState> {
       final changes = await _repository.getByWarehouse(warehouseId);
       emit(StockChangeLoaded(changes));
     } catch (e) {
-      emit(StockChangeError(e.toString()));
+      emit(StockChangeError(friendlyError(e)));
     }
   }
 
@@ -36,7 +37,7 @@ class StockChangeCubit extends Cubit<StockChangeState> {
       final changes = await _repository.getByUser(userId);
       emit(StockChangeLoaded(changes));
     } catch (e) {
-      emit(StockChangeError(e.toString()));
+      emit(StockChangeError(friendlyError(e)));
     }
   }
 

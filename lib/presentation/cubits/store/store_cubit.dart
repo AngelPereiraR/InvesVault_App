@@ -1,4 +1,5 @@
-import 'package:equatable/equatable.dart';
+﻿import 'package:equatable/equatable.dart';
+import '../../../core/utils/error_messages.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../data/models/store_model.dart';
@@ -16,7 +17,7 @@ class StoreCubit extends Cubit<StoreState> {
       final stores = await _repository.getStores();
       emit(StoreLoaded(stores));
     } catch (e) {
-      emit(StoreError(e.toString()));
+      emit(StoreError(friendlyError(e)));
     }
   }
 
@@ -25,7 +26,7 @@ class StoreCubit extends Cubit<StoreState> {
       await _repository.createStore(name: name, location: location);
       await load();
     } catch (e) {
-      emit(StoreError(e.toString()));
+      emit(StoreError(friendlyError(e)));
     }
   }
 
@@ -34,7 +35,7 @@ class StoreCubit extends Cubit<StoreState> {
       await _repository.updateStore(id, data);
       await load();
     } catch (e) {
-      emit(StoreError(e.toString()));
+      emit(StoreError(friendlyError(e)));
     }
   }
 
@@ -43,7 +44,7 @@ class StoreCubit extends Cubit<StoreState> {
       await _repository.deleteStore(id);
       await load();
     } catch (e) {
-      emit(StoreError(e.toString()));
+      emit(StoreError(friendlyError(e)));
     }
   }
 }

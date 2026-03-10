@@ -63,7 +63,7 @@ class _GlobalSearchScreenState extends State<GlobalSearchScreen> {
             ),
         ],
       ),
-      body: BlocBuilder<ProductFormCubit, ProductFormState>(
+      body: SafeArea(top: false, child: BlocBuilder<ProductFormCubit, ProductFormState>(
         builder: (context, state) {
           if (state is ProductFormLoading || state is ProductFormInitial) {
             return const Center(child: CircularProgressIndicator());
@@ -135,7 +135,7 @@ class _GlobalSearchScreenState extends State<GlobalSearchScreen> {
             },
           );
         },
-      ),
+      )),
       floatingActionButton: FloatingActionButton.extended(
         backgroundColor: _accentGreen,
         foregroundColor: Colors.white,

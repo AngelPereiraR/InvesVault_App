@@ -58,7 +58,7 @@ class _NotificationListScreenState extends State<NotificationListScreen> {
               ],
             ],
           ),
-          body: () {
+          body: SafeArea(top: false, child: () {
             if (state is NotificationLoading ||
                 state is NotificationInitial) {
               return const LoadingIndicator();
@@ -137,7 +137,7 @@ class _NotificationListScreenState extends State<NotificationListScreen> {
               );
             }
             return const SizedBox();
-          }(),
+          }()),
         );
       },
     );

@@ -1,4 +1,5 @@
-import 'package:equatable/equatable.dart';
+﻿import 'package:equatable/equatable.dart';
+import '../../../core/utils/error_messages.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../data/models/brand_model.dart';
@@ -37,7 +38,7 @@ class ProductFormCubit extends Cubit<ProductFormState> {
       emit(ProductFormReady(
           brands: brands, stores: stores, existingProduct: existing));
     } catch (e) {
-      emit(ProductFormError(e.toString()));
+      emit(ProductFormError(friendlyError(e)));
     }
   }
 
@@ -55,7 +56,7 @@ class ProductFormCubit extends Cubit<ProductFormState> {
       emit(ProductFormReady(
           brands: brands, stores: stores, allProducts: products));
     } catch (e) {
-      emit(ProductFormError(e.toString()));
+      emit(ProductFormError(friendlyError(e)));
     }
   }
 
@@ -67,7 +68,7 @@ class ProductFormCubit extends Cubit<ProductFormState> {
           : await _productRepository.createProduct(data);
       emit(ProductFormSuccess(product));
     } catch (e) {
-      emit(ProductFormError(e.toString()));
+      emit(ProductFormError(friendlyError(e)));
     }
   }
 }

@@ -1,4 +1,5 @@
-import 'package:equatable/equatable.dart';
+﻿import 'package:equatable/equatable.dart';
+import '../../../core/utils/error_messages.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../data/models/warehouse_model.dart';
@@ -50,7 +51,7 @@ class DashboardCubit extends Cubit<DashboardState> {
         lowStockItems: allLowStock.take(5).toList(),
       ));
     } catch (e) {
-      emit(DashboardError(e.toString()));
+      emit(DashboardError(friendlyError(e)));
     }
   }
 

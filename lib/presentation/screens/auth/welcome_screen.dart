@@ -128,7 +128,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                         ),
                       ),
                       Text(
-                        'v1.0.1',
+                        'v1.0.2',
                         style: TextStyle(
                           fontSize: 11,
                           color: _purple.withOpacity(0.5),
@@ -164,7 +164,8 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
           // Bottom bar
           Container(
             color: _purple,
-            padding: const EdgeInsets.fromLTRB(24, 24, 24, 40),
+            padding: EdgeInsets.fromLTRB(
+                24, 24, 24, MediaQuery.of(context).padding.bottom + 24),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
