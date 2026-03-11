@@ -600,11 +600,11 @@ class _WarehouseListScreenState extends State<WarehouseListScreen> {
               child: GridView.builder(
                 padding: const EdgeInsets.all(16),
                 gridDelegate:
-                    const SliverGridDelegateWithFixedCrossAxisCount(
+                    SliverGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount: 2,
                   crossAxisSpacing: 10,
                   mainAxisSpacing: 10,
-                  childAspectRatio: 1.7,
+                  childAspectRatio: 1.7 / MediaQuery.textScalerOf(context).scale(1.0),
                 ),
                 itemCount: state.warehouses.length,
                 itemBuilder: (context, i) {

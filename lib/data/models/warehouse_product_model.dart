@@ -28,7 +28,7 @@ class WarehouseProductModel extends Equatable {
   });
 
   bool get isLowStock =>
-      minQuantity != null && quantity <= minQuantity!;
+      minQuantity != null && quantity < minQuantity!;
 
   factory WarehouseProductModel.fromJson(Map<String, dynamic> json) {
     final productJson = json['product'] as Map<String, dynamic>?;

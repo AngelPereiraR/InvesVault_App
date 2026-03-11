@@ -190,7 +190,6 @@ class _LoginScreenState extends State<LoginScreen> {
                       BlocBuilder<AuthCubit, AuthState>(
                         builder: (context, state) => SizedBox(
                           width: double.infinity,
-                          height: 52,
                           child: ElevatedButton(
                             style: ElevatedButton.styleFrom(
                               backgroundColor: _purple,
@@ -221,7 +220,6 @@ class _LoginScreenState extends State<LoginScreen> {
                       const SizedBox(height: 14),
                       SizedBox(
                         width: double.infinity,
-                        height: 52,
                         child: OutlinedButton(
                           style: OutlinedButton.styleFrom(
                             foregroundColor: _purple,

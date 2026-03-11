@@ -50,7 +50,10 @@ class _WarehouseDetailScreenState extends State<WarehouseDetailScreen> {
       ),
       builder: (sheetCtx) => BlocProvider.value(
         value: context.read<ProductFormCubit>(),
-        child: _AddProductSheet(warehouseId: widget.warehouseId),
+        child: SafeArea(
+          top: false,
+          child: _AddProductSheet(warehouseId: widget.warehouseId),
+        ),
       ),
     );
   }

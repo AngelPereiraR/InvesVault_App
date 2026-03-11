@@ -211,8 +211,9 @@ class _ProductSearchTile extends StatelessWidget {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
-      builder: (_) => Padding(
-        padding: const EdgeInsets.fromLTRB(24, 16, 24, 32),
+      builder: (_) => SafeArea(
+        child: Padding(
+        padding: const EdgeInsets.fromLTRB(24, 16, 24, 16),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -254,6 +255,7 @@ class _ProductSearchTile extends StatelessWidget {
           ],
         ),
       ),
+    ),
     );
   }
 }

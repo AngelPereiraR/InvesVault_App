@@ -261,7 +261,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               BlocBuilder<AuthCubit, AuthState>(
                                 builder: (context, state) => SizedBox(
                                   width: double.infinity,
-                                  height: 52,
                                   child: ElevatedButton(
                                     style: ElevatedButton.styleFrom(
                                       backgroundColor: _purple,

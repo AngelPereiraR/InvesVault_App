@@ -128,7 +128,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                         ),
                       ),
                       Text(
-                        'v1.0.2',
+                        'v1.0.3',
                         style: TextStyle(
                           fontSize: 11,
                           color: _purple.withOpacity(0.5),
@@ -193,7 +193,6 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                 // CTA button
                 SizedBox(
                   width: double.infinity,
-                  height: 52,
                   child: ElevatedButton(
                     style: ElevatedButton.styleFrom(
                       backgroundColor: _mint,

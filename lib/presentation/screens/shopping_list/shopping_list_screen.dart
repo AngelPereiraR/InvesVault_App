@@ -137,23 +137,29 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
   //  Build 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        _SlidingTabHeader(
-          selectedIndex: _tabIndex,
-          tabs: const ['Tiendas', 'Almacenes'],
-          onTabChanged: _onTabChanged,
-        ),
-        Expanded(
-          child: IndexedStack(
-            index: _tabIndex,
-            children: [
-              _buildTiendasTab(),
-              _buildAlmacenesTab(),
-            ],
+    // Re-render item cards when warehouse names become available
+    return BlocListener<WarehouseCubit, WarehouseState>(
+      listenWhen: (prev, curr) =>
+          curr is WarehouseLoaded && prev is! WarehouseLoaded,
+      listener: (_, __) => setState(() {}),
+      child: Column(
+        children: [
+          _SlidingTabHeader(
+            selectedIndex: _tabIndex,
+            tabs: const ['Tiendas', 'Almacenes'],
+            onTabChanged: _onTabChanged,
           ),
-        ),
-      ],
+          Expanded(
+            child: IndexedStack(
+              index: _tabIndex,
+              children: [
+                _buildTiendasTab(),
+                _buildAlmacenesTab(),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -298,6 +304,7 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
                 children: [
                   Expanded(
                     child: DropdownButtonFormField<int?>(
+                      isExpanded: true,
                       value: _selectedWarehouseId,
                       decoration: InputDecoration(
                         labelText: 'Almacén',
@@ -521,6 +528,8 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
                       (item.warehouseName as String?) ??
                           _warehouseNameFor(item.warehouseId as int) ??
                           'Almacén ${item.warehouseId}',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                       style: TextStyle(
                           fontSize: 11,
                           color: _purple.withValues(alpha: 0.55),
@@ -627,7 +636,6 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
     final count = _checkedSet.length;
     return SizedBox(
       width: double.infinity,
-      height: 50,
       child: ElevatedButton.icon(
         style: ElevatedButton.styleFrom(
           backgroundColor: _accentGreen,
@@ -688,6 +696,7 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
                 ),
                 const SizedBox(height: 20),
                 DropdownButtonFormField<int>(
+                  isExpanded: true,
                   value: selectedWarehouseId,
                   decoration:
                       _fieldDeco('Almacén', Icons.warehouse_outlined),
@@ -786,6 +795,7 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
                           style: TextStyle(color: Colors.grey))
                     else
                       DropdownButtonFormField<int>(
+                        isExpanded: true,
                         value: selectedProductId,
                         decoration: _fieldDeco(
                             'Producto', Icons.inventory_2_outlined),
@@ -869,6 +879,7 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
                             color: _purple)),
                     const SizedBox(height: 20),
                     DropdownButtonFormField<int>(
+                      isExpanded: true,
                       value: selectedWarehouseId,
                       decoration:
                           _fieldDeco('Almacén', Icons.warehouse_outlined),
@@ -887,6 +898,7 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
                           style: TextStyle(color: Colors.grey))
                     else
                       DropdownButtonFormField<int>(
+                        isExpanded: true,
                         value: selectedProductId,
                         decoration: _fieldDeco(
                             'Producto', Icons.inventory_2_outlined),

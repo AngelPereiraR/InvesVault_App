@@ -68,11 +68,11 @@ class _ProductListScreenState extends State<ProductListScreen> {
             child: GridView.builder(
               padding: const EdgeInsets.all(16),
               gridDelegate:
-                  const SliverGridDelegateWithFixedCrossAxisCount(
+                  SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 2,
                 crossAxisSpacing: 10,
                 mainAxisSpacing: 10,
-                childAspectRatio: 1.65,
+                childAspectRatio: 1.65 / MediaQuery.textScalerOf(context).scale(1.0),
               ),
               itemCount: state.products.length,
               itemBuilder: (context, i) {

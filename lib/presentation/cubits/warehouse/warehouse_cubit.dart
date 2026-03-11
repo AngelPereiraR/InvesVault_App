@@ -15,6 +15,7 @@ class WarehouseCubit extends Cubit<WarehouseState> {
     emit(const WarehouseLoading());
     try {
       final warehouses = await _repository.getWarehouses();
+      warehouses.sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
       emit(WarehouseLoaded(warehouses));
     } catch (e) {
       emit(WarehouseError(friendlyError(e)));
