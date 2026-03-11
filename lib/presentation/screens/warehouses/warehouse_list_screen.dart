@@ -604,7 +604,11 @@ class _WarehouseListScreenState extends State<WarehouseListScreen> {
                   crossAxisCount: 2,
                   crossAxisSpacing: 10,
                   mainAxisSpacing: 10,
-                  childAspectRatio: 1.7 / MediaQuery.textScalerOf(context).scale(1.0),
+                  childAspectRatio: 1.5 /
+                      MediaQuery.textScalerOf(context).scale(1.0).clamp(
+                        (390.0 / MediaQuery.sizeOf(context).width).clamp(0.8, 2.5),
+                        double.infinity,
+                      ),
                 ),
                 itemCount: state.warehouses.length,
                 itemBuilder: (context, i) {

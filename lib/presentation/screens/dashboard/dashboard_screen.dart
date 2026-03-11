@@ -154,7 +154,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 crossAxisCount: 3,
                 crossAxisSpacing: 12,
                 mainAxisSpacing: 12,
-                childAspectRatio: 0.96 / MediaQuery.textScalerOf(context).scale(1.0),
+                childAspectRatio: 0.85 /
+                    MediaQuery.textScalerOf(context).scale(1.0).clamp(
+                      (390.0 / MediaQuery.sizeOf(context).width).clamp(0.8, 2.5),
+                      double.infinity,
+                    ),
                 children: [
                   _QuickActionTile(
                     icon: Icons.swap_vert_circle_outlined,
@@ -220,7 +224,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   crossAxisCount: 2,
                   crossAxisSpacing: 10,
                   mainAxisSpacing: 10,
-                  childAspectRatio: 2.6 / MediaQuery.textScalerOf(context).scale(1.0),
+                  childAspectRatio: 2.25 /
+                      MediaQuery.textScalerOf(context).scale(1.0).clamp(
+                        (390.0 / MediaQuery.sizeOf(context).width).clamp(0.8, 2.5),
+                        double.infinity,
+                      ),
                   children: [
                     for (final w in state.recentWarehouses)
                       _WarehouseButton(

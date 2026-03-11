@@ -72,7 +72,11 @@ class _ProductListScreenState extends State<ProductListScreen> {
                 crossAxisCount: 2,
                 crossAxisSpacing: 10,
                 mainAxisSpacing: 10,
-                childAspectRatio: 1.65 / MediaQuery.textScalerOf(context).scale(1.0),
+                childAspectRatio: 1.2 /
+                    MediaQuery.textScalerOf(context).scale(1.0).clamp(
+                      (390.0 / MediaQuery.sizeOf(context).width).clamp(0.8, 2.5),
+                      double.infinity,
+                    ),
               ),
               itemCount: state.products.length,
               itemBuilder: (context, i) {
