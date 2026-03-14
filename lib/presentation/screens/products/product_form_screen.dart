@@ -147,7 +147,7 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
                     value: _unit,
                     decoration:
                         const InputDecoration(labelText: 'Unidad por defecto'),
-                    items: const ['unidad', 'kg', 'g', 'l', 'ml', 'caja', 'paquete']
+                    items: const ['unidad', 'kg', 'g', 'l', 'ml', 'caja', 'paquete', 'bolsa', 'bandeja', 'empezado']
                         .map((u) =>
                             DropdownMenuItem(value: u, child: Text(u)))
                         .toList(),

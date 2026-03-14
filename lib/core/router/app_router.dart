@@ -3,6 +3,7 @@ import '../../presentation/screens/auth/login_screen.dart';
 import '../../presentation/screens/auth/register_screen.dart';
 import '../../presentation/screens/auth/splash_screen.dart';
 import '../../presentation/screens/auth/welcome_screen.dart';
+import '../../presentation/screens/dashboard/critical_stock_screen.dart';
 import '../../presentation/screens/dashboard/dashboard_screen.dart';
 import '../../presentation/screens/notifications/notification_list_screen.dart';
 import '../../presentation/screens/products/barcode_scanner_screen.dart';
@@ -187,6 +188,7 @@ Widget _buildPage(String route, Object? extra) {
   if (route == '/warehouses/new') return const WarehouseFormScreen();
   if (route == '/products/new') return const ProductFormScreen();
   if (route == '/search') return const GlobalSearchScreen();
+  if (route == '/critical-stock') return const CriticalStockScreen();
   if (route == '/dashboard') {
     return const AppShell(
       currentLocation: '/dashboard',

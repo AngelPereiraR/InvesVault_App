@@ -49,6 +49,7 @@ class DashboardCubit extends Cubit<DashboardState> {
         unreadNotifications: unreadCount,
         recentWarehouses: warehouses.take(5).toList(),
         lowStockItems: allLowStock.take(5).toList(),
+        allLowStockItems: allLowStock,
       ));
     } catch (e) {
       emit(DashboardError(friendlyError(e)));

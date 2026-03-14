@@ -14,6 +14,16 @@ class ShoppingListCubit extends Cubit<ShoppingListState> {
   // Track current load mode so reload operations stay consistent
   bool _globalMode = false;
 
+  // ── Persisted UI state (survives screen navigations) ──────────────────────
+  int? storeFilter;
+  int? selectedWarehouseId;
+  final Map<int, int> stPlanned = {};
+  final Map<int, int> stBuyQty = {};
+  final Set<int> stChecked = {};
+  final Map<int, int> whPlanned = {};
+  final Map<int, int> whBuyQty = {};
+  final Set<int> whChecked = {};
+
   Future<void> load(int warehouseId) async {
     _globalMode = false;
     emit(const ShoppingListLoading());
@@ -100,6 +110,16 @@ class ShoppingListCubit extends Cubit<ShoppingListState> {
       await _reload(warehouseId);
     } catch (e) {
       emit(ShoppingListError(friendlyError(e)));
+    }
+  }
+
+  /// Persists the planned quantity to the backend without triggering a reload.
+  /// Called debounced after every +/- tap so all users see the updated qty.
+  Future<void> saveItemQty(int id, double newQty) async {
+    try {
+      await _repository.updateItem(id, newQty);
+    } catch (_) {
+      // Silent — the user's local value is already shown; next full load will reconcile
     }
   }
 

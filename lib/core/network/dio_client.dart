@@ -17,7 +17,11 @@ class DioClient {
         baseUrl: ApiConstants.baseUrl,
         connectTimeout: const Duration(seconds: 60),
         receiveTimeout: const Duration(seconds: 60),
-        headers: {'Content-Type': 'application/json'},
+        headers: {
+          'Content-Type': 'application/json',
+          // Add APP_API_KEY header when provided at compile time
+          if (ApiConstants.appApiKey.isNotEmpty) 'x-api-key': ApiConstants.appApiKey,
+        },
       ),
     );
 
@@ -27,6 +31,10 @@ class DioClient {
           final token = await storageService.getToken();
           if (token != null) {
             options.headers['Authorization'] = 'Bearer $token';
+          }
+          // Ensure x-api-key is always present for requests when set
+          if (ApiConstants.appApiKey.isNotEmpty) {
+            options.headers['x-api-key'] = ApiConstants.appApiKey;
           }
           return handler.next(options);
         },

@@ -4,6 +4,12 @@ abstract class ApiConstants {
     defaultValue: 'http://10.0.2.2:3000/api',
   );
 
+  // APP API key: set at compile time with --dart-define=APP_API_KEY=your_key
+  static const String appApiKey = String.fromEnvironment(
+    'APP_API_KEY',
+    defaultValue: '',
+  );
+
   static const String envName = String.fromEnvironment(
     'ENV_NAME',
     defaultValue: 'development',

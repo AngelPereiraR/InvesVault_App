@@ -191,7 +191,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   ),
                   _QuickActionTile(
                     icon: Icons.inventory_2_outlined,
-                    label: 'Productos',
+                    label: 'Catálogo',
                     backgroundColor: const Color(0xFFE3F2FD),
                     iconColor: const Color(0xFF1565C0),
                     onTap: () => navigateToShellSection(context, '/products'),
@@ -211,12 +211,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
               // ── RECENT WAREHOUSES ─────────────────────────────────────
               if (state.recentWarehouses.isNotEmpty) ...[
-                _SectionTitle(
-                  title: 'Mis almacenes',
-                  actionLabel: 'Ver todos',
-                    onAction: () =>
-                      navigateToShellSection(context, '/warehouses'),
-                ),
+                const _SectionTitle(title: 'Mis almacenes'),
                 const SizedBox(height: 10),
                 GridView.count(
                   shrinkWrap: true,
@@ -237,8 +232,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           '/warehouses/${w.id}/detail',
                         ),
                       ),
-                    _WarehouseAddButton(
-                      onTap: () => showWarehouseDialog(context),
+                    _WarehouseViewAllButton(
+                      onTap: () =>
+                          navigateToShellSection(context, '/warehouses'),
                     ),
                   ],
                 ),
@@ -251,7 +247,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 Row(
                   key: _lowStockKey,
                   children: [
-                    const _SectionTitle(title: 'Stock crítico'),
+                    Expanded(
+                      child: _SectionTitle(
+                        title: 'Stock crítico',
+                        actionLabel: 'Ver todos',
+                        onAction: () => context.openAuxiliaryRoute('/critical-stock'),
+                      ),
+                    ),
                     const SizedBox(width: 8),
                     Container(
                       padding: const EdgeInsets.symmetric(
@@ -435,13 +437,16 @@ class _SectionTitle extends StatelessWidget {
             style: const TextStyle(
                 fontSize: 16, fontWeight: FontWeight.w700, color: _purple)),
         if (actionLabel != null && onAction != null)
-          TextButton(
+          TextButton.icon(
             style: TextButton.styleFrom(
-                foregroundColor: _accentGreen, padding: EdgeInsets.zero),
+              foregroundColor: _accentGreen,
+              padding: const EdgeInsets.symmetric(horizontal: 4),
+            ),
             onPressed: onAction,
-            child: Text(actionLabel!,
+            icon: const Icon(Icons.arrow_forward_ios_rounded, size: 16),
+            label: Text(actionLabel!,
                 style:
-                    const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+                    const TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
           ),
       ],
     );
@@ -501,10 +506,10 @@ class _WarehouseButton extends StatelessWidget {
   }
 }
 
-// ─── Add warehouse button ─────────────────────────────────────────────────────
-class _WarehouseAddButton extends StatelessWidget {
+// ─── Ver todos warehouses button ──────────────────────────────────────────────
+class _WarehouseViewAllButton extends StatelessWidget {
   final VoidCallback onTap;
-  const _WarehouseAddButton({required this.onTap});
+  const _WarehouseViewAllButton({required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -513,9 +518,9 @@ class _WarehouseAddButton extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         decoration: BoxDecoration(
-          color: _mint.withOpacity(0.5),
+          color: _purple.withValues(alpha: 0.06),
           borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: _accentGreen.withOpacity(0.4)),
+          border: Border.all(color: _purple.withValues(alpha: 0.2)),
         ),
         child: Row(
           children: [
@@ -523,17 +528,17 @@ class _WarehouseAddButton extends StatelessWidget {
               width: 32,
               height: 32,
               decoration: BoxDecoration(
-                  color: _accentGreen.withOpacity(0.15),
+                  color: _purple.withValues(alpha: 0.12),
                   shape: BoxShape.circle),
-              child: const Icon(Icons.add,
-                  color: _accentGreen, size: 20),
+              child: const Icon(Icons.grid_view_rounded,
+                  color: _purple, size: 18),
             ),
             const SizedBox(width: 10),
-            const Text('Nuevo',
+            const Text('Ver todos',
                 style: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
-                    color: _accentGreen)),
+                    color: _purple)),
           ],
         ),
       ),

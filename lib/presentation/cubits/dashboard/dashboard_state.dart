@@ -21,7 +21,8 @@ class DashboardLoaded extends DashboardState {
   final int lowStockCount;
   final int unreadNotifications;
   final List<WarehouseModel> recentWarehouses;
-  final List<WarehouseProductModel> lowStockItems;
+  final List<WarehouseProductModel> lowStockItems;      // Preview (max 5)
+  final List<WarehouseProductModel> allLowStockItems;   // Full list
 
   const DashboardLoaded({
     required this.warehouseCount,
@@ -30,6 +31,7 @@ class DashboardLoaded extends DashboardState {
     required this.unreadNotifications,
     required this.recentWarehouses,
     required this.lowStockItems,
+    required this.allLowStockItems,
   });
 
   @override
@@ -40,6 +42,7 @@ class DashboardLoaded extends DashboardState {
         unreadNotifications,
         recentWarehouses,
         lowStockItems,
+        allLowStockItems,
       ];
 }
 

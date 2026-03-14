@@ -1,4 +1,6 @@
-﻿import 'package:flutter/material.dart';
+﻿import 'dart:async';
+
+import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../cubits/notification/notification_cubit.dart';
@@ -27,28 +29,42 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
   // 0 = Tiendas (default), 1 = Almacenes
   int _tabIndex = 0;
 
-  //  Tiendas tab state 
-  int? _selectedStoreFilter; // null = all stores shown (-1 = "Sin tienda")
-  final Map<int, int> _stPlanned = {};
-  final Map<int, int> _stBuyQty = {};
-  final Set<int> _stChecked = {};
+  //  Tiendas tab state (initialized from cubit in initState)
+  int? _selectedStoreFilter;
+  Map<int, int> _stPlanned = {};
+  Map<int, int> _stBuyQty = {};
+  Set<int> _stChecked = {};
 
-  //  Almacenes tab state 
+  //  Almacenes tab state (initialized from cubit in initState)
   int? _selectedWarehouseId;
-  final Map<int, int> _whPlanned = {};
-  final Map<int, int> _whBuyQty = {};
-  final Set<int> _whChecked = {};
+  Map<int, int> _whPlanned = {};
+  Map<int, int> _whBuyQty = {};
+  Set<int> _whChecked = {};
 
-  //  Active-tab getters 
+  //  Active-tab getters
   Map<int, int> get _planned => _tabIndex == 0 ? _stPlanned : _whPlanned;
   Map<int, int> get _buyQtyMap => _tabIndex == 0 ? _stBuyQty : _whBuyQty;
   Set<int> get _checkedSet => _tabIndex == 0 ? _stChecked : _whChecked;
 
+  // Debounce timers for backend qty saves (one per item id)
+  final Map<int, Timer> _saveTimers = {};
+
   @override
   void initState() {
     super.initState();
+    // Restore persisted UI state from cubit (survives screen navigations)
+    final cubit = context.read<ShoppingListCubit>();
+    _selectedStoreFilter = cubit.storeFilter;
+    _selectedWarehouseId = cubit.selectedWarehouseId;
+    _stPlanned = cubit.stPlanned;
+    _stBuyQty = cubit.stBuyQty;
+    _stChecked = cubit.stChecked;
+    _whPlanned = cubit.whPlanned;
+    _whBuyQty = cubit.whBuyQty;
+    _whChecked = cubit.whChecked;
+
     context.read<WarehouseCubit>().load();
-    context.read<ShoppingListCubit>().loadAll();
+    cubit.loadAll();
   }
 
   void _onTabChanged(int index) {
@@ -68,11 +84,28 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
   int _getBuyNow(dynamic item) =>
       _buyQtyMap[item.id as int] ?? _getPlanned(item);
 
+  @override
+  void dispose() {
+    for (final t in _saveTimers.values) {
+      t.cancel();
+    }
+    super.dispose();
+  }
+
   void _setPlanned(int itemId, int delta, {required int current}) {
     setState(() {
       final next = (current + delta).clamp(1, 999);
       _planned[itemId] = next;
       if ((_buyQtyMap[itemId] ?? next) > next) _buyQtyMap[itemId] = next;
+
+      // Debounced backend save: wait 800 ms after the last tap before calling API
+      _saveTimers[itemId]?.cancel();
+      _saveTimers[itemId] = Timer(const Duration(milliseconds: 800), () {
+        if (mounted) {
+          context.read<ShoppingListCubit>().saveItemQty(itemId, next.toDouble());
+        }
+        _saveTimers.remove(itemId);
+      });
     });
   }
 
@@ -215,22 +248,28 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
                           _StoreChip(
                             label: 'Todas',
                             selected: _selectedStoreFilter == null,
-                            onTap: () =>
-                                setState(() => _selectedStoreFilter = null),
+                            onTap: () => setState(() {
+                              _selectedStoreFilter = null;
+                              context.read<ShoppingListCubit>().storeFilter = null;
+                            }),
                           ),
                           if (hasNoStore)
                             _StoreChip(
                               label: 'Sin tienda',
                               selected: _selectedStoreFilter == -1,
-                              onTap: () =>
-                                  setState(() => _selectedStoreFilter = -1),
+                              onTap: () => setState(() {
+                                _selectedStoreFilter = -1;
+                                context.read<ShoppingListCubit>().storeFilter = -1;
+                              }),
                             ),
                           for (final sid in storeIds)
                             _StoreChip(
                               label: storeMap[sid] ?? 'Tienda $sid',
                               selected: _selectedStoreFilter == sid,
-                              onTap: () =>
-                                  setState(() => _selectedStoreFilter = sid),
+                              onTap: () => setState(() {
+                                _selectedStoreFilter = sid;
+                                context.read<ShoppingListCubit>().storeFilter = sid;
+                              }),
                             ),
                         ],
                       ),
@@ -327,6 +366,7 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
                       onChanged: (id) {
                         setState(() {
                           _selectedWarehouseId = id;
+                          context.read<ShoppingListCubit>().selectedWarehouseId = id;
                           _whPlanned.clear();
                           _whBuyQty.clear();
                           _whChecked.clear();
