@@ -9,6 +9,8 @@ class ProductListTile extends StatelessWidget {
   final VoidCallback? onRemove;
   final VoidCallback? onDelete;
   final bool isUpdating;
+  /// When non-null, replaces the built-in trailing widget entirely.
+  final Widget? trailing;
 
   const ProductListTile({
     super.key,
@@ -18,6 +20,7 @@ class ProductListTile extends StatelessWidget {
     this.onRemove,
     this.onDelete,
     this.isUpdating = false,
+    this.trailing,
   });
 
   @override
@@ -51,7 +54,7 @@ class ProductListTile extends StatelessWidget {
         '${product?.defaultUnit ?? ''}',
         style: isLow ? TextStyle(color: theme.colorScheme.error) : null,
       ),
-      trailing: Row(
+      trailing: trailing ?? Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           if (isLow)

@@ -15,6 +15,10 @@ class ShoppingListLoading extends ShoppingListState {
   const ShoppingListLoading();
 }
 
+class ShoppingListDeleting extends ShoppingListState {
+  const ShoppingListDeleting();
+}
+
 class ShoppingListLoaded extends ShoppingListState {
   final List<ShoppingListItemModel> items;
   const ShoppingListLoaded(this.items);

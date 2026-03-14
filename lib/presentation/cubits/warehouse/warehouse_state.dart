@@ -39,6 +39,10 @@ class WarehouseActionSuccess extends WarehouseState {
   List<Object?> get props => [message];
 }
 
+class WarehouseDeleting extends WarehouseState {
+  const WarehouseDeleting();
+}
+
 class WarehouseCreated extends WarehouseState {
   final WarehouseModel warehouse;
   const WarehouseCreated(this.warehouse);

@@ -2,6 +2,7 @@
 import '../../../core/utils/error_messages.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../core/models/filter_params.dart';
 import '../../../data/models/shopping_list_item_model.dart';
 import '../../../data/repositories/shopping_list_repository.dart';
 
@@ -13,6 +14,7 @@ class ShoppingListCubit extends Cubit<ShoppingListState> {
 
   // Track current load mode so reload operations stay consistent
   bool _globalMode = false;
+  FilterParams _currentParams = FilterParams.empty;
 
   // ── Persisted UI state (survives screen navigations) ──────────────────────
   int? storeFilter;
@@ -24,22 +26,24 @@ class ShoppingListCubit extends Cubit<ShoppingListState> {
   final Map<int, int> whBuyQty = {};
   final Set<int> whChecked = {};
 
-  Future<void> load(int warehouseId) async {
+  Future<void> load(int warehouseId, [FilterParams params = FilterParams.empty]) async {
     _globalMode = false;
+    _currentParams = params;
     emit(const ShoppingListLoading());
     try {
-      final items = await _repository.getList(warehouseId);
+      final items = await _repository.getList(warehouseId, params);
       emit(ShoppingListLoaded(items));
     } catch (e) {
       emit(ShoppingListError(friendlyError(e)));
     }
   }
 
-  Future<void> loadAll() async {
+  Future<void> loadAll([FilterParams params = FilterParams.empty]) async {
     _globalMode = true;
+    _currentParams = params;
     emit(const ShoppingListLoading());
     try {
-      final items = await _repository.getAllItems();
+      final items = await _repository.getAllItems(params);
       emit(ShoppingListLoaded(items));
     } catch (e) {
       emit(ShoppingListError(friendlyError(e)));
@@ -48,9 +52,9 @@ class ShoppingListCubit extends Cubit<ShoppingListState> {
 
   Future<void> _reload(int warehouseId) async {
     if (_globalMode) {
-      await loadAll();
+      await loadAll(_currentParams);
     } else {
-      await load(warehouseId);
+      await load(warehouseId, _currentParams);
     }
   }
 
@@ -80,7 +84,7 @@ class ShoppingListCubit extends Cubit<ShoppingListState> {
     try {
       final items = await _repository.addItem(warehouseId, productId, qty);
       if (_globalMode) {
-        await loadAll();
+        await loadAll(_currentParams);
       } else {
         emit(ShoppingListLoaded(items));
       }
@@ -95,7 +99,7 @@ class ShoppingListCubit extends Cubit<ShoppingListState> {
       final items = await _repository.updateItem(id, newQty);
       if (_globalMode) {
         // updateItem returns only the warehouse's list — reload all so global view is fresh
-        await loadAll();
+        await loadAll(_currentParams);
       } else {
         emit(ShoppingListLoaded(items));
       }
@@ -110,6 +114,37 @@ class ShoppingListCubit extends Cubit<ShoppingListState> {
       await _reload(warehouseId);
     } catch (e) {
       emit(ShoppingListError(friendlyError(e)));
+    }
+  }
+
+  /// Deletes a batch of items sequentially and does a single reload at the end.
+  /// Runs entirely in the cubit so navigation away from the screen does not
+  /// interrupt the process.
+  Future<void> deleteItems(
+      List<({int id, int warehouseId})> items) async {
+    emit(const ShoppingListDeleting());
+    try {
+      for (final item in items) {
+        // Clean persisted UI state for each deleted id
+        stPlanned.remove(item.id);
+        stBuyQty.remove(item.id);
+        stChecked.remove(item.id);
+        whPlanned.remove(item.id);
+        whBuyQty.remove(item.id);
+        whChecked.remove(item.id);
+        await _repository.removeItem(item.id);
+      }
+    } catch (e) {
+      emit(ShoppingListError(friendlyError(e)));
+      return;
+    }
+    // Single reload after all deletions
+    if (_globalMode) {
+      await loadAll(_currentParams);
+    } else if (items.isNotEmpty) {
+      await load(items.first.warehouseId, _currentParams);
+    } else {
+      emit(const ShoppingListLoaded([]));
     }
   }
 

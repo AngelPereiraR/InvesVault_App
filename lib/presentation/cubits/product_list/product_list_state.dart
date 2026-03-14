@@ -23,6 +23,10 @@ class ProductListLoaded extends ProductListState {
   List<Object?> get props => [products];
 }
 
+class ProductListDeleting extends ProductListState {
+  const ProductListDeleting();
+}
+
 class ProductListError extends ProductListState {
   final String message;
   const ProductListError(this.message);

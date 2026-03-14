@@ -1,13 +1,17 @@
 import 'package:dio/dio.dart';
 import '../models/warehouse_model.dart';
 import '../../core/constants/api_constants.dart';
+import '../../core/models/filter_params.dart';
 
 class WarehouseRemoteDatasource {
   final Dio _dio;
   WarehouseRemoteDatasource(this._dio);
 
-  Future<List<WarehouseModel>> getWarehouses() async {
-    final response = await _dio.get(ApiConstants.warehouses);
+  Future<List<WarehouseModel>> getWarehouses([FilterParams params = FilterParams.empty]) async {
+    final response = await _dio.get(
+      ApiConstants.warehouses,
+      queryParameters: params.toQueryParameters(),
+    );
     return (response.data as List)
         .map((e) => WarehouseModel.fromJson(e as Map<String, dynamic>))
         .toList();

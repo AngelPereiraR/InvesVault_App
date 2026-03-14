@@ -1,12 +1,13 @@
 import '../datasources/notification_remote_datasource.dart';
 import '../models/notification_model.dart';
+import '../../core/models/filter_params.dart';
 
 class NotificationRepository {
   final NotificationRemoteDatasource _datasource;
   NotificationRepository(this._datasource);
 
-  Future<List<NotificationModel>> getNotifications() =>
-      _datasource.getNotifications();
+  Future<List<NotificationModel>> getNotifications([FilterParams params = FilterParams.empty]) =>
+      _datasource.getNotifications(params);
 
   Future<void> markRead(int id) => _datasource.markRead(id);
 

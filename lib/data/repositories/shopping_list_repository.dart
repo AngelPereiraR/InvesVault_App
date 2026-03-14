@@ -1,5 +1,6 @@
 import '../datasources/shopping_list_remote_datasource.dart';
 import '../models/shopping_list_item_model.dart';
+import '../../core/models/filter_params.dart';
 
 class ShoppingListRepository {
   final ShoppingListRemoteDatasource _datasource;
@@ -11,8 +12,8 @@ class ShoppingListRepository {
   Future<List<ShoppingListItemModel>> generate(int warehouseId) =>
       _datasource.generate(warehouseId);
 
-  Future<List<ShoppingListItemModel>> getList(int warehouseId) =>
-      _datasource.getList(warehouseId);
+  Future<List<ShoppingListItemModel>> getList(int warehouseId, [FilterParams params = FilterParams.empty]) =>
+      _datasource.getList(warehouseId, params);
 
   Future<List<ShoppingListItemModel>> addItem(
           int warehouseId, int productId, double qty) =>
@@ -26,6 +27,6 @@ class ShoppingListRepository {
   Future<void> clearList(int warehouseId) =>
       _datasource.clearList(warehouseId);
 
-  Future<List<ShoppingListItemModel>> getAllItems() =>
-      _datasource.getAllItems();
+  Future<List<ShoppingListItemModel>> getAllItems([FilterParams params = FilterParams.empty]) =>
+      _datasource.getAllItems(params);
 }

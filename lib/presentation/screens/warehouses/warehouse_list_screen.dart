@@ -9,6 +9,7 @@ import '../../../data/models/warehouse_model.dart';
 import '../../../data/models/warehouse_user_model.dart';
 import '../../widgets/app_text_field.dart';
 import '../../widgets/confirm_dialog.dart';
+import '../../widgets/delete_mode_bar.dart';
 import '../../widgets/empty_view.dart';
 import '../../widgets/error_view.dart';
 import '../../widgets/loading_indicator.dart';
@@ -540,111 +541,223 @@ class WarehouseListScreen extends StatefulWidget {
 }
 
 class _WarehouseListScreenState extends State<WarehouseListScreen> {
+  double _fabRight = 16;
+  double _fabBottom = 16;
+  bool _deleteMode = false;
+  final Set<int> _selected = {};
+
   @override
   void initState() {
     super.initState();
     context.read<WarehouseCubit>().load();
   }
 
+  void _exitDeleteMode() => setState(() {
+        _deleteMode = false;
+        _selected.clear();
+      });
+
+  void _toggleSelect(int id) => setState(() {
+        if (_selected.contains(id)) {
+          _selected.remove(id);
+          if (_selected.isEmpty) _deleteMode = false;
+        } else {
+          _selected.add(id);
+        }
+      });
+
+  Future<void> _deleteSelected() async {
+    final count = _selected.length;
+    final confirm = await showConfirmDialog(
+      context,
+      title: 'Eliminar almacenes',
+      message:
+          '¿Eliminar $count ${count == 1 ? 'almacén' : 'almacenes'}? Esta acción no se puede deshacer.',
+      confirmLabel: 'Eliminar',
+      isDangerous: true,
+    );
+    if (confirm != true || !mounted) return;
+    final ids = List<int>.from(_selected);
+    setState(() {
+      _deleteMode = false;
+      _selected.clear();
+    });
+    context.read<WarehouseCubit>().deleteItems(ids);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => showWarehouseDialog(context),
-        icon: const Icon(Icons.add),
-        label: const Text('Nuevo almacén'),
-      ),
-      body: BlocConsumer<WarehouseCubit, WarehouseState>(
-        listener: (context, state) {
-          if (state is WarehouseActionSuccess) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(state.message)),
-            );
-          }
-          if (state is WarehouseCreated) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('"${state.warehouse.name}" creado correctamente')),
-            );
-          }
-          if (state is WarehouseError) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                  content: Text(state.message),
-                  backgroundColor: Theme.of(context).colorScheme.error),
-            );
-          }
-        },
-        builder: (context, state) {
-          if (state is WarehouseLoading || state is WarehouseInitial) {
-            return const LoadingIndicator();
-          }
-          if (state is WarehouseError) {
-            return ErrorView(
-              message: state.message,
-              onRetry: () => context.read<WarehouseCubit>().load(),
-            );
-          }
-          if (state is WarehouseLoaded && state.warehouses.isEmpty) {
-            return EmptyView(
-              message: 'No tienes almacenes aún',
-              actionLabel: 'Crear almacén',
-              onAction: () => showWarehouseDialog(context),
-            );
-          }
-          if (state is WarehouseLoaded) {
-            final authState = context.read<AuthCubit>().state;
-            final currentUserId =
-                authState is AuthAuthenticated ? authState.userId : -1;
-            return RefreshIndicator(
-              onRefresh: () => context.read<WarehouseCubit>().load(),
-              child: GridView.builder(
-                padding: const EdgeInsets.all(16),
-                gridDelegate:
-                    SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  crossAxisSpacing: 10,
-                  mainAxisSpacing: 10,
-                  childAspectRatio: 1.5 /
-                      MediaQuery.textScalerOf(context).scale(1.0).clamp(
-                        (390.0 / MediaQuery.sizeOf(context).width).clamp(0.8, 2.5),
-                        double.infinity,
+      body: Stack(
+        children: [
+          // ── Main content ─────────────────────────────────────────────────
+          BlocConsumer<WarehouseCubit, WarehouseState>(
+            listener: (context, state) {
+              if (state is WarehouseActionSuccess) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text(state.message)),
+                );
+              }
+              if (state is WarehouseCreated) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                      content: Text(
+                          '"${state.warehouse.name}" creado correctamente')),
+                );
+              }
+              if (state is WarehouseError) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                      content: Text(state.message),
+                      backgroundColor: Theme.of(context).colorScheme.error),
+                );
+              }
+            },
+            builder: (context, state) {
+              if (state is WarehouseDeleting) {
+                return const LoadingIndicator(message: 'Eliminando…');
+              }
+              if (state is WarehouseLoading || state is WarehouseInitial) {
+                return const LoadingIndicator();
+              }
+              if (state is WarehouseError) {
+                return ErrorView(
+                  message: state.message,
+                  onRetry: () => context.read<WarehouseCubit>().load(),
+                );
+              }
+              if (state is WarehouseLoaded && state.warehouses.isEmpty) {
+                return EmptyView(
+                  message: 'No tienes almacenes aún',
+                  actionLabel: 'Crear almacén',
+                  onAction: () => showWarehouseDialog(context),
+                );
+              }
+              if (state is WarehouseLoaded) {
+                final authState = context.read<AuthCubit>().state;
+                final currentUserId =
+                    authState is AuthAuthenticated ? authState.userId : -1;
+                final hasOwned = state.warehouses
+                    .any((w) => w.ownerId == currentUserId);
+
+                return Column(
+                  children: [
+                    // ── Toolbar ──
+                    if (_deleteMode)
+                      DeleteModeBar(
+                        count: _selected.length,
+                        onCancel: _exitDeleteMode,
+                        onDelete:
+                            _selected.isEmpty ? null : _deleteSelected,
+                      )
+                    else if (hasOwned)
+                      Align(
+                        alignment: Alignment.centerRight,
+                        child: IconButton(
+                          icon: Icon(Icons.checklist_rounded,
+                              color: Colors.grey.shade500),
+                          tooltip: 'Seleccionar para borrar',
+                          onPressed: () =>
+                              setState(() => _deleteMode = true),
+                        ),
                       ),
-                ),
-                itemCount: state.warehouses.length,
-                itemBuilder: (context, i) {
-                  final w = state.warehouses[i];
-                  final isOwner = w.ownerId == currentUserId;
-                  return _WarehouseGridCard(
-                    warehouse: w,
-                    onTap: () => context.openAuxiliaryRoute(
-                      '/warehouses/${w.id}/detail',
-                    ),
-                    onEdit: isOwner
-                        ? () =>
-                            showWarehouseDialog(context, warehouseId: w.id)
-                        : null,
-                    onDelete: isOwner
-                        ? () async {
-                            final confirm = await showConfirmDialog(
-                              context,
-                              title: 'Eliminar almacén',
-                              message:
-                                  '¿Estás seguro de que quieres eliminar "${w.name}"? Esta acción no se puede deshacer.',
-                              confirmLabel: 'Eliminar',
-                              isDangerous: true,
+                    // ── Grid ──
+                    Expanded(
+                      child: RefreshIndicator(
+                        onRefresh: () =>
+                            context.read<WarehouseCubit>().load(),
+                        child: GridView.builder(
+                          padding:
+                              const EdgeInsets.fromLTRB(16, 4, 16, 96),
+                          gridDelegate:
+                              SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 2,
+                            crossAxisSpacing: 10,
+                            mainAxisSpacing: 10,
+                            childAspectRatio: 1.5 /
+                                MediaQuery.textScalerOf(context)
+                                    .scale(1.0)
+                                    .clamp(
+                                      (390.0 /
+                                              MediaQuery.sizeOf(context)
+                                                  .width)
+                                          .clamp(0.8, 2.5),
+                                      double.infinity,
+                                    ),
+                          ),
+                          itemCount: state.warehouses.length,
+                          itemBuilder: (context, i) {
+                            final w = state.warehouses[i];
+                            final isOwner = w.ownerId == currentUserId;
+                            final isSelected = _selected.contains(w.id);
+                            return _WarehouseGridCard(
+                              warehouse: w,
+                              isSelected: isSelected && _deleteMode,
+                              onTap: _deleteMode
+                                  ? (isOwner
+                                      ? () => _toggleSelect(w.id)
+                                      : null)
+                                  : () => context.openAuxiliaryRoute(
+                                        '/warehouses/${w.id}/detail',
+                                      ),
+                              onEdit: _deleteMode || !isOwner
+                                  ? null
+                                  : () => showWarehouseDialog(context,
+                                      warehouseId: w.id),
+                              onDelete: _deleteMode || !isOwner
+                                  ? null
+                                  : () async {
+                                      final confirm = await showConfirmDialog(
+                                        context,
+                                        title: 'Eliminar almacén',
+                                        message:
+                                            '¿Estás seguro de que quieres eliminar "${w.name}"? Esta acción no se puede deshacer.',
+                                        confirmLabel: 'Eliminar',
+                                        isDangerous: true,
+                                      );
+                                      if (confirm == true &&
+                                          context.mounted) {
+                                        context
+                                            .read<WarehouseCubit>()
+                                            .delete(w.id);
+                                      }
+                                    },
                             );
-                            if (confirm == true && context.mounted) {
-                              context.read<WarehouseCubit>().delete(w.id);
-                            }
-                          }
-                        : null,
-                  );
+                          },
+                        ),
+                      ),
+                    ),
+                  ],
+                );
+              }
+              return const SizedBox();
+            },
+          ),
+
+          // ── Draggable FAB ─────────────────────────────────────────────────
+          if (!_deleteMode)
+            Positioned(
+              right: _fabRight,
+              bottom: _fabBottom,
+              child: GestureDetector(
+                onPanUpdate: (details) {
+                  final size = MediaQuery.sizeOf(context);
+                  setState(() {
+                    _fabRight = (_fabRight - details.delta.dx)
+                        .clamp(0, size.width - 140);
+                    _fabBottom = (_fabBottom - details.delta.dy)
+                        .clamp(0, size.height - 60);
+                  });
                 },
+                child: FloatingActionButton.extended(
+                  heroTag: 'warehouse_fab',
+                  onPressed: () => showWarehouseDialog(context),
+                  icon: const Icon(Icons.add),
+                  label: const Text('Crear'),
+                ),
               ),
-            );
-          }
-          return const SizedBox();
-        },
+            ),
+        ],
       ),
     );
   }
@@ -655,12 +768,14 @@ const _mint = Color(0xFFD8F3DC);
 
 class _WarehouseGridCard extends StatelessWidget {
   final WarehouseModel warehouse;
+  final bool isSelected;
   final VoidCallback? onTap;
   final VoidCallback? onEdit;
   final VoidCallback? onDelete;
 
   const _WarehouseGridCard({
     required this.warehouse,
+    this.isSelected = false,
     this.onTap,
     this.onEdit,
     this.onDelete,
@@ -670,7 +785,13 @@ class _WarehouseGridCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Card(
       clipBehavior: Clip.hardEdge,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(14),
+        side: isSelected
+            ? BorderSide(color: Colors.red.shade300, width: 1.5)
+            : BorderSide.none,
+      ),
+      color: isSelected ? Colors.red.shade50 : null,
       child: InkWell(
         onTap: onTap,
         child: Padding(
@@ -690,7 +811,10 @@ class _WarehouseGridCard extends StatelessWidget {
                         color: _purple, size: 20),
                   ),
                   const Spacer(),
-                  if (onEdit != null || onDelete != null)
+                  if (isSelected)
+                    Icon(Icons.check_circle,
+                        color: Colors.red.shade600, size: 20)
+                  else if (onEdit != null || onDelete != null)
                     SizedBox(
                       width: 30,
                       height: 30,

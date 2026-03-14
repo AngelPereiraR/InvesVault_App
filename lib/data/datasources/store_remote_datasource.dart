@@ -1,13 +1,17 @@
 import 'package:dio/dio.dart';
 import '../models/store_model.dart';
 import '../../core/constants/api_constants.dart';
+import '../../core/models/filter_params.dart';
 
 class StoreRemoteDatasource {
   final Dio _dio;
   StoreRemoteDatasource(this._dio);
 
-  Future<List<StoreModel>> getStores() async {
-    final response = await _dio.get(ApiConstants.stores);
+  Future<List<StoreModel>> getStores([FilterParams params = FilterParams.empty]) async {
+    final response = await _dio.get(
+      ApiConstants.stores,
+      queryParameters: params.toQueryParameters(),
+    );
     return (response.data as List)
         .map((e) => StoreModel.fromJson(e as Map<String, dynamic>))
         .toList();

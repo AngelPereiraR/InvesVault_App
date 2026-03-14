@@ -2,6 +2,7 @@
 import '../../../core/utils/error_messages.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../core/models/filter_params.dart';
 import '../../../data/models/stock_change_model.dart';
 import '../../../data/repositories/stock_change_repository.dart';
 
@@ -9,32 +10,33 @@ part 'stock_change_state.dart';
 
 class StockChangeCubit extends Cubit<StockChangeState> {
   final StockChangeRepository _repository;
+
   StockChangeCubit(this._repository) : super(const StockChangeInitial());
 
-  Future<void> loadByProduct(int productId) async {
+  Future<void> loadByProduct(int productId, [FilterParams params = FilterParams.empty]) async {
     emit(const StockChangeLoading());
     try {
-      final changes = await _repository.getByProduct(productId);
+      final changes = await _repository.getByProduct(productId, params);
       emit(StockChangeLoaded(changes));
     } catch (e) {
       emit(StockChangeError(friendlyError(e)));
     }
   }
 
-  Future<void> loadByWarehouse(int warehouseId) async {
+  Future<void> loadByWarehouse(int warehouseId, [FilterParams params = FilterParams.empty]) async {
     emit(const StockChangeLoading());
     try {
-      final changes = await _repository.getByWarehouse(warehouseId);
+      final changes = await _repository.getByWarehouse(warehouseId, params);
       emit(StockChangeLoaded(changes));
     } catch (e) {
       emit(StockChangeError(friendlyError(e)));
     }
   }
 
-  Future<void> loadByUser(int userId) async {
+  Future<void> loadByUser(int userId, [FilterParams params = FilterParams.empty]) async {
     emit(const StockChangeLoading());
     try {
-      final changes = await _repository.getByUser(userId);
+      final changes = await _repository.getByUser(userId, params);
       emit(StockChangeLoaded(changes));
     } catch (e) {
       emit(StockChangeError(friendlyError(e)));

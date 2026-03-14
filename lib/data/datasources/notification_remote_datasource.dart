@@ -1,14 +1,18 @@
 import 'package:dio/dio.dart';
 import '../models/notification_model.dart';
 import '../../core/constants/api_constants.dart';
+import '../../core/models/filter_params.dart';
 
 class NotificationRemoteDatasource {
   final Dio _dio;
   NotificationRemoteDatasource(this._dio);
 
-  Future<List<NotificationModel>> getNotifications() async {
+  Future<List<NotificationModel>> getNotifications([FilterParams params = FilterParams.empty]) async {
     try {
-      final response = await _dio.get(ApiConstants.notifications);
+      final response = await _dio.get(
+        ApiConstants.notifications,
+        queryParameters: params.toQueryParameters(),
+      );
       return (response.data as List)
           .map((e) =>
               NotificationModel.fromJson(e as Map<String, dynamic>))

@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import '../models/shopping_list_item_model.dart';
 import '../../core/constants/api_constants.dart';
+import '../../core/models/filter_params.dart';
 
 class ShoppingListRemoteDatasource {
   final Dio _dio;
@@ -23,9 +24,11 @@ class ShoppingListRemoteDatasource {
         .toList();
   }
 
-  Future<List<ShoppingListItemModel>> getList(int warehouseId) async {
-    final response =
-        await _dio.get(ApiConstants.shoppingList(warehouseId));
+  Future<List<ShoppingListItemModel>> getList(int warehouseId, [FilterParams params = FilterParams.empty]) async {
+    final response = await _dio.get(
+      ApiConstants.shoppingList(warehouseId),
+      queryParameters: params.toQueryParameters(),
+    );
     return (response.data as List)
         .map((e) =>
             ShoppingListItemModel.fromJson(e as Map<String, dynamic>))
@@ -62,8 +65,11 @@ class ShoppingListRemoteDatasource {
   Future<void> clearList(int warehouseId) =>
       _dio.delete(ApiConstants.shoppingListClear(warehouseId));
 
-  Future<List<ShoppingListItemModel>> getAllItems() async {
-    final response = await _dio.get(ApiConstants.shoppingListAll);
+  Future<List<ShoppingListItemModel>> getAllItems([FilterParams params = FilterParams.empty]) async {
+    final response = await _dio.get(
+      ApiConstants.shoppingListAll,
+      queryParameters: params.toQueryParameters(),
+    );
     return (response.data as List)
         .map((e) =>
             ShoppingListItemModel.fromJson(e as Map<String, dynamic>))

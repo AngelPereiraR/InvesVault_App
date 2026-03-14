@@ -1,12 +1,13 @@
 import '../datasources/warehouse_remote_datasource.dart';
 import '../models/warehouse_model.dart';
+import '../../core/models/filter_params.dart';
 
 class WarehouseRepository {
   final WarehouseRemoteDatasource _datasource;
   WarehouseRepository(this._datasource);
 
-  Future<List<WarehouseModel>> getWarehouses() =>
-      _datasource.getWarehouses();
+  Future<List<WarehouseModel>> getWarehouses([FilterParams params = FilterParams.empty]) =>
+      _datasource.getWarehouses(params);
 
   Future<WarehouseModel> getWarehouseById(int id) =>
       _datasource.getWarehouseById(id);

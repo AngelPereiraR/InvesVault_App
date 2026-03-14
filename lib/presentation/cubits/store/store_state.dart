@@ -23,6 +23,10 @@ class StoreLoaded extends StoreState {
   List<Object?> get props => [stores];
 }
 
+class StoreDeleting extends StoreState {
+  const StoreDeleting();
+}
+
 class StoreError extends StoreState {
   final String message;
   const StoreError(this.message);

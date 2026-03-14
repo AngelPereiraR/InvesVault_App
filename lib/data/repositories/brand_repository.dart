@@ -1,11 +1,13 @@
 import '../datasources/brand_remote_datasource.dart';
 import '../models/brand_model.dart';
+import '../../core/models/filter_params.dart';
 
 class BrandRepository {
   final BrandRemoteDatasource _datasource;
   BrandRepository(this._datasource);
 
-  Future<List<BrandModel>> getBrands() => _datasource.getBrands();
+  Future<List<BrandModel>> getBrands([FilterParams params = FilterParams.empty]) =>
+      _datasource.getBrands(params);
 
   Future<BrandModel> createBrand(String name) =>
       _datasource.createBrand(name);

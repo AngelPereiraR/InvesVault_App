@@ -49,6 +49,10 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
   // Debounce timers for backend qty saves (one per item id)
   final Map<int, Timer> _saveTimers = {};
 
+  // Multi-delete selection mode
+  bool _deleteMode = false;
+  final Set<int> _selectedForDelete = {};
+
   @override
   void initState() {
     super.initState();
@@ -114,7 +118,55 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
     setState(() => _buyQtyMap[itemId] = (current + delta).clamp(1, max));
   }
 
-  //  Warehouse name helper (client-side fallback when API omits it) 
+  // ── Multi-delete helpers ────────────────────────────────────────────────────
+  void _exitDeleteMode() {
+    setState(() {
+      _deleteMode = false;
+      _selectedForDelete.clear();
+    });
+  }
+
+  void _toggleDeleteSelection(int itemId) {
+    setState(() {
+      if (_selectedForDelete.contains(itemId)) {
+        _selectedForDelete.remove(itemId);
+        if (_selectedForDelete.isEmpty) _deleteMode = false;
+      } else {
+        _selectedForDelete.add(itemId);
+      }
+    });
+  }
+
+  Future<void> _deleteSelected(List items) async {
+    final count = _selectedForDelete.length;
+    final confirm = await showConfirmDialog(
+      context,
+      title: 'Eliminar productos',
+      message: '¿Eliminar $count ${count == 1 ? 'producto' : 'productos'} de la lista?',
+      confirmLabel: 'Eliminar',
+      isDangerous: true,
+    );
+    if (confirm != true || !mounted) return;
+
+    final toDelete = _selectedForDelete
+        .map((id) {
+          final idx = items.indexWhere((i) => i.id == id);
+          if (idx < 0) return null;
+          return (id: id, warehouseId: items[idx].warehouseId as int);
+        })
+        .whereType<({int id, int warehouseId})>()
+        .toList();
+
+    setState(() {
+      _deleteMode = false;
+      _selectedForDelete.clear();
+    });
+
+    // Fire-and-forget: cubit runs deletion in the background even if we navigate away
+    context.read<ShoppingListCubit>().deleteItems(toDelete);
+  }
+
+  //  Warehouse name helper (client-side fallback when API omits it)
   String? _warehouseNameFor(int warehouseId) {
     final state = context.read<WarehouseCubit>().state;
     if (state is WarehouseLoaded) {
@@ -233,66 +285,97 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            //  Store filter chips + action buttons (always visible) 
-            Container(
-              color: _white,
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      child: Row(
-                        children: [
-                          _StoreChip(
-                            label: 'Todas',
-                            selected: _selectedStoreFilter == null,
-                            onTap: () => setState(() {
-                              _selectedStoreFilter = null;
-                              context.read<ShoppingListCubit>().storeFilter = null;
-                            }),
-                          ),
-                          if (hasNoStore)
+            //  Toolbar: delete-mode bar OR normal filter+actions
+            if (_deleteMode)
+              _DeleteModeBar(
+                count: _selectedForDelete.length,
+                onCancel: _exitDeleteMode,
+                onDelete: () => _deleteSelected(items),
+              )
+            else
+              Container(
+                color: _white,
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: Row(
+                          children: [
                             _StoreChip(
-                              label: 'Sin tienda',
-                              selected: _selectedStoreFilter == -1,
+                              label: 'Todas',
+                              selected: _selectedStoreFilter == null,
                               onTap: () => setState(() {
-                                _selectedStoreFilter = -1;
-                                context.read<ShoppingListCubit>().storeFilter = -1;
+                                _selectedStoreFilter = null;
+                                context.read<ShoppingListCubit>().storeFilter =
+                                    null;
                               }),
                             ),
-                          for (final sid in storeIds)
-                            _StoreChip(
-                              label: storeMap[sid] ?? 'Tienda $sid',
-                              selected: _selectedStoreFilter == sid,
-                              onTap: () => setState(() {
-                                _selectedStoreFilter = sid;
-                                context.read<ShoppingListCubit>().storeFilter = sid;
-                              }),
-                            ),
-                        ],
+                            if (hasNoStore)
+                              _StoreChip(
+                                label: 'Sin tienda',
+                                selected: _selectedStoreFilter == -1,
+                                onTap: () => setState(() {
+                                  _selectedStoreFilter = -1;
+                                  context
+                                      .read<ShoppingListCubit>()
+                                      .storeFilter = -1;
+                                }),
+                              ),
+                            for (final sid in storeIds)
+                              _StoreChip(
+                                label: storeMap[sid] ?? 'Tienda $sid',
+                                selected: _selectedStoreFilter == sid,
+                                onTap: () => setState(() {
+                                  _selectedStoreFilter = sid;
+                                  context
+                                      .read<ShoppingListCubit>()
+                                      .storeFilter = sid;
+                                }),
+                              ),
+                          ],
+                        ),
                       ),
                     ),
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.auto_awesome, color: _accentGreen),
-                    tooltip: 'Generar automáticamente',
-                    onPressed: () => _showGenerateDialog(context),
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.add_circle_outline, color: _purple),
-                    tooltip: 'Añadir producto',
-                    onPressed: () =>
-                        _showAddDialogWithWarehouseSelection(context),
-                  ),
-                ],
+                    IconButton(
+                      icon:
+                          const Icon(Icons.auto_awesome, color: _accentGreen),
+                      tooltip: 'Generar automáticamente',
+                      onPressed: () => _showGenerateDialog(context),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.add_circle_outline,
+                          color: _purple),
+                      tooltip: 'Añadir producto',
+                      onPressed: () =>
+                          _showAddDialogWithWarehouseSelection(context),
+                    ),
+                    IconButton(
+                      icon: Icon(
+                        Icons.checklist_rounded,
+                        color: _deleteMode
+                            ? Colors.red.shade600
+                            : Colors.grey.shade500,
+                      ),
+                      tooltip: _deleteMode
+                          ? 'Salir del modo borrado'
+                          : 'Seleccionar para borrar',
+                      onPressed: () => _deleteMode
+                          ? _exitDeleteMode()
+                          : setState(() => _deleteMode = true),
+                    ),
+                  ],
+                ),
               ),
-            ),
 
-            //  Content area 
+            //  Content area
             Expanded(
               child: () {
+                if (state is ShoppingListDeleting) {
+                  return const LoadingIndicator(message: 'Eliminando…');
+                }
                 if (state is ShoppingListLoading ||
                     state is ShoppingListInitial) {
                   return const LoadingIndicator();
@@ -333,6 +416,18 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
   Widget _buildAlmacenesTab() {
     return Column(
       children: [
+        if (_deleteMode)
+          _DeleteModeBar(
+            count: _selectedForDelete.length,
+            onCancel: _exitDeleteMode,
+            onDelete: () {
+              final state = context.read<ShoppingListCubit>().state;
+              final items =
+                  state is ShoppingListLoaded ? state.items : const [];
+              _deleteSelected(items);
+            },
+          )
+        else
         Container(
           color: _white,
           padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
@@ -404,6 +499,20 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
                       onPressed: () => _showAddDialog(context),
                     ),
                     IconButton(
+                      icon: Icon(
+                        Icons.checklist_rounded,
+                        color: _deleteMode
+                            ? Colors.red.shade600
+                            : Colors.grey.shade500,
+                      ),
+                      tooltip: _deleteMode
+                          ? 'Salir del modo borrado'
+                          : 'Seleccionar para borrar',
+                      onPressed: () => _deleteMode
+                          ? _exitDeleteMode()
+                          : setState(() => _deleteMode = true),
+                    ),
+                    IconButton(
                       icon: const Icon(Icons.auto_awesome,
                           color: _accentGreen),
                       tooltip: 'Generar automáticamente',
@@ -443,7 +552,9 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
           ),
         ),
         Expanded(
-          child: _selectedWarehouseId == null
+          child: context.watch<ShoppingListCubit>().state is ShoppingListDeleting
+              ? const LoadingIndicator(message: 'Eliminando…')
+              : _selectedWarehouseId == null
               ? const EmptyView(
                   message:
                       'Selecciona un almacén para ver su lista de compra',
@@ -505,22 +616,31 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
     );
   }
 
-  //  Shared item card 
+  //  Shared item card
   Widget _buildItemCard(dynamic item, {required bool showWarehouse}) {
-    final isChecked = _checkedSet.contains(item.id as int);
+    final id = item.id as int;
+    final isChecked = _checkedSet.contains(id);
+    final isSelectedForDelete = _selectedForDelete.contains(id);
     final planned = _getPlanned(item);
     final buyNow = _getBuyNow(item);
     final alertGap = item.alertGap as double;
     final coverMin = alertGap <= 0 || buyNow >= alertGap;
     final buyAll = buyNow >= planned;
 
-    return Container(
+    return GestureDetector(
+      onTap: _deleteMode ? () => _toggleDeleteSelection(id) : null,
+      child: Container(
       margin: const EdgeInsets.only(bottom: 10),
       decoration: BoxDecoration(
-        color: isChecked
-            ? (buyAll ? Colors.green.shade50 : Colors.orange.shade50)
-            : _white,
+        color: _deleteMode
+            ? (isSelectedForDelete ? Colors.red.shade50 : _white)
+            : (isChecked
+                ? (buyAll ? Colors.green.shade50 : Colors.orange.shade50)
+                : _white),
         borderRadius: BorderRadius.circular(14),
+        border: isSelectedForDelete
+            ? Border.all(color: Colors.red.shade400, width: 1.5)
+            : null,
         boxShadow: [
           BoxShadow(
               color: Colors.black.withValues(alpha: 0.04),
@@ -530,18 +650,30 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
       ),
       child: Row(
         children: [
-          Checkbox(
+          if (_deleteMode)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 4),
+              child: Checkbox(
+                value: isSelectedForDelete,
+                activeColor: Colors.red.shade600,
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(4)),
+                onChanged: (_) => _toggleDeleteSelection(id),
+              ),
+            )
+          else
+            Checkbox(
             value: isChecked,
             activeColor: _accentGreen,
             shape:
                 RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
             onChanged: (v) => setState(() {
               if (v == true) {
-                _checkedSet.add(item.id as int);
-                _buyQtyMap[item.id as int] ??= planned;
+                _checkedSet.add(id);
+                _buyQtyMap[id] ??= planned;
               } else {
-                _checkedSet.remove(item.id as int);
-                _buyQtyMap.remove(item.id as int);
+                _checkedSet.remove(id);
+                _buyQtyMap.remove(id);
               }
             }),
           ),
@@ -669,7 +801,8 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
           ),
         ],
       ),
-    );
+    ), // Container
+    ); // GestureDetector
   }
 
   Widget _buildBuyButton(List items) {
@@ -1233,6 +1366,60 @@ class _QtyBtn extends StatelessWidget {
           borderRadius: BorderRadius.circular(8),
         ),
         child: Icon(icon, color: _white, size: 16),
+      ),
+    );
+  }
+}
+
+// ─── Delete-mode action bar ───────────────────────────────────────────────────
+class _DeleteModeBar extends StatelessWidget {
+  final int count;
+  final VoidCallback onCancel;
+  final VoidCallback onDelete;
+
+  const _DeleteModeBar({
+    required this.count,
+    required this.onCancel,
+    required this.onDelete,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      color: Colors.red.shade50,
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      child: Row(
+        children: [
+          IconButton(
+            icon: const Icon(Icons.close),
+            color: Colors.red.shade700,
+            onPressed: onCancel,
+            tooltip: 'Cancelar selección',
+          ),
+          Expanded(
+            child: Text(
+              '$count ${count == 1 ? 'elemento seleccionado' : 'elementos seleccionados'}',
+              style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.red.shade700),
+            ),
+          ),
+          TextButton.icon(
+            style: TextButton.styleFrom(
+              foregroundColor: _white,
+              backgroundColor: Colors.red.shade600,
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10)),
+            ),
+            icon: const Icon(Icons.delete_outline, size: 18),
+            label: const Text('Eliminar',
+                style: TextStyle(fontWeight: FontWeight.w700)),
+            onPressed: count == 0 ? null : onDelete,
+          ),
+        ],
       ),
     );
   }

@@ -155,7 +155,7 @@ class _AppShellState extends State<AppShell> {
             if (widget.currentLocation == '/warehouses')
               IconButton(
                 icon: const Icon(Icons.add),
-                tooltip: 'Nuevo almacén',
+                tooltip: 'Crear almacén',
                 onPressed: () => showWarehouseDialog(context),
               )
             else if (widget.currentLocation == '/products')

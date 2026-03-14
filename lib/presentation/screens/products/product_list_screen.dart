@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../core/router/app_router.dart';
 import '../../cubits/product_list/product_list_cubit.dart';
 import '../../widgets/confirm_dialog.dart';
+import '../../widgets/delete_mode_bar.dart';
 import '../../widgets/empty_view.dart';
 import '../../widgets/error_view.dart';
 import '../../widgets/loading_indicator.dart';
@@ -20,10 +21,46 @@ class ProductListScreen extends StatefulWidget {
 }
 
 class _ProductListScreenState extends State<ProductListScreen> {
+  bool _deleteMode = false;
+  final Set<int> _selected = {};
+
   @override
   void initState() {
     super.initState();
     context.read<ProductListCubit>().load();
+  }
+
+  void _exitDeleteMode() => setState(() {
+        _deleteMode = false;
+        _selected.clear();
+      });
+
+  void _toggleSelect(int id) => setState(() {
+        if (_selected.contains(id)) {
+          _selected.remove(id);
+          if (_selected.isEmpty) _deleteMode = false;
+        } else {
+          _selected.add(id);
+        }
+      });
+
+  Future<void> _deleteSelected() async {
+    final count = _selected.length;
+    final confirm = await showConfirmDialog(
+      context,
+      title: 'Eliminar productos',
+      message:
+          '¿Eliminar $count ${count == 1 ? 'producto' : 'productos'}? Esta acción no se puede deshacer.',
+      confirmLabel: 'Eliminar',
+      isDangerous: true,
+    );
+    if (confirm != true || !mounted) return;
+    final ids = List<int>.from(_selected);
+    setState(() {
+      _deleteMode = false;
+      _selected.clear();
+    });
+    context.read<ProductListCubit>().deleteItems(ids);
   }
 
   @override
@@ -43,6 +80,9 @@ class _ProductListScreenState extends State<ProductListScreen> {
       buildWhen: (prev, curr) =>
           !(curr is ProductListError && prev is ProductListLoaded),
       builder: (context, state) {
+        if (state is ProductListDeleting) {
+          return const LoadingIndicator(message: 'Eliminando…');
+        }
         if (state is ProductListLoading || state is ProductListInitial) {
           return const LoadingIndicator();
         }
@@ -63,116 +103,171 @@ class _ProductListScreenState extends State<ProductListScreen> {
           );
         }
         if (state is ProductListLoaded) {
-          return RefreshIndicator(
-            onRefresh: () => context.read<ProductListCubit>().load(),
-            child: GridView.builder(
-              padding: const EdgeInsets.all(16),
-              gridDelegate:
-                  SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                crossAxisSpacing: 10,
-                mainAxisSpacing: 10,
-                childAspectRatio: 1.2 /
-                    MediaQuery.textScalerOf(context).scale(1.0).clamp(
-                      (390.0 / MediaQuery.sizeOf(context).width).clamp(0.8, 2.5),
-                      double.infinity,
+          return Column(
+            children: [
+              // ── Toolbar ──
+              if (_deleteMode)
+                DeleteModeBar(
+                  count: _selected.length,
+                  onCancel: _exitDeleteMode,
+                  onDelete: _selected.isEmpty ? null : _deleteSelected,
+                )
+              else
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: IconButton(
+                    icon: Icon(Icons.checklist_rounded,
+                        color: Colors.grey.shade500),
+                    tooltip: 'Seleccionar para borrar',
+                    onPressed: () => setState(() => _deleteMode = true),
+                  ),
+                ),
+              // ── Grid ──
+              Expanded(
+                child: RefreshIndicator(
+                  onRefresh: () => context.read<ProductListCubit>().load(),
+                  child: GridView.builder(
+                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 2,
+                      crossAxisSpacing: 10,
+                      mainAxisSpacing: 10,
+                      childAspectRatio: 1.2 /
+                          MediaQuery.textScalerOf(context).scale(1.0).clamp(
+                            (390.0 / MediaQuery.sizeOf(context).width)
+                                .clamp(0.8, 2.5),
+                            double.infinity,
+                          ),
                     ),
-              ),
-              itemCount: state.products.length,
-              itemBuilder: (context, i) {
-                final product = state.products[i];
-                final brandName = product.brand?.name;
-                final subtitle = [
-                  if (brandName != null) brandName,
-                  if (product.barcode != null) 'Cód: ${product.barcode}',
-                  'Unidad: ${product.defaultUnit}',
-                ].join(' · ');
+                    itemCount: state.products.length,
+                    itemBuilder: (context, i) {
+                      final product = state.products[i];
+                      final isSelected = _selected.contains(product.id);
+                      final brandName = product.brand?.name;
+                      final subtitle = [
+                        if (brandName != null) brandName,
+                        if (product.barcode != null)
+                          'Cód: ${product.barcode}',
+                        'Unidad: ${product.defaultUnit}',
+                      ].join(' · ');
 
-                return Container(
-                  decoration: BoxDecoration(
-                    color: _white,
-                    borderRadius: BorderRadius.circular(16),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.05),
-                        blurRadius: 8,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(10, 10, 10, 6),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Container(
-                              width: 34,
-                              height: 34,
-                              decoration: const BoxDecoration(
-                                color: _mint,
-                                shape: BoxShape.circle,
+                      return GestureDetector(
+                        onTap: _deleteMode
+                            ? () => _toggleSelect(product.id)
+                            : null,
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: isSelected && _deleteMode
+                                ? Colors.red.shade50
+                                : _white,
+                            borderRadius: BorderRadius.circular(16),
+                            border: isSelected && _deleteMode
+                                ? Border.all(
+                                    color: Colors.red.shade300, width: 1.5)
+                                : null,
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.05),
+                                blurRadius: 8,
+                                offset: const Offset(0, 2),
                               ),
-                              child: const Icon(Icons.inventory_2_outlined,
-                                  color: _purple, size: 18),
+                            ],
+                          ),
+                          child: Padding(
+                            padding:
+                                const EdgeInsets.fromLTRB(10, 10, 10, 6),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    Container(
+                                      width: 34,
+                                      height: 34,
+                                      decoration: const BoxDecoration(
+                                        color: _mint,
+                                        shape: BoxShape.circle,
+                                      ),
+                                      child: const Icon(
+                                          Icons.inventory_2_outlined,
+                                          color: _purple,
+                                          size: 18),
+                                    ),
+                                    const Spacer(),
+                                    if (_deleteMode)
+                                      Icon(
+                                        isSelected
+                                            ? Icons.check_circle
+                                            : Icons.radio_button_unchecked,
+                                        color: isSelected
+                                            ? Colors.red.shade600
+                                            : Colors.grey.shade400,
+                                        size: 20,
+                                      )
+                                    else
+                                      _ProductPopupMenu(
+                                        onEdit: () async {
+                                          await context.push(
+                                              '/products/${product.id}/edit');
+                                          if (context.mounted) {
+                                            context
+                                                .read<ProductListCubit>()
+                                                .load();
+                                          }
+                                        },
+                                        onDelete: () async {
+                                          final confirm =
+                                              await showConfirmDialog(
+                                            context,
+                                            title: 'Eliminar producto',
+                                            message:
+                                                '¿Eliminar "${product.name}"? Esta acción no se puede deshacer.',
+                                            confirmLabel: 'Eliminar',
+                                            isDangerous: true,
+                                          );
+                                          if (confirm == true &&
+                                              context.mounted) {
+                                            context
+                                                .read<ProductListCubit>()
+                                                .delete(product.id);
+                                          }
+                                        },
+                                      ),
+                                  ],
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  product.name,
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 13,
+                                    color: _purple,
+                                  ),
+                                ),
+                                if (subtitle.isNotEmpty)
+                                  Padding(
+                                    padding: const EdgeInsets.only(top: 4),
+                                    child: Text(
+                                      subtitle,
+                                      maxLines: 2,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: TextStyle(
+                                          fontSize: 11,
+                                          color: Colors.grey.shade500),
+                                    ),
+                                  ),
+                              ],
                             ),
-                            const Spacer(),
-                            _ProductPopupMenu(
-                              onEdit: () async {
-                                await context
-                                    .push('/products/${product.id}/edit');
-                                if (context.mounted) {
-                                  context.read<ProductListCubit>().load();
-                                }
-                              },
-                              onDelete: () async {
-                                final confirm = await showConfirmDialog(
-                                  context,
-                                  title: 'Eliminar producto',
-                                  message:
-                                      '¿Eliminar "${product.name}"? Esta acción no se puede deshacer.',
-                                  confirmLabel: 'Eliminar',
-                                  isDangerous: true,
-                                );
-                                if (confirm == true && context.mounted) {
-                                  context
-                                      .read<ProductListCubit>()
-                                      .delete(product.id);
-                                }
-                              },
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          product.name,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
-                            fontWeight: FontWeight.w600,
-                            fontSize: 13,
-                            color: _purple,
                           ),
                         ),
-                        if (subtitle.isNotEmpty)
-                          Padding(
-                            padding: const EdgeInsets.only(top: 4),
-                            child: Text(
-                              subtitle,
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                              style: TextStyle(
-                                  fontSize: 11,
-                                  color: Colors.grey.shade500),
-                            ),
-                          ),
-                      ],
-                    ),
+                      );
+                    },
                   ),
-                );
-              },
-            ),
+                ),
+              ),
+            ],
           );
         }
         return const SizedBox();

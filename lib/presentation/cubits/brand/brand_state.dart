@@ -23,6 +23,10 @@ class BrandLoaded extends BrandState {
   List<Object?> get props => [brands];
 }
 
+class BrandDeleting extends BrandState {
+  const BrandDeleting();
+}
+
 class BrandError extends BrandState {
   final String message;
   const BrandError(this.message);

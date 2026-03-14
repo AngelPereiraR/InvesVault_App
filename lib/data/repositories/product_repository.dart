@@ -1,11 +1,13 @@
 import '../datasources/product_remote_datasource.dart';
 import '../models/product_model.dart';
+import '../../core/models/filter_params.dart';
 
 class ProductRepository {
   final ProductRemoteDatasource _datasource;
   ProductRepository(this._datasource);
 
-  Future<List<ProductModel>> getProducts() => _datasource.getProducts();
+  Future<List<ProductModel>> getProducts([FilterParams params = FilterParams.empty]) =>
+      _datasource.getProducts(params);
 
   Future<ProductModel> getProductById(int id) =>
       _datasource.getProductById(id);
