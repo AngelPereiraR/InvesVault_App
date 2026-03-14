@@ -19,7 +19,33 @@ class BrandCubit extends Cubit<BrandState> {
     emit(const BrandLoading());
     try {
       final brands = await _repository.getBrands(params);
-      emit(BrandLoaded(brands));
+      final limit = params.limit ?? 20;
+      emit(BrandLoaded(
+        brands,
+        hasMore: brands.length >= limit,
+        currentPage: 1,
+      ));
+    } catch (e) {
+      emit(BrandError(friendlyError(e)));
+    }
+  }
+
+  Future<void> loadMore() async {
+    final current = state;
+    if (current is! BrandLoaded) return;
+    if (!current.hasMore || current.isLoadingMore) return;
+    emit(current.copyWith(isLoadingMore: true));
+    try {
+      final nextPage = current.currentPage + 1;
+      final params = _currentParams.copyWith(page: nextPage);
+      final newItems = await _repository.getBrands(params);
+      final limit = _currentParams.limit ?? 20;
+      emit(current.copyWith(
+        brands: [...current.brands, ...newItems],
+        hasMore: newItems.length >= limit,
+        currentPage: nextPage,
+        isLoadingMore: false,
+      ));
     } catch (e) {
       emit(BrandError(friendlyError(e)));
     }

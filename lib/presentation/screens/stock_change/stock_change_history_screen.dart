@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 
+import '../../../core/models/filter_params.dart';
 import '../../cubits/stock_change/stock_change_cubit.dart';
 import '../../cubits/warehouse/warehouse_cubit.dart';
 import '../../widgets/empty_view.dart';
@@ -24,11 +25,41 @@ class _StockChangeHistoryScreenState
     extends State<StockChangeHistoryScreen> {
   int? _selectedWarehouseId;
   String _typeFilter = 'all'; // 'all' | 'inbound' | 'outbound' | 'adjustment'
+  late final ScrollController _scrollController;
+  int _pageLimit = 20;
 
   @override
   void initState() {
     super.initState();
+    _scrollController = ScrollController()..addListener(_onScroll);
     context.read<WarehouseCubit>().load();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _initPageLimit());
+  }
+
+  void _initPageLimit() {
+    if (!mounted) return;
+    final h = MediaQuery.of(context).size.height;
+    _pageLimit = (h / 92).ceil() + 3;
+  }
+
+  void _loadChanges(int warehouseId) {
+    context
+        .read<StockChangeCubit>()
+        .loadByWarehouse(warehouseId, FilterParams(limit: _pageLimit));
+  }
+
+  void _onScroll() {
+    if (!_scrollController.hasClients) return;
+    final pos = _scrollController.position;
+    if (pos.pixels >= pos.maxScrollExtent - 200) {
+      context.read<StockChangeCubit>().loadMore();
+    }
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
   }
 
   @override
@@ -68,7 +99,7 @@ class _StockChangeHistoryScreenState
                     _typeFilter = 'all';
                   });
                   if (id != null) {
-                    context.read<StockChangeCubit>().loadByWarehouse(id);
+                    _loadChanges(id);
                   }
                 },
               );
@@ -144,9 +175,8 @@ class _StockChangeHistoryScreenState
                     if (state is StockChangeError) {
                       return ErrorView(
                         message: state.message,
-                        onRetry: () => context
-                            .read<StockChangeCubit>()
-                            .loadByWarehouse(_selectedWarehouseId!),
+                        onRetry: () =>
+                            _loadChanges(_selectedWarehouseId!),
                       );
                     }
                     if (state is StockChangeLoaded) {
@@ -163,7 +193,11 @@ class _StockChangeHistoryScreenState
                         );
                       }
 
-                      return ListView.builder(
+                      return Column(
+                        children: [
+                          Expanded(
+                            child: ListView.builder(
+                        controller: _scrollController,
                         padding: const EdgeInsets.symmetric(
                             horizontal: 16, vertical: 8),
                         itemCount: items.length,
@@ -292,6 +326,14 @@ class _StockChangeHistoryScreenState
                             ),
                           );
                         },
+                      ),
+                          ),
+                          if (state.isLoadingMore)
+                            const Padding(
+                              padding: EdgeInsets.all(12),
+                              child: Center(child: CircularProgressIndicator()),
+                            ),
+                        ],
                       );
                     }
                     return const SizedBox();

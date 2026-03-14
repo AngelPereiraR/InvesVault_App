@@ -17,10 +17,32 @@ class BrandLoading extends BrandState {
 
 class BrandLoaded extends BrandState {
   final List<BrandModel> brands;
-  const BrandLoaded(this.brands);
+  final bool hasMore;
+  final int currentPage;
+  final bool isLoadingMore;
+
+  const BrandLoaded(
+    this.brands, {
+    this.hasMore = false,
+    this.currentPage = 1,
+    this.isLoadingMore = false,
+  });
+
+  BrandLoaded copyWith({
+    List<BrandModel>? brands,
+    bool? hasMore,
+    int? currentPage,
+    bool? isLoadingMore,
+  }) =>
+      BrandLoaded(
+        brands ?? this.brands,
+        hasMore: hasMore ?? this.hasMore,
+        currentPage: currentPage ?? this.currentPage,
+        isLoadingMore: isLoadingMore ?? this.isLoadingMore,
+      );
 
   @override
-  List<Object?> get props => [brands];
+  List<Object?> get props => [brands, hasMore, currentPage, isLoadingMore];
 }
 
 class BrandDeleting extends BrandState {

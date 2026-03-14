@@ -17,10 +17,32 @@ class WarehouseLoading extends WarehouseState {
 
 class WarehouseLoaded extends WarehouseState {
   final List<WarehouseModel> warehouses;
-  const WarehouseLoaded(this.warehouses);
+  final bool hasMore;
+  final int currentPage;
+  final bool isLoadingMore;
+
+  const WarehouseLoaded(
+    this.warehouses, {
+    this.hasMore = false,
+    this.currentPage = 1,
+    this.isLoadingMore = false,
+  });
+
+  WarehouseLoaded copyWith({
+    List<WarehouseModel>? warehouses,
+    bool? hasMore,
+    int? currentPage,
+    bool? isLoadingMore,
+  }) =>
+      WarehouseLoaded(
+        warehouses ?? this.warehouses,
+        hasMore: hasMore ?? this.hasMore,
+        currentPage: currentPage ?? this.currentPage,
+        isLoadingMore: isLoadingMore ?? this.isLoadingMore,
+      );
 
   @override
-  List<Object?> get props => [warehouses];
+  List<Object?> get props => [warehouses, hasMore, currentPage, isLoadingMore];
 }
 
 class WarehouseError extends WarehouseState {

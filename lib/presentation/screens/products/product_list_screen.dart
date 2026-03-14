@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../core/models/filter_params.dart';
 import '../../../core/router/app_router.dart';
 import '../../cubits/product_list/product_list_cubit.dart';
 import '../../widgets/confirm_dialog.dart';
@@ -23,11 +24,35 @@ class ProductListScreen extends StatefulWidget {
 class _ProductListScreenState extends State<ProductListScreen> {
   bool _deleteMode = false;
   final Set<int> _selected = {};
+  late final ScrollController _scrollController;
+  int _pageLimit = 20;
 
   @override
   void initState() {
     super.initState();
-    context.read<ProductListCubit>().load();
+    _scrollController = ScrollController()..addListener(_onScroll);
+    WidgetsBinding.instance.addPostFrameCallback((_) => _initLoad());
+  }
+
+  void _initLoad() {
+    if (!mounted) return;
+    final h = MediaQuery.of(context).size.height;
+    _pageLimit = ((h / 200).ceil() * 2) + 4;
+    context.read<ProductListCubit>().load(FilterParams(limit: _pageLimit));
+  }
+
+  void _onScroll() {
+    if (!_scrollController.hasClients) return;
+    final pos = _scrollController.position;
+    if (pos.pixels >= pos.maxScrollExtent - 200) {
+      context.read<ProductListCubit>().loadMore();
+    }
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
   }
 
   void _exitDeleteMode() => setState(() {
@@ -98,7 +123,11 @@ class _ProductListScreenState extends State<ProductListScreen> {
             actionLabel: 'Crear producto',
             onAction: () async {
               await context.openAuxiliaryRoute('/products/new');
-              if (context.mounted) context.read<ProductListCubit>().load();
+              if (context.mounted) {
+                context
+                    .read<ProductListCubit>()
+                    .load(FilterParams(limit: _pageLimit));
+              }
             },
           );
         }
@@ -125,8 +154,11 @@ class _ProductListScreenState extends State<ProductListScreen> {
               // ── Grid ──
               Expanded(
                 child: RefreshIndicator(
-                  onRefresh: () => context.read<ProductListCubit>().load(),
+                  onRefresh: () => context
+                      .read<ProductListCubit>()
+                      .load(FilterParams(limit: _pageLimit)),
                   child: GridView.builder(
+                    controller: _scrollController,
                     padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
                     gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                       crossAxisCount: 2,
@@ -267,6 +299,11 @@ class _ProductListScreenState extends State<ProductListScreen> {
                   ),
                 ),
               ),
+              if (state.isLoadingMore)
+                const Padding(
+                  padding: EdgeInsets.all(12),
+                  child: Center(child: CircularProgressIndicator()),
+                ),
             ],
           );
         }

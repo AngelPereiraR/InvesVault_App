@@ -62,11 +62,37 @@ class WarehouseDetailCubit extends Cubit<WarehouseDetailState> {
         } catch (_) {}
       }
 
+      final limit = params.limit ?? 20;
       emit(WarehouseDetailLoaded(
         warehouse: warehouse,
         products: products,
         filtered: products,
         currentUserRole: userRole,
+        hasMore: products.length >= limit,
+        currentPage: 1,
+      ));
+    } catch (e) {
+      emit(WarehouseDetailError(friendlyError(e)));
+    }
+  }
+
+  Future<void> loadMore() async {
+    final current = state;
+    if (current is! WarehouseDetailLoaded) return;
+    if (!current.hasMore || current.isLoadingMore) return;
+    emit(current.copyWith(isLoadingMore: true));
+    try {
+      final nextPage = current.currentPage + 1;
+      final params = _currentParams.copyWith(page: nextPage);
+      final newItems = await _warehouseProductRepository.getProducts(
+          _lastWarehouseId, params);
+      final limit = _currentParams.limit ?? 20;
+      emit(current.copyWith(
+        products: [...current.products, ...newItems],
+        filtered: [...current.filtered, ...newItems],
+        hasMore: newItems.length >= limit,
+        currentPage: nextPage,
+        isLoadingMore: false,
       ));
     } catch (e) {
       emit(WarehouseDetailError(friendlyError(e)));
@@ -74,7 +100,10 @@ class WarehouseDetailCubit extends Cubit<WarehouseDetailState> {
   }
 
   void search(String query) {
-    final newParams = FilterParams(search: query.isEmpty ? null : query);
+    final newParams = FilterParams(
+      search: query.isEmpty ? null : query,
+      limit: _currentParams.limit,
+    );
     load(_lastWarehouseId, userId: _lastUserId, params: newParams);
   }
 

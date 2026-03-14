@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../core/models/filter_params.dart';
 import '../../../core/router/app_router.dart';
 import '../../cubits/auth/auth_cubit.dart';
 import '../../cubits/product_form/product_form_cubit.dart';
@@ -26,20 +27,41 @@ class _WarehouseDetailScreenState extends State<WarehouseDetailScreen> {
   final _searchCtrl = TextEditingController();
   bool _deleteMode = false;
   final Set<int> _selected = {};
+  late final ScrollController _scrollController;
+  int _pageLimit = 20;
 
   @override
   void initState() {
     super.initState();
+    _scrollController = ScrollController()..addListener(_onScroll);
+    WidgetsBinding.instance.addPostFrameCallback((_) => _initLoad());
+  }
+
+  void _initLoad() {
+    if (!mounted) return;
+    final h = MediaQuery.of(context).size.height;
+    _pageLimit = (h / 88).ceil() + 3;
     final authState = context.read<AuthCubit>().state;
     final userId = authState is AuthAuthenticated ? authState.userId : 0;
-    context
-        .read<WarehouseDetailCubit>()
-        .load(widget.warehouseId, userId: userId);
+    context.read<WarehouseDetailCubit>().load(
+          widget.warehouseId,
+          userId: userId,
+          params: FilterParams(limit: _pageLimit),
+        );
+  }
+
+  void _onScroll() {
+    if (!_scrollController.hasClients) return;
+    final pos = _scrollController.position;
+    if (pos.pixels >= pos.maxScrollExtent - 200) {
+      context.read<WarehouseDetailCubit>().loadMore();
+    }
   }
 
   @override
   void dispose() {
     _searchCtrl.dispose();
+    _scrollController.dispose();
     super.dispose();
   }
 
@@ -112,7 +134,9 @@ class _WarehouseDetailScreenState extends State<WarehouseDetailScreen> {
             message: state.message,
             onRetry: () => context
                 .read<WarehouseDetailCubit>()
-                .load(widget.warehouseId, userId: userId),
+                .load(widget.warehouseId,
+                    userId: userId,
+                    params: FilterParams(limit: _pageLimit)),
           );
         }
         if (state is! WarehouseDetailLoaded) return const SizedBox();
@@ -201,8 +225,11 @@ class _WarehouseDetailScreenState extends State<WarehouseDetailScreen> {
                       : RefreshIndicator(
                           onRefresh: () => context
                               .read<WarehouseDetailCubit>()
-                              .load(widget.warehouseId, userId: userId),
+                              .load(widget.warehouseId,
+                                  userId: userId,
+                                  params: FilterParams(limit: _pageLimit)),
                           child: ListView.separated(
+                            controller: _scrollController,
                             itemCount: state.filtered.length,
                             separatorBuilder: (_, __) => const Divider(),
                             itemBuilder: (context, i) {
@@ -304,6 +331,11 @@ class _WarehouseDetailScreenState extends State<WarehouseDetailScreen> {
                           ),
                         ),
             ),
+            if (state.isLoadingMore)
+              const Padding(
+                padding: EdgeInsets.all(12),
+                child: Center(child: CircularProgressIndicator()),
+              ),
           ],
         );
       },

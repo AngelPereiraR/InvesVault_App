@@ -17,10 +17,32 @@ class ProductListLoading extends ProductListState {
 
 class ProductListLoaded extends ProductListState {
   final List<ProductModel> products;
-  const ProductListLoaded(this.products);
+  final bool hasMore;
+  final int currentPage;
+  final bool isLoadingMore;
+
+  const ProductListLoaded(
+    this.products, {
+    this.hasMore = false,
+    this.currentPage = 1,
+    this.isLoadingMore = false,
+  });
+
+  ProductListLoaded copyWith({
+    List<ProductModel>? products,
+    bool? hasMore,
+    int? currentPage,
+    bool? isLoadingMore,
+  }) =>
+      ProductListLoaded(
+        products ?? this.products,
+        hasMore: hasMore ?? this.hasMore,
+        currentPage: currentPage ?? this.currentPage,
+        isLoadingMore: isLoadingMore ?? this.isLoadingMore,
+      );
 
   @override
-  List<Object?> get props => [products];
+  List<Object?> get props => [products, hasMore, currentPage, isLoadingMore];
 }
 
 class ProductListDeleting extends ProductListState {

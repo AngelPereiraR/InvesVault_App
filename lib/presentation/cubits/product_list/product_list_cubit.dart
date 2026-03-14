@@ -19,7 +19,33 @@ class ProductListCubit extends Cubit<ProductListState> {
     emit(const ProductListLoading());
     try {
       final products = await _repository.getProducts(params);
-      emit(ProductListLoaded(products));
+      final limit = params.limit ?? 20;
+      emit(ProductListLoaded(
+        products,
+        hasMore: products.length >= limit,
+        currentPage: 1,
+      ));
+    } catch (e) {
+      emit(ProductListError(friendlyError(e)));
+    }
+  }
+
+  Future<void> loadMore() async {
+    final current = state;
+    if (current is! ProductListLoaded) return;
+    if (!current.hasMore || current.isLoadingMore) return;
+    emit(current.copyWith(isLoadingMore: true));
+    try {
+      final nextPage = current.currentPage + 1;
+      final params = _currentParams.copyWith(page: nextPage);
+      final newItems = await _repository.getProducts(params);
+      final limit = _currentParams.limit ?? 20;
+      emit(current.copyWith(
+        products: [...current.products, ...newItems],
+        hasMore: newItems.length >= limit,
+        currentPage: nextPage,
+        isLoadingMore: false,
+      ));
     } catch (e) {
       emit(ProductListError(friendlyError(e)));
     }

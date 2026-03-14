@@ -19,7 +19,33 @@ class StoreCubit extends Cubit<StoreState> {
     emit(const StoreLoading());
     try {
       final stores = await _repository.getStores(params);
-      emit(StoreLoaded(stores));
+      final limit = params.limit ?? 20;
+      emit(StoreLoaded(
+        stores,
+        hasMore: stores.length >= limit,
+        currentPage: 1,
+      ));
+    } catch (e) {
+      emit(StoreError(friendlyError(e)));
+    }
+  }
+
+  Future<void> loadMore() async {
+    final current = state;
+    if (current is! StoreLoaded) return;
+    if (!current.hasMore || current.isLoadingMore) return;
+    emit(current.copyWith(isLoadingMore: true));
+    try {
+      final nextPage = current.currentPage + 1;
+      final params = _currentParams.copyWith(page: nextPage);
+      final newItems = await _repository.getStores(params);
+      final limit = _currentParams.limit ?? 20;
+      emit(current.copyWith(
+        stores: [...current.stores, ...newItems],
+        hasMore: newItems.length >= limit,
+        currentPage: nextPage,
+        isLoadingMore: false,
+      ));
     } catch (e) {
       emit(StoreError(friendlyError(e)));
     }

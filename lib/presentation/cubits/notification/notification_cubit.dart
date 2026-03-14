@@ -20,8 +20,37 @@ class NotificationCubit extends Cubit<NotificationState> {
     try {
       final notifications = await _repository.getNotifications(params);
       final unreadCount = notifications.where((n) => !n.isRead).length;
+      final limit = params.limit ?? 20;
       emit(NotificationLoaded(
-          notifications: notifications, unreadCount: unreadCount));
+        notifications: notifications,
+        unreadCount: unreadCount,
+        hasMore: notifications.length >= limit,
+        currentPage: 1,
+      ));
+    } catch (e) {
+      emit(NotificationError(friendlyError(e)));
+    }
+  }
+
+  Future<void> loadMore() async {
+    final current = state;
+    if (current is! NotificationLoaded) return;
+    if (!current.hasMore || current.isLoadingMore) return;
+    emit(current.copyWith(isLoadingMore: true));
+    try {
+      final nextPage = current.currentPage + 1;
+      final params = _currentParams.copyWith(page: nextPage);
+      final newItems = await _repository.getNotifications(params);
+      final limit = _currentParams.limit ?? 20;
+      final allNotifications = [...current.notifications, ...newItems];
+      final unreadCount = allNotifications.where((n) => !n.isRead).length;
+      emit(current.copyWith(
+        notifications: allNotifications,
+        unreadCount: unreadCount,
+        hasMore: newItems.length >= limit,
+        currentPage: nextPage,
+        isLoadingMore: false,
+      ));
     } catch (e) {
       emit(NotificationError(friendlyError(e)));
     }

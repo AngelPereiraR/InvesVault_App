@@ -17,10 +17,32 @@ class StockChangeLoading extends StockChangeState {
 
 class StockChangeLoaded extends StockChangeState {
   final List<StockChangeModel> changes;
-  const StockChangeLoaded(this.changes);
+  final bool hasMore;
+  final int currentPage;
+  final bool isLoadingMore;
+
+  const StockChangeLoaded(
+    this.changes, {
+    this.hasMore = false,
+    this.currentPage = 1,
+    this.isLoadingMore = false,
+  });
+
+  StockChangeLoaded copyWith({
+    List<StockChangeModel>? changes,
+    bool? hasMore,
+    int? currentPage,
+    bool? isLoadingMore,
+  }) =>
+      StockChangeLoaded(
+        changes ?? this.changes,
+        hasMore: hasMore ?? this.hasMore,
+        currentPage: currentPage ?? this.currentPage,
+        isLoadingMore: isLoadingMore ?? this.isLoadingMore,
+      );
 
   @override
-  List<Object?> get props => [changes];
+  List<Object?> get props => [changes, hasMore, currentPage, isLoadingMore];
 }
 
 class StockChangeError extends StockChangeState {

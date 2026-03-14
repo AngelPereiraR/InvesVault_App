@@ -24,6 +24,9 @@ class WarehouseDetailLoaded extends WarehouseDetailState {
   final List<int> updatingProductIds;
 
   final bool isDeleting;
+  final bool hasMore;
+  final int currentPage;
+  final bool isLoadingMore;
 
   const WarehouseDetailLoaded({
     required this.warehouse,
@@ -33,6 +36,9 @@ class WarehouseDetailLoaded extends WarehouseDetailState {
     this.currentUserRole = 'viewer',
     this.updatingProductIds = const [],
     this.isDeleting = false,
+    this.hasMore = false,
+    this.currentPage = 1,
+    this.isLoadingMore = false,
   });
 
   bool get canEdit => currentUserRole == 'admin' || currentUserRole == 'editor';
@@ -46,6 +52,9 @@ class WarehouseDetailLoaded extends WarehouseDetailState {
     String? currentUserRole,
     List<int>? updatingProductIds,
     bool? isDeleting,
+    bool? hasMore,
+    int? currentPage,
+    bool? isLoadingMore,
   }) =>
       WarehouseDetailLoaded(
         warehouse: warehouse ?? this.warehouse,
@@ -55,6 +64,9 @@ class WarehouseDetailLoaded extends WarehouseDetailState {
         currentUserRole: currentUserRole ?? this.currentUserRole,
         updatingProductIds: updatingProductIds ?? this.updatingProductIds,
         isDeleting: isDeleting ?? this.isDeleting,
+        hasMore: hasMore ?? this.hasMore,
+        currentPage: currentPage ?? this.currentPage,
+        isLoadingMore: isLoadingMore ?? this.isLoadingMore,
       );
 
   @override
@@ -66,6 +78,9 @@ class WarehouseDetailLoaded extends WarehouseDetailState {
         currentUserRole,
         updatingProductIds,
         isDeleting,
+        hasMore,
+        currentPage,
+        isLoadingMore,
       ];
 }
 

@@ -17,10 +17,32 @@ class StoreLoading extends StoreState {
 
 class StoreLoaded extends StoreState {
   final List<StoreModel> stores;
-  const StoreLoaded(this.stores);
+  final bool hasMore;
+  final int currentPage;
+  final bool isLoadingMore;
+
+  const StoreLoaded(
+    this.stores, {
+    this.hasMore = false,
+    this.currentPage = 1,
+    this.isLoadingMore = false,
+  });
+
+  StoreLoaded copyWith({
+    List<StoreModel>? stores,
+    bool? hasMore,
+    int? currentPage,
+    bool? isLoadingMore,
+  }) =>
+      StoreLoaded(
+        stores ?? this.stores,
+        hasMore: hasMore ?? this.hasMore,
+        currentPage: currentPage ?? this.currentPage,
+        isLoadingMore: isLoadingMore ?? this.isLoadingMore,
+      );
 
   @override
-  List<Object?> get props => [stores];
+  List<Object?> get props => [stores, hasMore, currentPage, isLoadingMore];
 }
 
 class StoreDeleting extends StoreState {

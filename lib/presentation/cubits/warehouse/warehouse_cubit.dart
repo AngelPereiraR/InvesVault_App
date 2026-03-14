@@ -20,7 +20,34 @@ class WarehouseCubit extends Cubit<WarehouseState> {
     try {
       final warehouses = await _repository.getWarehouses(params);
       warehouses.sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
-      emit(WarehouseLoaded(warehouses));
+      final limit = params.limit ?? 20;
+      emit(WarehouseLoaded(
+        warehouses,
+        hasMore: warehouses.length >= limit,
+        currentPage: 1,
+      ));
+    } catch (e) {
+      emit(WarehouseError(friendlyError(e)));
+    }
+  }
+
+  Future<void> loadMore() async {
+    final current = state;
+    if (current is! WarehouseLoaded) return;
+    if (!current.hasMore || current.isLoadingMore) return;
+    emit(current.copyWith(isLoadingMore: true));
+    try {
+      final nextPage = current.currentPage + 1;
+      final params = _currentParams.copyWith(page: nextPage);
+      final newItems = await _repository.getWarehouses(params);
+      newItems.sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
+      final limit = _currentParams.limit ?? 20;
+      emit(current.copyWith(
+        warehouses: [...current.warehouses, ...newItems],
+        hasMore: newItems.length >= limit,
+        currentPage: nextPage,
+        isLoadingMore: false,
+      ));
     } catch (e) {
       emit(WarehouseError(friendlyError(e)));
     }

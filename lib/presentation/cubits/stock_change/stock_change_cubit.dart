@@ -10,34 +10,77 @@ part 'stock_change_state.dart';
 
 class StockChangeCubit extends Cubit<StockChangeState> {
   final StockChangeRepository _repository;
+  String _loadMode = 'warehouse'; // 'product' | 'warehouse' | 'user'
+  int _loadEntityId = 0;
+  FilterParams _currentParams = FilterParams.empty;
 
   StockChangeCubit(this._repository) : super(const StockChangeInitial());
 
   Future<void> loadByProduct(int productId, [FilterParams params = FilterParams.empty]) async {
+    _loadMode = 'product';
+    _loadEntityId = productId;
+    _currentParams = params;
     emit(const StockChangeLoading());
     try {
       final changes = await _repository.getByProduct(productId, params);
-      emit(StockChangeLoaded(changes));
+      final limit = params.limit ?? 20;
+      emit(StockChangeLoaded(changes, hasMore: changes.length >= limit, currentPage: 1));
     } catch (e) {
       emit(StockChangeError(friendlyError(e)));
     }
   }
 
   Future<void> loadByWarehouse(int warehouseId, [FilterParams params = FilterParams.empty]) async {
+    _loadMode = 'warehouse';
+    _loadEntityId = warehouseId;
+    _currentParams = params;
     emit(const StockChangeLoading());
     try {
       final changes = await _repository.getByWarehouse(warehouseId, params);
-      emit(StockChangeLoaded(changes));
+      final limit = params.limit ?? 20;
+      emit(StockChangeLoaded(changes, hasMore: changes.length >= limit, currentPage: 1));
     } catch (e) {
       emit(StockChangeError(friendlyError(e)));
     }
   }
 
   Future<void> loadByUser(int userId, [FilterParams params = FilterParams.empty]) async {
+    _loadMode = 'user';
+    _loadEntityId = userId;
+    _currentParams = params;
     emit(const StockChangeLoading());
     try {
       final changes = await _repository.getByUser(userId, params);
-      emit(StockChangeLoaded(changes));
+      final limit = params.limit ?? 20;
+      emit(StockChangeLoaded(changes, hasMore: changes.length >= limit, currentPage: 1));
+    } catch (e) {
+      emit(StockChangeError(friendlyError(e)));
+    }
+  }
+
+  Future<void> loadMore() async {
+    final current = state;
+    if (current is! StockChangeLoaded) return;
+    if (!current.hasMore || current.isLoadingMore) return;
+    emit(current.copyWith(isLoadingMore: true));
+    try {
+      final nextPage = current.currentPage + 1;
+      final params = _currentParams.copyWith(page: nextPage);
+      final List<StockChangeModel> newItems;
+      if (_loadMode == 'product') {
+        newItems = await _repository.getByProduct(_loadEntityId, params);
+      } else if (_loadMode == 'user') {
+        newItems = await _repository.getByUser(_loadEntityId, params);
+      } else {
+        newItems = await _repository.getByWarehouse(_loadEntityId, params);
+      }
+      final limit = _currentParams.limit ?? 20;
+      emit(current.copyWith(
+        changes: [...current.changes, ...newItems],
+        hasMore: newItems.length >= limit,
+        currentPage: nextPage,
+        isLoadingMore: false,
+      ));
     } catch (e) {
       emit(StockChangeError(friendlyError(e)));
     }

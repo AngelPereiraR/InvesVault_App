@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 
+import '../../../core/models/filter_params.dart';
 import '../../cubits/notification/notification_cubit.dart';
 import '../../widgets/confirm_dialog.dart';
 import '../../widgets/empty_view.dart';
@@ -17,10 +18,35 @@ class NotificationListScreen extends StatefulWidget {
 }
 
 class _NotificationListScreenState extends State<NotificationListScreen> {
+  late final ScrollController _scrollController;
+  int _pageLimit = 20;
+
   @override
   void initState() {
     super.initState();
-    context.read<NotificationCubit>().load();
+    _scrollController = ScrollController()..addListener(_onScroll);
+    WidgetsBinding.instance.addPostFrameCallback((_) => _initLoad());
+  }
+
+  void _initLoad() {
+    if (!mounted) return;
+    final h = MediaQuery.of(context).size.height;
+    _pageLimit = (h / 80).ceil() + 3;
+    context.read<NotificationCubit>().load(FilterParams(limit: _pageLimit));
+  }
+
+  void _onScroll() {
+    if (!_scrollController.hasClients) return;
+    final pos = _scrollController.position;
+    if (pos.pixels >= pos.maxScrollExtent - 200) {
+      context.read<NotificationCubit>().loadMore();
+    }
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
   }
 
   @override
@@ -78,13 +104,18 @@ class _NotificationListScreenState extends State<NotificationListScreen> {
               );
             }
             if (state is NotificationLoaded) {
-              return RefreshIndicator(
-                onRefresh: () =>
-                    context.read<NotificationCubit>().load(),
-                child: ListView.separated(
-                  itemCount: state.notifications.length,
-                  separatorBuilder: (_, __) => const Divider(),
-                  itemBuilder: (context, i) {
+              return Column(
+                children: [
+                  Expanded(
+                    child: RefreshIndicator(
+                      onRefresh: () => context
+                          .read<NotificationCubit>()
+                          .load(FilterParams(limit: _pageLimit)),
+                      child: ListView.separated(
+                        controller: _scrollController,
+                        itemCount: state.notifications.length,
+                        separatorBuilder: (_, __) => const Divider(),
+                        itemBuilder: (context, i) {
                     final n = state.notifications[i];
                     return Dismissible(
                       key: ValueKey(n.id),
@@ -132,8 +163,16 @@ class _NotificationListScreenState extends State<NotificationListScreen> {
                                 .markRead(n.id),
                       ),
                     );
-                  },
-                ),
+                        },
+                      ),
+                    ),
+                  ),
+                  if (state.isLoadingMore)
+                    const Padding(
+                      padding: EdgeInsets.all(12),
+                      child: Center(child: CircularProgressIndicator()),
+                    ),
+                ],
               );
             }
             return const SizedBox();

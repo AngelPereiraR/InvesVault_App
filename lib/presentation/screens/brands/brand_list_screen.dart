@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../core/models/filter_params.dart';
 import '../../cubits/brand/brand_cubit.dart';
 import '../../widgets/confirm_dialog.dart';
 import '../../widgets/delete_mode_bar.dart';
@@ -23,11 +24,35 @@ class BrandListScreen extends StatefulWidget {
 class _BrandListScreenState extends State<BrandListScreen> {
   bool _deleteMode = false;
   final Set<int> _selected = {};
+  late final ScrollController _scrollController;
+  int _pageLimit = 20;
 
   @override
   void initState() {
     super.initState();
-    context.read<BrandCubit>().load();
+    _scrollController = ScrollController()..addListener(_onScroll);
+    WidgetsBinding.instance.addPostFrameCallback((_) => _initLoad());
+  }
+
+  void _initLoad() {
+    if (!mounted) return;
+    final h = MediaQuery.of(context).size.height;
+    _pageLimit = (h / 86).ceil() + 3;
+    context.read<BrandCubit>().load(FilterParams(limit: _pageLimit));
+  }
+
+  void _onScroll() {
+    if (!_scrollController.hasClients) return;
+    final pos = _scrollController.position;
+    if (pos.pixels >= pos.maxScrollExtent - 200) {
+      context.read<BrandCubit>().loadMore();
+    }
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
   }
 
   void _exitDeleteMode() => setState(() {
@@ -121,8 +146,11 @@ class _BrandListScreenState extends State<BrandListScreen> {
               // ── List ──
               Expanded(
                 child: RefreshIndicator(
-                  onRefresh: () => context.read<BrandCubit>().load(),
+                  onRefresh: () => context
+                      .read<BrandCubit>()
+                      .load(FilterParams(limit: _pageLimit)),
                   child: ListView.separated(
+                    controller: _scrollController,
                     padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
                     itemCount: state.brands.length,
                     separatorBuilder: (_, __) => const SizedBox(height: 10),
@@ -226,6 +254,11 @@ class _BrandListScreenState extends State<BrandListScreen> {
                   ),
                 ),
               ),
+              if (state.isLoadingMore)
+                const Padding(
+                  padding: EdgeInsets.all(12),
+                  child: Center(child: CircularProgressIndicator()),
+                ),
             ],
           );
         }
