@@ -8,6 +8,7 @@ import 'core/services/notification_service.dart';
 import 'core/services/storage_service.dart';
 import 'core/theme/app_theme.dart';
 import 'data/datasources/auth_remote_datasource.dart';
+import 'data/datasources/dashboard_remote_datasource.dart';
 import 'data/datasources/brand_remote_datasource.dart';
 import 'data/datasources/notification_remote_datasource.dart';
 import 'data/datasources/product_remote_datasource.dart';
@@ -27,6 +28,7 @@ import 'data/repositories/store_repository.dart';
 import 'data/repositories/warehouse_product_repository.dart';
 import 'data/repositories/warehouse_repository.dart';
 import 'data/repositories/warehouse_user_repository.dart';
+import 'data/repositories/dashboard_repository.dart';
 import 'presentation/cubits/auth/auth_cubit.dart';
 import 'presentation/cubits/brand/brand_cubit.dart';
 import 'presentation/cubits/dashboard/dashboard_cubit.dart';
@@ -69,6 +71,7 @@ class _InvesVaultAppState extends State<InvesVaultApp> {
   late final ShoppingListRemoteDatasource _shoppingListDs;
   late final NotificationRemoteDatasource _notificationDs;
   late final StockChangeRemoteDatasource _stockChangeDs;
+  late final DashboardRemoteDatasource _dashboardDs;
 
   // Repositories
   late final AuthRepository _authRepo;
@@ -81,6 +84,7 @@ class _InvesVaultAppState extends State<InvesVaultApp> {
   late final ShoppingListRepository _shoppingListRepo;
   late final NotificationRepository _notificationRepo;
   late final StockChangeRepository _stockChangeRepo;
+  late final DashboardRepository _dashboardRepo;
 
   @override
   void initState() {
@@ -110,6 +114,8 @@ class _InvesVaultAppState extends State<InvesVaultApp> {
     _shoppingListRepo = ShoppingListRepository(_shoppingListDs);
     _notificationRepo = NotificationRepository(_notificationDs);
     _stockChangeRepo = StockChangeRepository(_stockChangeDs);
+    _dashboardDs = DashboardRemoteDatasource(dio);
+    _dashboardRepo = DashboardRepository(_dashboardDs);
   }
 
   @override
@@ -124,11 +130,7 @@ class _InvesVaultAppState extends State<InvesVaultApp> {
           create: (_) => WarehouseCubit(_warehouseRepo),
         ),
         BlocProvider(
-          create: (_) => DashboardCubit(
-            _warehouseRepo,
-            _warehouseProductRepo,
-            _notificationRepo,
-          ),
+          create: (_) => DashboardCubit(_dashboardRepo),
         ),
         BlocProvider(
           create: (_) => WarehouseDetailCubit(

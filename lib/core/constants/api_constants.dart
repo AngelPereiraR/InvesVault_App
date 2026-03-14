@@ -75,6 +75,9 @@ abstract class ApiConstants {
   static String notificationDelete(int id) => '/notifications/$id';
   static const String notificationsClearAll = '/notifications/clear-all';
 
+  // Dashboard
+  static const String dashboard = '/dashboard';
+
   // Stock Changes
   static const String stockChanges = '/stock-changes';
   static String stockChangesByProduct(int productId) =>
