@@ -701,7 +701,7 @@ class _WarehouseListScreenState extends State<WarehouseListScreen> {
                             crossAxisCount: 2,
                             crossAxisSpacing: 10,
                             mainAxisSpacing: 10,
-                            childAspectRatio: 1.5 /
+                            childAspectRatio: 1.2 /
                                 MediaQuery.textScalerOf(context)
                                     .scale(1.0)
                                     .clamp(
