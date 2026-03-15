@@ -2,8 +2,8 @@ import 'package:equatable/equatable.dart';
 import '../../../core/utils/error_messages.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../../data/models/warehouse_model.dart';
 import '../../../data/models/warehouse_product_model.dart';
+import '../../../data/models/warehouse_summary_model.dart';
 import '../../../data/repositories/dashboard_repository.dart';
 
 part 'dashboard_state.dart';

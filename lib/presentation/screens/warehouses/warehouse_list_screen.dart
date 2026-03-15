@@ -879,6 +879,14 @@ class _WarehouseGridCard extends StatelessWidget {
                     fontWeight: FontWeight.w600,
                     color: _purple),
               ),
+              if (warehouse.productCount != null)
+                Padding(
+                  padding: const EdgeInsets.only(top: 2),
+                  child: Text(
+                    '${warehouse.productCount} ${warehouse.productCount == 1 ? 'producto' : 'productos'}',
+                    style: TextStyle(fontSize: 10, color: Colors.grey.shade500),
+                  ),
+                ),
               if (warehouse.isShared)
                 const Padding(
                   padding: EdgeInsets.only(top: 4),

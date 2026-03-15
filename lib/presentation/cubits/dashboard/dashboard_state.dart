@@ -20,7 +20,7 @@ class DashboardLoaded extends DashboardState {
   final int productCount;
   final int lowStockCount;
   final int unreadNotifications;
-  final List<WarehouseModel> recentWarehouses;
+  final List<WarehouseSummary> recentWarehouses;        // ordenados por productCount DESC
   final List<WarehouseProductModel> lowStockItems;      // Preview (max 5)
   final List<WarehouseProductModel> allLowStockItems;   // Full list
 

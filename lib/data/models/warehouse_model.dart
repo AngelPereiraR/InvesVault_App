@@ -7,6 +7,7 @@ class WarehouseModel extends Equatable {
   final bool isShared;
   final String? createdAt;
   final String? updatedAt;
+  final int? productCount;
 
   const WarehouseModel({
     required this.id,
@@ -15,6 +16,7 @@ class WarehouseModel extends Equatable {
     required this.isShared,
     this.createdAt,
     this.updatedAt,
+    this.productCount,
   });
 
   factory WarehouseModel.fromJson(Map<String, dynamic> json) => WarehouseModel(
@@ -24,6 +26,7 @@ class WarehouseModel extends Equatable {
         isShared: json['is_shared'] as bool? ?? false,
         createdAt: json['created_at'] as String?,
         updatedAt: json['updated_at'] as String?,
+        productCount: (json['productCount'] as num?)?.toInt(),
       );
 
   Map<String, dynamic> toJson() => {

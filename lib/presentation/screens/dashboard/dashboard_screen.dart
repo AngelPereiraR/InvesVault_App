@@ -225,11 +225,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         double.infinity,
                       ),
                   children: [
-                    for (final w in state.recentWarehouses)
+                    for (final s in state.recentWarehouses)
                       _WarehouseButton(
-                        name: w.name,
+                        name: s.warehouse.name,
+                        productCount: s.productCount,
                         onTap: () => context.openAuxiliaryRoute(
-                          '/warehouses/${w.id}/detail',
+                          '/warehouses/${s.warehouse.id}/detail',
                         ),
                       ),
                     _WarehouseViewAllButton(
@@ -456,9 +457,14 @@ class _SectionTitle extends StatelessWidget {
 // ─── Warehouse button chip ────────────────────────────────────────────────────
 class _WarehouseButton extends StatelessWidget {
   final String name;
+  final int productCount;
   final VoidCallback onTap;
 
-  const _WarehouseButton({required this.name, required this.onTap});
+  const _WarehouseButton({
+    required this.name,
+    required this.productCount,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -489,14 +495,24 @@ class _WarehouseButton extends StatelessWidget {
             ),
             const SizedBox(width: 10),
             Expanded(
-              child: Text(
-                name,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                    color: _purple),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    name,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: _purple),
+                  ),
+                  Text(
+                    '$productCount ${productCount == 1 ? 'producto' : 'productos'}',
+                    style: TextStyle(fontSize: 11, color: Colors.grey.shade500),
+                  ),
+                ],
               ),
             ),
           ],
