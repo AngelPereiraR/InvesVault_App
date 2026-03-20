@@ -547,6 +547,7 @@ class _WarehouseListScreenState extends State<WarehouseListScreen> {
   bool _deleteMode = false;
   final Set<int> _selected = {};
   late final ScrollController _scrollController;
+  final _searchCtrl = TextEditingController();
   int _pageLimit = 20;
 
   @override
@@ -569,10 +570,14 @@ class _WarehouseListScreenState extends State<WarehouseListScreen> {
     if (pos.pixels >= pos.maxScrollExtent - 200) {
       context.read<WarehouseCubit>().loadMore();
     }
+    if (pos.pixels <= 200) {
+      context.read<WarehouseCubit>().loadPrevious();
+    }
   }
 
   @override
   void dispose() {
+    _searchCtrl.dispose();
     _scrollController.dispose();
     super.dispose();
   }
@@ -651,13 +656,6 @@ class _WarehouseListScreenState extends State<WarehouseListScreen> {
                   onRetry: () => context.read<WarehouseCubit>().load(),
                 );
               }
-              if (state is WarehouseLoaded && state.warehouses.isEmpty) {
-                return EmptyView(
-                  message: 'No tienes almacenes aún',
-                  actionLabel: 'Crear almacén',
-                  onAction: () => showWarehouseDialog(context),
-                );
-              }
               if (state is WarehouseLoaded) {
                 final authState = context.read<AuthCubit>().state;
                 final currentUserId =
@@ -667,6 +665,40 @@ class _WarehouseListScreenState extends State<WarehouseListScreen> {
 
                 return Column(
                   children: [
+                    // ── Loading previous indicator ──
+                    if (state.isLoadingPrevious)
+                      const Padding(
+                        padding: EdgeInsets.symmetric(vertical: 8),
+                        child: Center(child: CircularProgressIndicator()),
+                      ),
+                    // ── Search (hidden in delete mode) ──
+                    if (!_deleteMode) ...[
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+                        child: TextField(
+                          controller: _searchCtrl,
+                          decoration: InputDecoration(
+                            hintText: 'Buscar almacén…',
+                            prefixIcon: const Icon(Icons.search),
+                            suffixIcon: _searchCtrl.text.isNotEmpty
+                                ? IconButton(
+                                    icon: const Icon(Icons.clear),
+                                    onPressed: () {
+                                      _searchCtrl.clear();
+                                      context
+                                          .read<WarehouseCubit>()
+                                          .search('');
+                                    },
+                                  )
+                                : null,
+                          ),
+                          onChanged: (q) =>
+                              context.read<WarehouseCubit>().search(q),
+                        ),
+                      ),
+                      if (state.isSearching)
+                        const LinearProgressIndicator(minHeight: 2),
+                    ],
                     // ── Toolbar ──
                     if (_deleteMode)
                       DeleteModeBar(
@@ -688,12 +720,28 @@ class _WarehouseListScreenState extends State<WarehouseListScreen> {
                       ),
                     // ── Grid ──
                     Expanded(
-                      child: RefreshIndicator(
-                        onRefresh: () => context
-                            .read<WarehouseCubit>()
-                            .load(FilterParams(limit: _pageLimit)),
+                      child: state.warehouses.isEmpty
+                          ? EmptyView(
+                              message: _searchCtrl.text.isNotEmpty
+                                  ? 'Sin resultados para "${_searchCtrl.text}"'
+                                  : 'No tienes almacenes aún',
+                              actionLabel: _searchCtrl.text.isEmpty
+                                  ? 'Crear almacén'
+                                  : null,
+                              onAction: _searchCtrl.text.isEmpty
+                                  ? () => showWarehouseDialog(context)
+                                  : null,
+                            )
+                          : RefreshIndicator(
+                        onRefresh: () {
+                          _searchCtrl.clear();
+                          return context
+                              .read<WarehouseCubit>()
+                              .load(FilterParams(limit: _pageLimit));
+                        },
                         child: GridView.builder(
                           controller: _scrollController,
+                          physics: const AlwaysScrollableScrollPhysics(),
                           padding:
                               const EdgeInsets.fromLTRB(16, 4, 16, 96),
                           gridDelegate:

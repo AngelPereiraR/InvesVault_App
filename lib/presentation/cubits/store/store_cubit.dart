@@ -1,4 +1,6 @@
-﻿import 'package:equatable/equatable.dart';
+﻿import 'dart:async';
+
+import 'package:equatable/equatable.dart';
 import '../../../core/utils/error_messages.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -11,10 +13,20 @@ part 'store_state.dart';
 class StoreCubit extends Cubit<StoreState> {
   final StoreRepository _repository;
   FilterParams _currentParams = FilterParams.empty;
+  String _currentSearch = '';
+  Timer? _searchDebounce;
 
   StoreCubit(this._repository) : super(const StoreInitial());
 
+  FilterParams _effectiveParams({int? page}) => FilterParams(
+        search: _currentSearch.isEmpty ? null : _currentSearch,
+        limit: _currentParams.limit,
+        page: page,
+      );
+
   Future<void> load([FilterParams params = FilterParams.empty]) async {
+    _searchDebounce?.cancel();
+    _currentSearch = '';
     _currentParams = params;
     emit(const StoreLoading());
     try {
@@ -37,7 +49,7 @@ class StoreCubit extends Cubit<StoreState> {
     emit(current.copyWith(isLoadingMore: true));
     try {
       final nextPage = current.currentPage + 1;
-      final params = _currentParams.copyWith(page: nextPage);
+      final params = _effectiveParams(page: nextPage);
       final newItems = await _repository.getStores(params);
       final limit = _currentParams.limit ?? 20;
       emit(current.copyWith(
@@ -49,6 +61,47 @@ class StoreCubit extends Cubit<StoreState> {
     } catch (e) {
       emit(StoreError(friendlyError(e)));
     }
+  }
+
+  void search(String query) {
+    _searchDebounce?.cancel();
+    _currentSearch = query;
+    final current = state;
+    if (current is! StoreLoaded) return;
+    emit(current.copyWith(isSearching: true));
+    if (query.isEmpty) {
+      _doSearch();
+    } else {
+      _searchDebounce = Timer(const Duration(milliseconds: 400), _doSearch);
+    }
+  }
+
+  Future<void> _doSearch() async {
+    final current = state;
+    if (current is! StoreLoaded) return;
+    try {
+      final results = await _repository.getStores(_effectiveParams(page: 1));
+      if (isClosed) return;
+      final latest = state;
+      if (latest is! StoreLoaded) return;
+      final limit = _currentParams.limit ?? 20;
+      emit(latest.copyWith(
+        stores: results,
+        hasMore: results.length >= limit,
+        currentPage: 1,
+        isSearching: false,
+      ));
+    } catch (e) {
+      if (isClosed) return;
+      final latest = state;
+      if (latest is StoreLoaded) emit(latest.copyWith(isSearching: false));
+    }
+  }
+
+  @override
+  Future<void> close() {
+    _searchDebounce?.cancel();
+    return super.close();
   }
 
   Future<void> create({required String name, String? location}) async {

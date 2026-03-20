@@ -56,6 +56,9 @@ class _WarehouseDetailScreenState extends State<WarehouseDetailScreen> {
     if (pos.pixels >= pos.maxScrollExtent - 200) {
       context.read<WarehouseDetailCubit>().loadMore();
     }
+    if (pos.pixels <= 200) {
+      context.read<WarehouseDetailCubit>().loadPrevious();
+    }
   }
 
   @override
@@ -184,7 +187,7 @@ class _WarehouseDetailScreenState extends State<WarehouseDetailScreen> {
               ),
 
             // ── Search (hidden in delete mode) ─
-            if (!_deleteMode)
+            if (!_deleteMode) ...[
               Padding(
                 padding:
                     const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -209,6 +212,16 @@ class _WarehouseDetailScreenState extends State<WarehouseDetailScreen> {
                       context.read<WarehouseDetailCubit>().search(q),
                 ),
               ),
+              if (state.isSearching)
+                const LinearProgressIndicator(minHeight: 2),
+            ],
+
+            // ── Loading previous indicator ─
+            if (state.isLoadingPrevious)
+              const Padding(
+                padding: EdgeInsets.symmetric(vertical: 8),
+                child: Center(child: CircularProgressIndicator()),
+              ),
 
             // ── Product list ─
             Expanded(
@@ -216,20 +229,28 @@ class _WarehouseDetailScreenState extends State<WarehouseDetailScreen> {
                   ? const LoadingIndicator(message: 'Eliminando…')
                   : state.filtered.isEmpty
                       ? EmptyView(
-                          message: 'No hay productos en este almacén',
-                          actionLabel:
-                              state.canEdit ? 'Añadir producto' : null,
-                          onAction:
-                              state.canEdit ? _showAddProductSheet : null,
+                          message: _searchCtrl.text.isNotEmpty
+                              ? 'Sin resultados para "${_searchCtrl.text}"'
+                              : 'No hay productos en este almacén',
+                          actionLabel: _searchCtrl.text.isEmpty && state.canEdit
+                              ? 'Añadir producto'
+                              : null,
+                          onAction: _searchCtrl.text.isEmpty && state.canEdit
+                              ? _showAddProductSheet
+                              : null,
                         )
                       : RefreshIndicator(
-                          onRefresh: () => context
-                              .read<WarehouseDetailCubit>()
-                              .load(widget.warehouseId,
-                                  userId: userId,
-                                  params: FilterParams(limit: _pageLimit)),
+                          onRefresh: () {
+                            _searchCtrl.clear();
+                            return context
+                                .read<WarehouseDetailCubit>()
+                                .load(widget.warehouseId,
+                                    userId: userId,
+                                    params: FilterParams(limit: _pageLimit));
+                          },
                           child: ListView.separated(
                             controller: _scrollController,
+                            physics: const AlwaysScrollableScrollPhysics(),
                             itemCount: state.filtered.length,
                             separatorBuilder: (_, __) => const Divider(),
                             itemBuilder: (context, i) {

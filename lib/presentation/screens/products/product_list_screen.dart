@@ -25,6 +25,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
   bool _deleteMode = false;
   final Set<int> _selected = {};
   late final ScrollController _scrollController;
+  final _searchCtrl = TextEditingController();
   int _pageLimit = 20;
 
   @override
@@ -47,10 +48,14 @@ class _ProductListScreenState extends State<ProductListScreen> {
     if (pos.pixels >= pos.maxScrollExtent - 200) {
       context.read<ProductListCubit>().loadMore();
     }
+    if (pos.pixels <= 200) {
+      context.read<ProductListCubit>().loadPrevious();
+    }
   }
 
   @override
   void dispose() {
+    _searchCtrl.dispose();
     _scrollController.dispose();
     super.dispose();
   }
@@ -117,23 +122,41 @@ class _ProductListScreenState extends State<ProductListScreen> {
             onRetry: () => context.read<ProductListCubit>().load(),
           );
         }
-        if (state is ProductListLoaded && state.products.isEmpty) {
-          return EmptyView(
-            message: 'No tienes productos creados',
-            actionLabel: 'Crear producto',
-            onAction: () async {
-              await context.openAuxiliaryRoute('/products/new');
-              if (context.mounted) {
-                context
-                    .read<ProductListCubit>()
-                    .load(FilterParams(limit: _pageLimit));
-              }
-            },
-          );
-        }
         if (state is ProductListLoaded) {
           return Column(
             children: [
+              // ── Loading previous indicator ──
+              if (state.isLoadingPrevious)
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 8),
+                  child: Center(child: CircularProgressIndicator()),
+                ),
+              // ── Search (hidden in delete mode) ──
+              if (!_deleteMode) ...[
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+                  child: TextField(
+                    controller: _searchCtrl,
+                    decoration: InputDecoration(
+                      hintText: 'Buscar producto…',
+                      prefixIcon: const Icon(Icons.search),
+                      suffixIcon: _searchCtrl.text.isNotEmpty
+                          ? IconButton(
+                              icon: const Icon(Icons.clear),
+                              onPressed: () {
+                                _searchCtrl.clear();
+                                context.read<ProductListCubit>().search('');
+                              },
+                            )
+                          : null,
+                    ),
+                    onChanged: (q) =>
+                        context.read<ProductListCubit>().search(q),
+                  ),
+                ),
+                if (state.isSearching)
+                  const LinearProgressIndicator(minHeight: 2),
+              ],
               // ── Toolbar ──
               if (_deleteMode)
                 DeleteModeBar(
@@ -153,12 +176,35 @@ class _ProductListScreenState extends State<ProductListScreen> {
                 ),
               // ── Grid ──
               Expanded(
-                child: RefreshIndicator(
-                  onRefresh: () => context
-                      .read<ProductListCubit>()
-                      .load(FilterParams(limit: _pageLimit)),
+                child: state.products.isEmpty
+                    ? EmptyView(
+                        message: _searchCtrl.text.isNotEmpty
+                            ? 'Sin resultados para "${_searchCtrl.text}"'
+                            : 'No tienes productos creados',
+                        actionLabel:
+                            _searchCtrl.text.isEmpty ? 'Crear producto' : null,
+                        onAction: _searchCtrl.text.isEmpty
+                            ? () async {
+                                await context
+                                    .openAuxiliaryRoute('/products/new');
+                                if (context.mounted) {
+                                  context
+                                      .read<ProductListCubit>()
+                                      .load(FilterParams(limit: _pageLimit));
+                                }
+                              }
+                            : null,
+                      )
+                    : RefreshIndicator(
+                  onRefresh: () {
+                    _searchCtrl.clear();
+                    return context
+                        .read<ProductListCubit>()
+                        .load(FilterParams(limit: _pageLimit));
+                  },
                   child: GridView.builder(
                     controller: _scrollController,
+                    physics: const AlwaysScrollableScrollPhysics(),
                     padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
                     gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                       crossAxisCount: 2,

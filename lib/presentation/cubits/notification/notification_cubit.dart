@@ -1,4 +1,6 @@
-﻿import 'package:equatable/equatable.dart';
+﻿import 'dart:async';
+
+import 'package:equatable/equatable.dart';
 import '../../../core/utils/error_messages.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -11,10 +13,20 @@ part 'notification_state.dart';
 class NotificationCubit extends Cubit<NotificationState> {
   final NotificationRepository _repository;
   FilterParams _currentParams = FilterParams.empty;
+  String _currentSearch = '';
+  Timer? _searchDebounce;
 
   NotificationCubit(this._repository) : super(const NotificationInitial());
 
+  FilterParams _effectiveParams({int? page}) => FilterParams(
+        search: _currentSearch.isEmpty ? null : _currentSearch,
+        limit: _currentParams.limit,
+        page: page,
+      );
+
   Future<void> load([FilterParams params = FilterParams.empty]) async {
+    _searchDebounce?.cancel();
+    _currentSearch = '';
     _currentParams = params;
     emit(const NotificationLoading());
     try {
@@ -39,7 +51,7 @@ class NotificationCubit extends Cubit<NotificationState> {
     emit(current.copyWith(isLoadingMore: true));
     try {
       final nextPage = current.currentPage + 1;
-      final params = _currentParams.copyWith(page: nextPage);
+      final params = _effectiveParams(page: nextPage);
       final newItems = await _repository.getNotifications(params);
       final limit = _currentParams.limit ?? 20;
       final allNotifications = [...current.notifications, ...newItems];
@@ -54,6 +66,49 @@ class NotificationCubit extends Cubit<NotificationState> {
     } catch (e) {
       emit(NotificationError(friendlyError(e)));
     }
+  }
+
+  void search(String query) {
+    _searchDebounce?.cancel();
+    _currentSearch = query;
+    final current = state;
+    if (current is! NotificationLoaded) return;
+    emit(current.copyWith(isSearching: true));
+    if (query.isEmpty) {
+      _doSearch();
+    } else {
+      _searchDebounce = Timer(const Duration(milliseconds: 400), _doSearch);
+    }
+  }
+
+  Future<void> _doSearch() async {
+    final current = state;
+    if (current is! NotificationLoaded) return;
+    try {
+      final results = await _repository.getNotifications(_effectiveParams(page: 1));
+      if (isClosed) return;
+      final latest = state;
+      if (latest is! NotificationLoaded) return;
+      final limit = _currentParams.limit ?? 20;
+      final unreadCount = results.where((n) => !n.isRead).length;
+      emit(latest.copyWith(
+        notifications: results,
+        unreadCount: unreadCount,
+        hasMore: results.length >= limit,
+        currentPage: 1,
+        isSearching: false,
+      ));
+    } catch (e) {
+      if (isClosed) return;
+      final latest = state;
+      if (latest is NotificationLoaded) emit(latest.copyWith(isSearching: false));
+    }
+  }
+
+  @override
+  Future<void> close() {
+    _searchDebounce?.cancel();
+    return super.close();
   }
 
   Future<void> markRead(int id) async {

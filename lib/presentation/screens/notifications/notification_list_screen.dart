@@ -19,6 +19,7 @@ class NotificationListScreen extends StatefulWidget {
 
 class _NotificationListScreenState extends State<NotificationListScreen> {
   late final ScrollController _scrollController;
+  final _searchCtrl = TextEditingController();
   int _pageLimit = 20;
 
   @override
@@ -45,6 +46,7 @@ class _NotificationListScreenState extends State<NotificationListScreen> {
 
   @override
   void dispose() {
+    _searchCtrl.dispose();
     _scrollController.dispose();
     super.dispose();
   }
@@ -96,23 +98,52 @@ class _NotificationListScreenState extends State<NotificationListScreen> {
                     context.read<NotificationCubit>().load(),
               );
             }
-            if (state is NotificationLoaded &&
-                state.notifications.isEmpty) {
-              return const EmptyView(
-                message: 'No tienes notificaciones',
-                icon: Icons.notifications_none,
-              );
-            }
             if (state is NotificationLoaded) {
               return Column(
                 children: [
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+                    child: TextField(
+                      controller: _searchCtrl,
+                      decoration: InputDecoration(
+                        hintText: 'Buscar notificación…',
+                        prefixIcon: const Icon(Icons.search),
+                        suffixIcon: _searchCtrl.text.isNotEmpty
+                            ? IconButton(
+                                icon: const Icon(Icons.clear),
+                                onPressed: () {
+                                  _searchCtrl.clear();
+                                  context
+                                      .read<NotificationCubit>()
+                                      .search('');
+                                },
+                              )
+                            : null,
+                      ),
+                      onChanged: (q) =>
+                          context.read<NotificationCubit>().search(q),
+                    ),
+                  ),
+                  if (state.isSearching)
+                    const LinearProgressIndicator(minHeight: 2),
                   Expanded(
-                    child: RefreshIndicator(
-                      onRefresh: () => context
-                          .read<NotificationCubit>()
-                          .load(FilterParams(limit: _pageLimit)),
+                    child: state.notifications.isEmpty
+                        ? EmptyView(
+                            message: _searchCtrl.text.isNotEmpty
+                                ? 'Sin resultados para "${_searchCtrl.text}"'
+                                : 'No tienes notificaciones',
+                            icon: Icons.notifications_none,
+                          )
+                        : RefreshIndicator(
+                      onRefresh: () {
+                        _searchCtrl.clear();
+                        return context
+                            .read<NotificationCubit>()
+                            .load(FilterParams(limit: _pageLimit));
+                      },
                       child: ListView.separated(
                         controller: _scrollController,
+                        physics: const AlwaysScrollableScrollPhysics(),
                         itemCount: state.notifications.length,
                         separatorBuilder: (_, __) => const Divider(),
                         itemBuilder: (context, i) {

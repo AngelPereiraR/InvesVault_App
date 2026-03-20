@@ -1,4 +1,6 @@
-﻿import 'package:equatable/equatable.dart';
+﻿import 'dart:async';
+
+import 'package:equatable/equatable.dart';
 import '../../../core/utils/error_messages.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -22,6 +24,8 @@ class WarehouseDetailCubit extends Cubit<WarehouseDetailState> {
   int _lastUserId = 0;
   int _lastWarehouseId = 0;
   FilterParams _currentParams = FilterParams.empty;
+  String _currentSearch = '';
+  Timer? _searchDebounce;
 
   WarehouseDetailCubit(
     this._warehouseRepository,
@@ -39,7 +43,15 @@ class WarehouseDetailCubit extends Cubit<WarehouseDetailState> {
   List<int> _withoutUpdatingId(List<int> ids, int productId) =>
       ids.where((id) => id != productId).toList();
 
+  FilterParams _effectiveParams({int? page}) => FilterParams(
+        search: _currentSearch.isEmpty ? null : _currentSearch,
+        limit: _currentParams.limit,
+        page: page,
+      );
+
   Future<void> load(int warehouseId, {required int userId, FilterParams params = FilterParams.empty}) async {
+    _searchDebounce?.cancel();
+    _currentSearch = '';
     _lastUserId = userId;
     _lastWarehouseId = warehouseId;
     _currentParams = params;
@@ -83,7 +95,7 @@ class WarehouseDetailCubit extends Cubit<WarehouseDetailState> {
     emit(current.copyWith(isLoadingMore: true));
     try {
       final nextPage = current.currentPage + 1;
-      final params = _currentParams.copyWith(page: nextPage);
+      final params = _effectiveParams(page: nextPage);
       final newItems = await _warehouseProductRepository.getProducts(
           _lastWarehouseId, params);
       final limit = _currentParams.limit ?? 20;
@@ -99,12 +111,108 @@ class WarehouseDetailCubit extends Cubit<WarehouseDetailState> {
     }
   }
 
+  Future<void> loadPrevious() async {
+    final current = state;
+    if (current is! WarehouseDetailLoaded) return;
+    if (!current.hasPrevious || current.isLoadingPrevious) return;
+    emit(current.copyWith(isLoadingPrevious: true));
+    try {
+      final prevPage = current.firstPage - 1;
+      final params = _effectiveParams(page: prevPage);
+      final newItems = await _warehouseProductRepository.getProducts(
+          _lastWarehouseId, params);
+      emit(current.copyWith(
+        products: [...newItems, ...current.products],
+        filtered: [...newItems, ...current.filtered],
+        firstPage: prevPage,
+        isLoadingPrevious: false,
+      ));
+    } catch (e) {
+      emit(WarehouseDetailError(friendlyError(e)));
+    }
+  }
+
+  /// Refreshes data while maintaining scroll position by reloading all pages up to current.
+  Future<void> refresh() async {
+    final current = state;
+    if (current is! WarehouseDetailLoaded) {
+      // If not loaded, do a normal load
+      load(_lastWarehouseId, userId: _lastUserId, params: _currentParams);
+      return;
+    }
+    if (current.isRefreshing) return;
+
+    emit(current.copyWith(isRefreshing: true));
+    try {
+      // Reload all pages from 1 to currentPage
+      final allProducts = <WarehouseProductModel>[];
+      for (int page = 1; page <= current.currentPage; page++) {
+        final params = _currentParams.copyWith(page: page);
+        final pageItems =
+            await _warehouseProductRepository.getProducts(_lastWarehouseId, params);
+        allProducts.addAll(pageItems);
+      }
+
+      final limit = _currentParams.limit ?? 20;
+      final hasMore = allProducts.length >= (current.currentPage * limit);
+
+      emit(current.copyWith(
+        products: allProducts,
+        filtered: allProducts,
+        hasMore: hasMore,
+        firstPage: 1,
+        isRefreshing: false,
+      ));
+    } catch (e) {
+      emit(WarehouseDetailError(friendlyError(e)));
+    }
+  }
+
   void search(String query) {
-    final newParams = FilterParams(
-      search: query.isEmpty ? null : query,
-      limit: _currentParams.limit,
-    );
-    load(_lastWarehouseId, userId: _lastUserId, params: newParams);
+    _searchDebounce?.cancel();
+    _currentSearch = query;
+    final current = state;
+    if (current is! WarehouseDetailLoaded) return;
+    emit(current.copyWith(isSearching: true));
+    if (query.isEmpty) {
+      _doSearch();
+    } else {
+      _searchDebounce = Timer(const Duration(milliseconds: 400), _doSearch);
+    }
+  }
+
+  Future<void> _doSearch() async {
+    final current = state;
+    if (current is! WarehouseDetailLoaded) return;
+    try {
+      final params = _effectiveParams(page: 1);
+      final results = await _warehouseProductRepository.getProducts(
+          _lastWarehouseId, params);
+      if (isClosed) return;
+      final latest = state;
+      if (latest is! WarehouseDetailLoaded) return;
+      final limit = _currentParams.limit ?? 20;
+      emit(latest.copyWith(
+        products: results,
+        filtered: results,
+        hasMore: results.length >= limit,
+        currentPage: 1,
+        firstPage: 1,
+        isSearching: false,
+      ));
+    } catch (e) {
+      if (isClosed) return;
+      final latest = state;
+      if (latest is WarehouseDetailLoaded) {
+        emit(latest.copyWith(isSearching: false));
+      }
+    }
+  }
+
+  @override
+  Future<void> close() {
+    _searchDebounce?.cancel();
+    return super.close();
   }
 
   Future<void> quickUpdate({
@@ -132,9 +240,10 @@ class WarehouseDetailCubit extends Cubit<WarehouseDetailState> {
         if (reason != null) 'reason': reason,
         'user_id': userId,
       });
-      // Reload products to get fresh quantities
+      // Reload products to get fresh quantities (reload current page)
+      final params = _currentParams.copyWith(page: current.currentPage);
       final products =
-          await _warehouseProductRepository.getProducts(warehouseId, _currentParams);
+          await _warehouseProductRepository.getProducts(warehouseId, params);
       final updatedWp = products.firstWhere(
         (p) => p.id == warehouseProductId,
         orElse: () => current.products.firstWhere(
@@ -149,9 +258,13 @@ class WarehouseDetailCubit extends Cubit<WarehouseDetailState> {
           minQuantity: updatedWp.minQuantity ?? 0,
         );
       }
+      final limit = _currentParams.limit ?? 20;
+      final hasMore = products.length >= limit;
       emit(current.copyWith(
         products: products,
         filtered: products,
+        hasMore: hasMore,
+        firstPage: current.currentPage,
         updatingProductIds: _withoutUpdatingId(
           current.updatingProductIds,
           warehouseProductId,
@@ -170,11 +283,16 @@ class WarehouseDetailCubit extends Cubit<WarehouseDetailState> {
     ));
     try {
       await _warehouseProductRepository.deleteProduct(id);
+      final params = _currentParams.copyWith(page: current.currentPage);
       final products =
-          await _warehouseProductRepository.getProducts(warehouseId, _currentParams);
+          await _warehouseProductRepository.getProducts(warehouseId, params);
+      final limit = _currentParams.limit ?? 20;
+      final hasMore = products.length >= limit;
       emit(current.copyWith(
         products: products,
         filtered: products,
+        hasMore: hasMore,
+        firstPage: current.currentPage,
         updatingProductIds: _withoutUpdatingId(current.updatingProductIds, id),
       ));
     } catch (e) {
@@ -194,11 +312,16 @@ class WarehouseDetailCubit extends Cubit<WarehouseDetailState> {
       emit(WarehouseDetailError(friendlyError(e)));
       return;
     }
+    final params = _currentParams.copyWith(page: current.currentPage);
     final products =
-        await _warehouseProductRepository.getProducts(warehouseId, _currentParams);
+        await _warehouseProductRepository.getProducts(warehouseId, params);
+    final limit = _currentParams.limit ?? 20;
+    final hasMore = products.length >= limit;
     emit(current.copyWith(
       products: products,
       filtered: products,
+      hasMore: hasMore,
+      firstPage: current.currentPage,
       isDeleting: false,
     ));
   }

@@ -25,6 +25,7 @@ class _BrandListScreenState extends State<BrandListScreen> {
   bool _deleteMode = false;
   final Set<int> _selected = {};
   late final ScrollController _scrollController;
+  final _searchCtrl = TextEditingController();
   int _pageLimit = 20;
 
   @override
@@ -51,6 +52,7 @@ class _BrandListScreenState extends State<BrandListScreen> {
 
   @override
   void dispose() {
+    _searchCtrl.dispose();
     _scrollController.dispose();
     super.dispose();
   }
@@ -116,16 +118,34 @@ class _BrandListScreenState extends State<BrandListScreen> {
             onRetry: () => context.read<BrandCubit>().load(),
           );
         }
-        if (state is BrandLoaded && state.brands.isEmpty) {
-          return EmptyView(
-            message: 'No tienes marcas registradas',
-            actionLabel: 'Añadir marca',
-            onAction: () => showBrandDialog(context),
-          );
-        }
         if (state is BrandLoaded) {
           return Column(
             children: [
+              // ── Search (hidden in delete mode) ──
+              if (!_deleteMode) ...[
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+                  child: TextField(
+                    controller: _searchCtrl,
+                    decoration: InputDecoration(
+                      hintText: 'Buscar marca…',
+                      prefixIcon: const Icon(Icons.search),
+                      suffixIcon: _searchCtrl.text.isNotEmpty
+                          ? IconButton(
+                              icon: const Icon(Icons.clear),
+                              onPressed: () {
+                                _searchCtrl.clear();
+                                context.read<BrandCubit>().search('');
+                              },
+                            )
+                          : null,
+                    ),
+                    onChanged: (q) => context.read<BrandCubit>().search(q),
+                  ),
+                ),
+                if (state.isSearching)
+                  const LinearProgressIndicator(minHeight: 2),
+              ],
               // ── Toolbar ──
               if (_deleteMode)
                 DeleteModeBar(
@@ -145,12 +165,27 @@ class _BrandListScreenState extends State<BrandListScreen> {
                 ),
               // ── List ──
               Expanded(
-                child: RefreshIndicator(
-                  onRefresh: () => context
-                      .read<BrandCubit>()
-                      .load(FilterParams(limit: _pageLimit)),
+                child: state.brands.isEmpty
+                    ? EmptyView(
+                        message: _searchCtrl.text.isNotEmpty
+                            ? 'Sin resultados para "${_searchCtrl.text}"'
+                            : 'No tienes marcas registradas',
+                        actionLabel:
+                            _searchCtrl.text.isEmpty ? 'Añadir marca' : null,
+                        onAction: _searchCtrl.text.isEmpty
+                            ? () => showBrandDialog(context)
+                            : null,
+                      )
+                    : RefreshIndicator(
+                  onRefresh: () {
+                    _searchCtrl.clear();
+                    return context
+                        .read<BrandCubit>()
+                        .load(FilterParams(limit: _pageLimit));
+                  },
                   child: ListView.separated(
                     controller: _scrollController,
+                    physics: const AlwaysScrollableScrollPhysics(),
                     padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
                     itemCount: state.brands.length,
                     separatorBuilder: (_, __) => const SizedBox(height: 10),

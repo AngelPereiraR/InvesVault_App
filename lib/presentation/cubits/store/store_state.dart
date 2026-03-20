@@ -20,12 +20,14 @@ class StoreLoaded extends StoreState {
   final bool hasMore;
   final int currentPage;
   final bool isLoadingMore;
+  final bool isSearching;
 
   const StoreLoaded(
     this.stores, {
     this.hasMore = false,
     this.currentPage = 1,
     this.isLoadingMore = false,
+    this.isSearching = false,
   });
 
   StoreLoaded copyWith({
@@ -33,16 +35,18 @@ class StoreLoaded extends StoreState {
     bool? hasMore,
     int? currentPage,
     bool? isLoadingMore,
+    bool? isSearching,
   }) =>
       StoreLoaded(
         stores ?? this.stores,
         hasMore: hasMore ?? this.hasMore,
         currentPage: currentPage ?? this.currentPage,
         isLoadingMore: isLoadingMore ?? this.isLoadingMore,
+        isSearching: isSearching ?? this.isSearching,
       );
 
   @override
-  List<Object?> get props => [stores, hasMore, currentPage, isLoadingMore];
+  List<Object?> get props => [stores, hasMore, currentPage, isLoadingMore, isSearching];
 }
 
 class StoreDeleting extends StoreState {

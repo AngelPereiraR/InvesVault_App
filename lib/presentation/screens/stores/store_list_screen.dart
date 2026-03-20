@@ -25,6 +25,7 @@ class _StoreListScreenState extends State<StoreListScreen> {
   bool _deleteMode = false;
   final Set<int> _selected = {};
   late final ScrollController _scrollController;
+  final _searchCtrl = TextEditingController();
   int _pageLimit = 20;
 
   @override
@@ -51,6 +52,7 @@ class _StoreListScreenState extends State<StoreListScreen> {
 
   @override
   void dispose() {
+    _searchCtrl.dispose();
     _scrollController.dispose();
     super.dispose();
   }
@@ -116,16 +118,34 @@ class _StoreListScreenState extends State<StoreListScreen> {
             onRetry: () => context.read<StoreCubit>().load(),
           );
         }
-        if (state is StoreLoaded && state.stores.isEmpty) {
-          return EmptyView(
-            message: 'No tienes tiendas registradas',
-            actionLabel: 'Añadir tienda',
-            onAction: () => showStoreDialog(context),
-          );
-        }
         if (state is StoreLoaded) {
           return Column(
             children: [
+              // ── Search (hidden in delete mode) ──
+              if (!_deleteMode) ...[
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+                  child: TextField(
+                    controller: _searchCtrl,
+                    decoration: InputDecoration(
+                      hintText: 'Buscar tienda…',
+                      prefixIcon: const Icon(Icons.search),
+                      suffixIcon: _searchCtrl.text.isNotEmpty
+                          ? IconButton(
+                              icon: const Icon(Icons.clear),
+                              onPressed: () {
+                                _searchCtrl.clear();
+                                context.read<StoreCubit>().search('');
+                              },
+                            )
+                          : null,
+                    ),
+                    onChanged: (q) => context.read<StoreCubit>().search(q),
+                  ),
+                ),
+                if (state.isSearching)
+                  const LinearProgressIndicator(minHeight: 2),
+              ],
               // ── Toolbar ──
               if (_deleteMode)
                 DeleteModeBar(
@@ -145,12 +165,27 @@ class _StoreListScreenState extends State<StoreListScreen> {
                 ),
               // ── List ──
               Expanded(
-                child: RefreshIndicator(
-                  onRefresh: () => context
-                      .read<StoreCubit>()
-                      .load(FilterParams(limit: _pageLimit)),
+                child: state.stores.isEmpty
+                    ? EmptyView(
+                        message: _searchCtrl.text.isNotEmpty
+                            ? 'Sin resultados para "${_searchCtrl.text}"'
+                            : 'No tienes tiendas registradas',
+                        actionLabel:
+                            _searchCtrl.text.isEmpty ? 'Añadir tienda' : null,
+                        onAction: _searchCtrl.text.isEmpty
+                            ? () => showStoreDialog(context)
+                            : null,
+                      )
+                    : RefreshIndicator(
+                  onRefresh: () {
+                    _searchCtrl.clear();
+                    return context
+                        .read<StoreCubit>()
+                        .load(FilterParams(limit: _pageLimit));
+                  },
                   child: ListView.separated(
                     controller: _scrollController,
+                    physics: const AlwaysScrollableScrollPhysics(),
                     padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
                     itemCount: state.stores.length,
                     separatorBuilder: (_, __) => const SizedBox(height: 10),
