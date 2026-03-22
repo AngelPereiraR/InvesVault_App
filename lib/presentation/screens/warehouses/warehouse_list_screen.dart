@@ -16,8 +16,6 @@ import '../../widgets/error_view.dart';
 import '../../widgets/loading_indicator.dart';
 import '../../../core/utils/validators.dart';
 
-const _purple = Color(0xFF3C096C);
-
 /// Muestra un diálogo con dos pestañas: Información y Colaboradores.
 /// Para nuevo almacén, la pestaña Colaboradores se activa tras la creación.
 Future<void> showWarehouseDialog(BuildContext context,
@@ -119,6 +117,7 @@ class _WarehouseDialogState extends State<_WarehouseDialog>
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     return MultiBlocProvider(
       providers: [
         BlocProvider.value(value: widget.warehouseCubit),
@@ -156,21 +155,21 @@ class _WarehouseDialogState extends State<_WarehouseDialog>
               children: [
                 // ── Title bar ─────────────────────────────────────────
                 Container(
-                  color: _purple,
+                  color: cs.secondary,
                   padding: const EdgeInsets.fromLTRB(20, 16, 8, 0),
                   child: Row(
                     children: [
                       Expanded(
                         child: Text(
                           isEdit ? 'Editar almacén' : 'Nuevo almacén',
-                          style: const TextStyle(
-                              color: Colors.white,
+                          style: TextStyle(
+                              color: cs.onPrimary,
                               fontSize: 17,
                               fontWeight: FontWeight.w600),
                         ),
                       ),
                       IconButton(
-                        icon: const Icon(Icons.close, color: Colors.white70),
+                        icon: Icon(Icons.close, color: cs.onPrimary.withValues(alpha: 0.7)),
                         onPressed: () => Navigator.of(context).pop(),
                       ),
                     ],
@@ -179,10 +178,10 @@ class _WarehouseDialogState extends State<_WarehouseDialog>
                 // ── Tabs ──────────────────────────────────────────────
                 Theme(
                   data: Theme.of(context).copyWith(
-                    tabBarTheme: const TabBarThemeData(
-                      labelColor: _purple,
-                      unselectedLabelColor: Colors.grey,
-                      indicatorColor: _purple,
+                    tabBarTheme: TabBarThemeData(
+                      labelColor: cs.secondary,
+                      unselectedLabelColor: cs.onSurfaceVariant,
+                      indicatorColor: cs.secondary,
                     ),
                   ),
                   child: TabBar(
@@ -198,7 +197,7 @@ class _WarehouseDialogState extends State<_WarehouseDialog>
                               const SizedBox(width: 4),
                               Icon(Icons.lock_outline,
                                   size: 13,
-                                  color: Colors.grey.shade400),
+                                  color: cs.onSurfaceVariant),
                             ],
                           ],
                         ),
@@ -232,14 +231,14 @@ class _WarehouseDialogState extends State<_WarehouseDialog>
                                   return FilledButton(
                                     onPressed: loading ? null : _saveInfo,
                                     style: FilledButton.styleFrom(
-                                        backgroundColor: _purple),
+                                        backgroundColor: cs.secondary),
                                     child: loading
-                                        ? const SizedBox(
+                                        ? SizedBox(
                                             height: 18,
                                             width: 18,
                                             child: CircularProgressIndicator(
                                                 strokeWidth: 2,
-                                                color: Colors.white))
+                                                color: cs.onPrimary))
                                         : Text(isEdit
                                             ? 'Guardar cambios'
                                             : 'Crear almacén'),
@@ -253,7 +252,7 @@ class _WarehouseDialogState extends State<_WarehouseDialog>
                                   textAlign: TextAlign.center,
                                   style: TextStyle(
                                       fontSize: 12,
-                                      color: Colors.grey.shade500),
+                                      color: cs.onSurfaceVariant),
                                 ),
                               ],
                             ],
@@ -296,6 +295,7 @@ class _CollaboratorsTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     if (activeWarehouseId == null) {
       return Center(
         child: Padding(
@@ -304,12 +304,12 @@ class _CollaboratorsTab extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               Icon(Icons.lock_outline,
-                  size: 40, color: Colors.grey.shade300),
+                  size: 40, color: cs.onSurfaceVariant),
               const SizedBox(height: 12),
               Text(
                 'Crea el almacén primero para gestionar colaboradores.',
                 textAlign: TextAlign.center,
-                style: TextStyle(color: Colors.grey.shade500),
+                style: TextStyle(color: cs.onSurfaceVariant),
               ),
             ],
           ),
@@ -319,6 +319,7 @@ class _CollaboratorsTab extends StatelessWidget {
 
     return BlocBuilder<WarehouseUserCubit, WarehouseUserState>(
       builder: (context, state) {
+        final cs = Theme.of(context).colorScheme;
         final users = state is WarehouseUserLoaded
             ? state.users
             : <WarehouseUserModel>[];
@@ -349,8 +350,8 @@ class _CollaboratorsTab extends StatelessWidget {
                         value: selectedRole,
                         underline: const SizedBox(),
                         isDense: true,
-                        style: const TextStyle(
-                            fontSize: 13, color: _purple),
+                        style: TextStyle(
+                            fontSize: 13, color: cs.secondary),
                         items: const [
                           DropdownMenuItem(
                               value: 'viewer', child: Text('Lector')),
@@ -362,7 +363,7 @@ class _CollaboratorsTab extends StatelessWidget {
                       const SizedBox(width: 8),
                       FilledButton(
                         style: FilledButton.styleFrom(
-                            backgroundColor: _purple,
+                            backgroundColor: cs.secondary,
                             padding: const EdgeInsets.symmetric(
                                 horizontal: 12, vertical: 14)),
                         onPressed: state is WarehouseUserLoaded &&
@@ -371,11 +372,11 @@ class _CollaboratorsTab extends StatelessWidget {
                             : () => _doAdd(context, state),
                         child: state is WarehouseUserLoaded &&
                                 state.isAdding
-                            ? const SizedBox(
+                            ? SizedBox(
                                 width: 16,
                                 height: 16,
                                 child: CircularProgressIndicator(
-                                    strokeWidth: 2, color: Colors.white))
+                                    strokeWidth: 2, color: cs.onPrimary))
                             : const Icon(Icons.person_add_outlined,
                                 size: 18),
                       ),
@@ -390,13 +391,13 @@ class _CollaboratorsTab extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Icon(Icons.error_outline,
-                              size: 15, color: Colors.red.shade400),
+                              size: 15, color: cs.error),
                           const SizedBox(width: 6),
                           Expanded(
                             child: Text(state.addError!,
                                 style: TextStyle(
                                     fontSize: 12,
-                                    color: Colors.red.shade400)),
+                                    color: cs.error)),
                           ),
                         ],
                       ),
@@ -416,7 +417,7 @@ class _CollaboratorsTab extends StatelessWidget {
                 padding: const EdgeInsets.all(20),
                 child: Text(
                   'Ningún colaborador aún.',
-                  style: TextStyle(color: Colors.grey.shade500),
+                  style: TextStyle(color: cs.onSurfaceVariant),
                 ),
               )
             else
@@ -431,13 +432,13 @@ class _CollaboratorsTab extends StatelessWidget {
                       dense: true,
                       leading: CircleAvatar(
                         radius: 18,
-                        backgroundColor: _purple.withOpacity(0.12),
+                        backgroundColor: cs.secondary.withValues(alpha: 0.12),
                         child: Text(
                           (u.userName ?? '#${u.userId}')
                               .substring(0, 1)
                               .toUpperCase(),
-                          style: const TextStyle(
-                              color: _purple, fontWeight: FontWeight.w600),
+                          style: TextStyle(
+                              color: cs.secondary, fontWeight: FontWeight.w600),
                         ),
                       ),
                       title: Text(u.userName ?? 'Usuario ${u.userId}',
@@ -455,13 +456,13 @@ class _CollaboratorsTab extends StatelessWidget {
                               padding: const EdgeInsets.symmetric(
                                   horizontal: 8, vertical: 4),
                               decoration: BoxDecoration(
-                                color: _purple.withOpacity(0.12),
+                                color: cs.secondary.withValues(alpha: 0.12),
                                 borderRadius: BorderRadius.circular(8),
                               ),
-                              child: const Text('Admin',
+                              child: Text('Admin',
                                   style: TextStyle(
                                       fontSize: 12,
-                                      color: _purple,
+                                      color: cs.secondary,
                                       fontWeight: FontWeight.w600)),
                             )
                           else
@@ -472,8 +473,8 @@ class _CollaboratorsTab extends StatelessWidget {
                               style: TextStyle(
                                   fontSize: 12,
                                   color: u.role == 'editor'
-                                      ? _purple
-                                      : Colors.grey.shade600),
+                                      ? cs.secondary
+                                      : cs.onSurfaceVariant),
                               items: const [
                                 DropdownMenuItem(
                                     value: 'viewer',
@@ -494,7 +495,7 @@ class _CollaboratorsTab extends StatelessWidget {
                             IconButton(
                               icon: const Icon(Icons.person_remove_outlined,
                                   size: 18),
-                              color: Colors.red.shade400,
+                              color: cs.error,
                               tooltip: 'Eliminar',
                               onPressed: () async {
                                 final confirm = await showConfirmDialog(
@@ -657,6 +658,7 @@ class _WarehouseListScreenState extends State<WarehouseListScreen> {
                 );
               }
               if (state is WarehouseLoaded) {
+                final cs = Theme.of(context).colorScheme;
                 final authState = context.read<AuthCubit>().state;
                 final currentUserId =
                     authState is AuthAuthenticated ? authState.userId : -1;
@@ -706,13 +708,16 @@ class _WarehouseListScreenState extends State<WarehouseListScreen> {
                         onCancel: _exitDeleteMode,
                         onDelete:
                             _selected.isEmpty ? null : _deleteSelected,
+                        emptyLabel: 'Selecciona almacenes',
+                        selectedSingular: 'almacén seleccionado',
+                        selectedPlural: 'almacenes seleccionados',
                       )
                     else if (hasOwned)
                       Align(
                         alignment: Alignment.centerRight,
                         child: IconButton(
                           icon: Icon(Icons.checklist_rounded,
-                              color: Colors.grey.shade500),
+                              color: cs.onSurfaceVariant),
                           tooltip: 'Seleccionar para borrar',
                           onPressed: () =>
                               setState(() => _deleteMode = true),
@@ -844,8 +849,6 @@ class _WarehouseListScreenState extends State<WarehouseListScreen> {
 }
 
 // ─── Warehouse grid card ──────────────────────────────────────────────────────
-const _mint = Color(0xFFD8F3DC);
-
 class _WarehouseGridCard extends StatelessWidget {
   final WarehouseModel warehouse;
   final bool isSelected;
@@ -863,15 +866,16 @@ class _WarehouseGridCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     return Card(
       clipBehavior: Clip.hardEdge,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(14),
         side: isSelected
-            ? BorderSide(color: Colors.red.shade300, width: 1.5)
+            ? BorderSide(color: cs.error, width: 1.5)
             : BorderSide.none,
       ),
-      color: isSelected ? Colors.red.shade50 : null,
+      color: isSelected ? cs.errorContainer : null,
       child: InkWell(
         onTap: onTap,
         child: Padding(
@@ -885,15 +889,15 @@ class _WarehouseGridCard extends StatelessWidget {
                   Container(
                     width: 36,
                     height: 36,
-                    decoration: const BoxDecoration(
-                        color: _mint, shape: BoxShape.circle),
-                    child: const Icon(Icons.warehouse_outlined,
-                        color: _purple, size: 20),
+                    decoration: BoxDecoration(
+                        color: cs.primaryContainer, shape: BoxShape.circle),
+                    child: Icon(Icons.warehouse_outlined,
+                        color: cs.secondary, size: 20),
                   ),
                   const Spacer(),
                   if (isSelected)
                     Icon(Icons.check_circle,
-                        color: Colors.red.shade600, size: 20)
+                        color: cs.error, size: 20)
                   else if (onEdit != null || onDelete != null)
                     SizedBox(
                       width: 30,
@@ -922,27 +926,27 @@ class _WarehouseGridCard extends StatelessWidget {
                 warehouse.name,
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
+                style: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
-                    color: _purple),
+                    color: cs.secondary),
               ),
               if (warehouse.productCount != null)
                 Padding(
                   padding: const EdgeInsets.only(top: 2),
                   child: Text(
                     '${warehouse.productCount} ${warehouse.productCount == 1 ? 'producto' : 'productos'}',
-                    style: TextStyle(fontSize: 10, color: Colors.grey.shade500),
+                    style: TextStyle(fontSize: 10, color: cs.onSurfaceVariant),
                   ),
                 ),
               if (warehouse.isShared)
-                const Padding(
-                  padding: EdgeInsets.only(top: 4),
+                Padding(
+                  padding: const EdgeInsets.only(top: 4),
                   child: Text(
                     'Compartido',
                     style: TextStyle(
                         fontSize: 10,
-                        color: _purple,
+                        color: cs.secondary,
                         fontWeight: FontWeight.w500),
                   ),
                 ),

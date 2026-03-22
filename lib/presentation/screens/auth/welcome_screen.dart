@@ -8,10 +8,6 @@ import '../../../core/router/app_router.dart';
 import '../../cubits/auth/auth_cubit.dart';
 import '../../widgets/confirm_dialog.dart';
 
-const _purple = Color(0xFF3C096C);
-const _mint = Color(0xFFD8F3DC);
-const _white = Color(0xFFFFFFFF);
-
 class WelcomeScreen extends StatefulWidget {
   const WelcomeScreen({super.key});
 
@@ -98,8 +94,9 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     return Scaffold(
-      backgroundColor: _white,
+      backgroundColor: cs.surface,
       body: Column(
         children: [
           // ── Header: logo + name + version + settings ───────────────
@@ -119,19 +116,19 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
+                      Text(
                         'InvesVault',
                         style: TextStyle(
                           fontSize: 17,
                           fontWeight: FontWeight.w700,
-                          color: _purple,
+                          color: cs.secondary,
                         ),
                       ),
                       Text(
                         'v1.0.6',
                         style: TextStyle(
                           fontSize: 11,
-                          color: _purple.withOpacity(0.5),
+                          color: cs.secondary.withValues(alpha: 0.5),
                         ),
                       ),
                     ],
@@ -139,7 +136,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                   const Spacer(),
                   IconButton(
                     icon: Icon(Icons.settings_outlined,
-                        color: _purple.withOpacity(0.7)),
+                        color: cs.secondary.withValues(alpha: 0.7)),
                     tooltip: 'Ajustes',
                     onPressed: () {}, // TODO: settings
                   ),
@@ -163,7 +160,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
 
           // Bottom bar
           Container(
-            color: _purple,
+            color: cs.secondary,
             padding: EdgeInsets.fromLTRB(
                 24, 24, 24, MediaQuery.of(context).padding.bottom + 24),
             child: Column(
@@ -180,8 +177,9 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                       width: _currentPage == i ? 24 : 8,
                       height: 8,
                       decoration: BoxDecoration(
-                        color:
-                            _currentPage == i ? _mint : _white.withOpacity(0.4),
+                        color: _currentPage == i
+                            ? cs.primaryContainer
+                            : cs.onPrimary.withValues(alpha: 0.4),
                         borderRadius: BorderRadius.circular(4),
                       ),
                     ),
@@ -195,8 +193,8 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                   width: double.infinity,
                   child: ElevatedButton(
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: _mint,
-                      foregroundColor: _purple,
+                      backgroundColor: cs.primaryContainer,
+                      foregroundColor: cs.secondary,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(14),
                       ),
@@ -251,6 +249,7 @@ class _SlidePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 40),
       child: Column(
@@ -260,19 +259,19 @@ class _SlidePage extends StatelessWidget {
             width: 120,
             height: 120,
             decoration: BoxDecoration(
-              color: _mint,
+              color: cs.primaryContainer,
               shape: BoxShape.circle,
             ),
-            child: Icon(data.icon, size: 60, color: _purple),
+            child: Icon(data.icon, size: 60, color: cs.secondary),
           ),
           const SizedBox(height: 40),
           Text(
             data.title,
             textAlign: TextAlign.center,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 26,
               fontWeight: FontWeight.w700,
-              color: _purple,
+              color: cs.secondary,
             ),
           ),
           const SizedBox(height: 16),
@@ -282,7 +281,7 @@ class _SlidePage extends StatelessWidget {
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w400,
-              color: _purple.withOpacity(0.7),
+              color: cs.secondary.withValues(alpha: 0.7),
               height: 1.5,
             ),
           ),

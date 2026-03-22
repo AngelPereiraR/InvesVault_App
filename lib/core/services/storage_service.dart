@@ -9,6 +9,7 @@ class StorageService {
   static const _notificationsEnabledKey = 'notifications_enabled';
   static const _lastActiveKey = 'last_active';
   static const _welcomeSeenKey = 'welcome_seen';
+  static const _themeModeKey = 'theme_mode';
 
   final FlutterSecureStorage _storage;
 
@@ -74,6 +75,15 @@ class StorageService {
   Future<bool> getNotificationsEnabled() async {
     final v = await _storage.read(key: _notificationsEnabledKey);
     return v != 'false'; // enabled by default
+  }
+
+  // Theme preference
+  Future<void> setThemeMode(String mode) =>
+      _storage.write(key: _themeModeKey, value: mode);
+
+  Future<String> getThemeMode() async {
+    final v = await _storage.read(key: _themeModeKey);
+    return v ?? 'system';
   }
 
   // Clear all

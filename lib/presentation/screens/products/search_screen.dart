@@ -5,10 +5,6 @@ import '../../../core/router/app_router.dart';
 import '../../cubits/product_form/product_form_cubit.dart';
 import '../../../data/models/product_model.dart';
 
-const _purple = Color(0xFF3C096C);
-const _mint = Color(0xFFD8F3DC);
-const _accentGreen = Color(0xFF52B788);
-
 class GlobalSearchScreen extends StatefulWidget {
   const GlobalSearchScreen({super.key});
 
@@ -34,19 +30,17 @@ class _GlobalSearchScreenState extends State<GlobalSearchScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: _purple,
-        foregroundColor: Colors.white,
-        iconTheme: const IconThemeData(color: Colors.white),
         title: TextField(
           controller: _searchCtrl,
           autofocus: true,
-          style: const TextStyle(color: Colors.white),
-          cursorColor: Colors.white,
-          decoration: const InputDecoration(
+          style: TextStyle(color: cs.onPrimary),
+          cursorColor: cs.onPrimary,
+          decoration: InputDecoration(
             hintText: 'Buscar productos…',
-            hintStyle: TextStyle(color: Colors.white54),
+            hintStyle: TextStyle(color: cs.onPrimary.withValues(alpha: 0.54)),
             border: InputBorder.none,
             filled: false,
           ),
@@ -104,20 +98,20 @@ class _GlobalSearchScreenState extends State<GlobalSearchScreen> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Icon(Icons.search_off,
-                      size: 64, color: Colors.grey.shade300),
+                      size: 64, color: cs.onSurfaceVariant),
                   const SizedBox(height: 12),
                   Text(
                     _query.isEmpty
                         ? 'No hay productos en el catálogo'
                         : 'Sin resultados para "$_query"',
                     style: TextStyle(
-                        fontSize: 15, color: Colors.grey.shade500),
+                        fontSize: 15, color: cs.onSurfaceVariant),
                   ),
                   const SizedBox(height: 16),
                   TextButton.icon(
-                    icon: const Icon(Icons.add, color: _accentGreen),
-                    label: const Text('Crear nuevo producto',
-                        style: TextStyle(color: _accentGreen)),
+                    icon: Icon(Icons.add, color: cs.primary),
+                    label: Text('Crear nuevo producto',
+                        style: TextStyle(color: cs.primary)),
                     onPressed: () =>
                         context.openAuxiliaryRoute('/products/new'),
                   ),
@@ -137,8 +131,8 @@ class _GlobalSearchScreenState extends State<GlobalSearchScreen> {
         },
       )),
       floatingActionButton: FloatingActionButton.extended(
-        backgroundColor: _accentGreen,
-        foregroundColor: Colors.white,
+        backgroundColor: cs.primary,
+        foregroundColor: cs.onPrimary,
         icon: const Icon(Icons.qr_code_scanner),
         label: const Text('Escanear'),
         onPressed: () => context.openAuxiliaryRoute(
@@ -156,14 +150,15 @@ class _ProductSearchTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: cs.surface,
         borderRadius: BorderRadius.circular(14),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
+            color: Colors.black.withValues(alpha: 0.04),
             blurRadius: 6,
             offset: const Offset(0, 2),
           ),
@@ -175,21 +170,21 @@ class _ProductSearchTile extends StatelessWidget {
         leading: Container(
           width: 44,
           height: 44,
-          decoration: const BoxDecoration(
-            color: _mint,
+          decoration: BoxDecoration(
+            color: cs.primaryContainer,
             shape: BoxShape.circle,
           ),
           child: product.imageUrl != null
               ? ClipOval(
                   child: Image.network(product.imageUrl!,
                       fit: BoxFit.cover))
-              : const Icon(Icons.inventory_2_outlined,
-                  color: _purple, size: 22),
+              : Icon(Icons.inventory_2_outlined,
+                  color: cs.secondary, size: 22),
         ),
         title: Text(
           product.name,
-          style: const TextStyle(
-              fontWeight: FontWeight.w600, fontSize: 15, color: _purple),
+          style: TextStyle(
+              fontWeight: FontWeight.w600, fontSize: 15, color: cs.secondary),
         ),
         subtitle: Text(
           [
@@ -197,15 +192,16 @@ class _ProductSearchTile extends StatelessWidget {
             product.defaultUnit,
             if (product.barcode != null) product.barcode!,
           ].join(' · '),
-          style: TextStyle(fontSize: 12, color: Colors.grey.shade500),
+          style: TextStyle(fontSize: 12, color: cs.onSurfaceVariant),
         ),
-        trailing: const Icon(Icons.chevron_right, color: _purple),
+        trailing: Icon(Icons.chevron_right, color: cs.secondary),
         onTap: () => _showProductInfo(context, product),
       ),
     );
   }
 
   void _showProductInfo(BuildContext context, ProductModel product) {
+    final cs = Theme.of(context).colorScheme;
     showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(
@@ -223,17 +219,17 @@ class _ProductSearchTile extends StatelessWidget {
                 width: 40,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: Colors.grey.shade300,
+                  color: cs.outlineVariant,
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
             ),
             const SizedBox(height: 16),
             Text(product.name,
-                style: const TextStyle(
+                style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.w700,
-                    color: _purple)),
+                    color: cs.secondary)),
             const SizedBox(height: 8),
             if (product.brand != null)
               _Row('Marca', product.brand!.name),
@@ -271,8 +267,9 @@ class _Row extends StatelessWidget {
         child: Row(
           children: [
             Text('$label: ',
-                style: const TextStyle(
-                    color: Colors.grey, fontSize: 13)),
+                style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    fontSize: 13)),
             Text(value,
                 style: const TextStyle(
                     fontWeight: FontWeight.w500, fontSize: 13)),

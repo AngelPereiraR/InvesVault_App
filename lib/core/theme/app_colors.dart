@@ -62,4 +62,7 @@ class AppColors {
   // Sombras (negro con opacidad)
   static const shadowLight = Color(0x1A121212);   // 10 % opacidad
   static const shadowDark  = Color(0x33121212);   // 20 % opacidad
+
+  // AppBar de la shell (púrpura oscuro)
+  static const shellAppBar = Color(0xFF3C096C);
 }

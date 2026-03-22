@@ -244,7 +244,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                       _HistoryTypeChip(
                         label: 'Todos',
                         selected: _historyFilter == 'all',
-                        color: const Color(0xFF3C096C),
+                        color: Theme.of(context).colorScheme.secondary,
                         onTap: () => setState(() => _historyFilter = 'all'),
                       ),
                       const SizedBox(width: 6),
@@ -296,7 +296,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                               style: Theme.of(context)
                                   .textTheme
                                   .bodyMedium
-                                  ?.copyWith(color: Colors.grey),
+                                  ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
                             ),
                           ),
                         );
@@ -392,8 +392,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                                         const SizedBox(height: 4),
                                         Row(
                                           children: [
-                                            const Icon(Icons.person_outline,
-                                                size: 12, color: Colors.grey),
+                                            Icon(Icons.person_outline,
+                                                size: 12, color: Theme.of(context).colorScheme.onSurfaceVariant),
                                             const SizedBox(width: 3),
                                             Text(
                                               c.userName ?? 'Sistema',
@@ -401,11 +401,11 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                                                   .textTheme
                                                   .labelSmall
                                                   ?.copyWith(
-                                                      color: Colors.grey[600]),
+                                                      color: Theme.of(context).colorScheme.onSurfaceVariant),
                                             ),
                                             const SizedBox(width: 8),
-                                            const Icon(Icons.access_time,
-                                                size: 12, color: Colors.grey),
+                                            Icon(Icons.access_time,
+                                                size: 12, color: Theme.of(context).colorScheme.onSurfaceVariant),
                                             const SizedBox(width: 3),
                                             Text(
                                               dateStr,
@@ -413,7 +413,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                                                   .textTheme
                                                   .labelSmall
                                                   ?.copyWith(
-                                                      color: Colors.grey[600]),
+                                                      color: Theme.of(context).colorScheme.onSurfaceVariant),
                                             ),
                                           ],
                                         ),
@@ -631,6 +631,7 @@ class _HistoryTypeChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     return GestureDetector(
       onTap: onTap,
       child: AnimatedContainer(
@@ -644,7 +645,7 @@ class _HistoryTypeChip extends StatelessWidget {
         child: Text(
           label,
           style: TextStyle(
-            color: selected ? Colors.white : color,
+            color: selected ? cs.onPrimary : color,
             fontWeight: FontWeight.w600,
             fontSize: 13,
           ),

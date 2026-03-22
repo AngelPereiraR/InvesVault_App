@@ -123,6 +123,7 @@ class _WarehouseDetailScreenState extends State<WarehouseDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     final authState = context.read<AuthCubit>().state;
     final userId = authState is AuthAuthenticated ? authState.userId : 0;
 
@@ -154,6 +155,9 @@ class _WarehouseDetailScreenState extends State<WarehouseDetailScreen> {
                 count: _selected.length,
                 onCancel: _exitDeleteMode,
                 onDelete: _selected.isEmpty ? null : _deleteSelected,
+                emptyLabel: 'Selecciona productos',
+                selectedSingular: 'producto seleccionado',
+                selectedPlural: 'productos seleccionados',
               )
             else
               Padding(
@@ -177,7 +181,7 @@ class _WarehouseDetailScreenState extends State<WarehouseDetailScreen> {
                       ),
                       IconButton(
                         icon: Icon(Icons.checklist_rounded,
-                            color: Colors.grey.shade500),
+                            color: cs.onSurfaceVariant),
                         tooltip: 'Seleccionar para borrar',
                         onPressed: () => setState(() => _deleteMode = true),
                       ),
@@ -264,7 +268,7 @@ class _WarehouseDetailScreenState extends State<WarehouseDetailScreen> {
                                     : null,
                                 child: ColoredBox(
                                   color: isSelected && _deleteMode
-                                      ? Colors.red.shade50
+                                      ? cs.errorContainer
                                       : Colors.transparent,
                                   child: ProductListTile(
                                     warehouseProduct: item,
@@ -341,8 +345,8 @@ class _WarehouseDetailScreenState extends State<WarehouseDetailScreen> {
                                                 : Icons
                                                     .radio_button_unchecked,
                                             color: isSelected
-                                                ? Colors.red.shade600
-                                                : Colors.grey.shade400,
+                                                ? cs.error
+                                                : cs.onSurfaceVariant,
                                           )
                                         : null,
                                   ),
@@ -413,6 +417,7 @@ class _AddProductSheetState extends State<_AddProductSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     return BlocConsumer<ProductFormCubit, ProductFormState>(
       listener: (context, state) {
         if (state is ProductFormError) {
@@ -442,7 +447,7 @@ class _AddProductSheetState extends State<_AddProductSheet> {
                       width: 40,
                       height: 4,
                       decoration: BoxDecoration(
-                        color: Colors.grey.shade300,
+                        color: cs.outlineVariant,
                         borderRadius: BorderRadius.circular(2),
                       ),
                     ),

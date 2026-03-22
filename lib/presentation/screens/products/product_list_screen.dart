@@ -10,10 +10,6 @@ import '../../widgets/empty_view.dart';
 import '../../widgets/error_view.dart';
 import '../../widgets/loading_indicator.dart';
 
-const _purple = Color(0xFF3C096C);
-const _mint = Color(0xFFD8F3DC);
-const _white = Color(0xFFFFFFFF);
-
 class ProductListScreen extends StatefulWidget {
   const ProductListScreen({super.key});
 
@@ -102,7 +98,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(state.message),
-              backgroundColor: Colors.red.shade700,
+              backgroundColor: Theme.of(context).colorScheme.error,
             ),
           );
         }
@@ -163,13 +159,16 @@ class _ProductListScreenState extends State<ProductListScreen> {
                   count: _selected.length,
                   onCancel: _exitDeleteMode,
                   onDelete: _selected.isEmpty ? null : _deleteSelected,
+                  emptyLabel: 'Selecciona productos',
+                  selectedSingular: 'producto seleccionado',
+                  selectedPlural: 'productos seleccionados',
                 )
               else
                 Align(
                   alignment: Alignment.centerRight,
                   child: IconButton(
                     icon: Icon(Icons.checklist_rounded,
-                        color: Colors.grey.shade500),
+                        color: Theme.of(context).colorScheme.onSurfaceVariant),
                     tooltip: 'Seleccionar para borrar',
                     onPressed: () => setState(() => _deleteMode = true),
                   ),
@@ -219,6 +218,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
                     ),
                     itemCount: state.products.length,
                     itemBuilder: (context, i) {
+                      final cs = Theme.of(context).colorScheme;
                       final product = state.products[i];
                       final isSelected = _selected.contains(product.id);
                       final brandName = product.brand?.name;
@@ -236,12 +236,13 @@ class _ProductListScreenState extends State<ProductListScreen> {
                         child: Container(
                           decoration: BoxDecoration(
                             color: isSelected && _deleteMode
-                                ? Colors.red.shade50
-                                : _white,
+                                ? cs.errorContainer
+                                : cs.surfaceContainerHighest,
                             borderRadius: BorderRadius.circular(16),
                             border: isSelected && _deleteMode
                                 ? Border.all(
-                                    color: Colors.red.shade300, width: 1.5)
+                                    color: cs.error.withValues(alpha: 0.5),
+                                    width: 1.5)
                                 : null,
                             boxShadow: [
                               BoxShadow(
@@ -262,13 +263,13 @@ class _ProductListScreenState extends State<ProductListScreen> {
                                     Container(
                                       width: 34,
                                       height: 34,
-                                      decoration: const BoxDecoration(
-                                        color: _mint,
+                                      decoration: BoxDecoration(
+                                        color: cs.primaryContainer,
                                         shape: BoxShape.circle,
                                       ),
-                                      child: const Icon(
+                                      child: Icon(
                                           Icons.inventory_2_outlined,
-                                          color: _purple,
+                                          color: cs.secondary,
                                           size: 18),
                                     ),
                                     const Spacer(),
@@ -278,8 +279,8 @@ class _ProductListScreenState extends State<ProductListScreen> {
                                             ? Icons.check_circle
                                             : Icons.radio_button_unchecked,
                                         color: isSelected
-                                            ? Colors.red.shade600
-                                            : Colors.grey.shade400,
+                                            ? cs.error
+                                            : cs.onSurfaceVariant,
                                         size: 20,
                                       )
                                     else
@@ -318,10 +319,10 @@ class _ProductListScreenState extends State<ProductListScreen> {
                                   product.name,
                                   maxLines: 2,
                                   overflow: TextOverflow.ellipsis,
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     fontWeight: FontWeight.w600,
                                     fontSize: 13,
-                                    color: _purple,
+                                    color: cs.secondary,
                                   ),
                                 ),
                                 if (subtitle.isNotEmpty)
@@ -333,7 +334,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
                                       overflow: TextOverflow.ellipsis,
                                       style: TextStyle(
                                           fontSize: 11,
-                                          color: Colors.grey.shade500),
+                                          color: cs.onSurfaceVariant),
                                     ),
                                   ),
                               ],

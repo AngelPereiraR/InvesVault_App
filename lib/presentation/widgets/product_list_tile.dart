@@ -90,14 +90,15 @@ class ProductListTile extends StatelessWidget {
                     onDelete?.call();
                   }
                 },
-                itemBuilder: (context) => const [
+                itemBuilder: (context) => [
                   PopupMenuItem<String>(
                     value: 'delete',
                     child: Row(
                       children: [
-                        Icon(Icons.delete_outline, color: Colors.red),
-                        SizedBox(width: 10),
-                        Text('Eliminar del almacén'),
+                        Icon(Icons.delete_outline,
+                            color: Theme.of(context).colorScheme.error),
+                        const SizedBox(width: 10),
+                        const Text('Eliminar del almacén'),
                       ],
                     ),
                   ),

@@ -8,11 +8,6 @@ import '../../cubits/auth/auth_cubit.dart';
 import '../../widgets/confirm_dialog.dart';
 import '../../../core/utils/validators.dart';
 
-const _bg = Color(0xFFD8F3DC);
-const _purple = Color(0xFF3C096C);
-const _fieldBg = Color(0xFFC3E6CB);
-const _white = Color(0xFFFFFFFF);
-
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
@@ -67,6 +62,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     return BlocListener<AuthCubit, AuthState>(
       listener: (context, state) {
         if (state is AuthAuthenticated) {
@@ -75,13 +71,13 @@ class _LoginScreenState extends State<LoginScreen> {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(state.message),
-              backgroundColor: Colors.red.shade700,
+              backgroundColor: cs.error,
             ),
           );
         }
       },
       child: Scaffold(
-        backgroundColor: _bg,
+        backgroundColor: cs.surface,
         body: Stack(
           children: [
             SafeArea(
@@ -99,13 +95,13 @@ class _LoginScreenState extends State<LoginScreen> {
                             width: 90, height: 90),
                       ),
                       const SizedBox(height: 16),
-                      const Center(
+                      Center(
                         child: Text(
                           'InvesVault',
                           style: TextStyle(
                             fontSize: 28,
                             fontWeight: FontWeight.w700,
-                            color: _purple,
+                            color: cs.secondary,
                             letterSpacing: 0.5,
                           ),
                         ),
@@ -116,7 +112,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           'Gestión de inventario inteligente',
                           style: TextStyle(
                             fontSize: 14,
-                            color: _purple.withOpacity(0.6),
+                            color: cs.secondary.withValues(alpha: 0.6),
                           ),
                         ),
                       ),
@@ -124,12 +120,12 @@ class _LoginScreenState extends State<LoginScreen> {
                       Center(
                         child: Column(
                           children: [
-                            const Text(
+                            Text(
                               '¡Bienvenid@!',
                               style: TextStyle(
                                 fontSize: 22,
                                 fontWeight: FontWeight.w700,
-                                color: _purple,
+                                color: cs.secondary,
                               ),
                             ),
                             const SizedBox(height: 4),
@@ -137,7 +133,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               'Ten el control del inventario de tu hogar, oficina, almacén, etc. ',
                               style: TextStyle(
                                 fontSize: 14,
-                                color: _purple.withOpacity(0.6),
+                                color: cs.secondary.withValues(alpha: 0.6),
                               ),
                               textAlign: TextAlign.center,
                             ),
@@ -164,7 +160,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             _obscure
                                 ? Icons.visibility_outlined
                                 : Icons.visibility_off_outlined,
-                            color: _purple.withOpacity(0.6),
+                            color: cs.secondary.withValues(alpha: 0.6),
                           ),
                           onPressed: () => setState(() => _obscure = !_obscure),
                         ),
@@ -173,7 +169,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         alignment: Alignment.centerRight,
                         child: TextButton(
                           style: TextButton.styleFrom(
-                            foregroundColor: _purple,
+                            foregroundColor: cs.secondary,
                             padding: EdgeInsets.zero,
                           ),
                           onPressed: () {},
@@ -188,54 +184,62 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                       const SizedBox(height: 24),
                       BlocBuilder<AuthCubit, AuthState>(
-                        builder: (context, state) => SizedBox(
-                          width: double.infinity,
-                          child: ElevatedButton(
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: _purple,
-                              foregroundColor: _white,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(14),
+                        builder: (context, state) {
+                          final cs = Theme.of(context).colorScheme;
+                          return SizedBox(
+                            width: double.infinity,
+                            child: ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: cs.secondary,
+                                foregroundColor: cs.onPrimary,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(14),
+                                ),
+                                elevation: 0,
+                                textStyle: const TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w700,
+                                ),
                               ),
-                              elevation: 0,
-                              textStyle: const TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w700,
-                              ),
+                              onPressed: state is AuthLoading ? null : _submit,
+                              child: state is AuthLoading
+                                  ? SizedBox(
+                                      width: 22,
+                                      height: 22,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2.5,
+                                        color: cs.onPrimary,
+                                      ),
+                                    )
+                                  : const Text('Iniciar sesión'),
                             ),
-                            onPressed: state is AuthLoading ? null : _submit,
-                            child: state is AuthLoading
-                                ? const SizedBox(
-                                    width: 22,
-                                    height: 22,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2.5,
-                                      color: _white,
-                                    ),
-                                  )
-                                : const Text('Iniciar sesión'),
-                          ),
-                        ),
+                          );
+                        },
                       ),
                       const SizedBox(height: 14),
-                      SizedBox(
-                        width: double.infinity,
-                        child: OutlinedButton(
-                          style: OutlinedButton.styleFrom(
-                            foregroundColor: _purple,
-                            side: const BorderSide(color: _purple, width: 1.5),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(14),
+                      Builder(
+                        builder: (context) {
+                          final cs = Theme.of(context).colorScheme;
+                          return SizedBox(
+                            width: double.infinity,
+                            child: OutlinedButton(
+                              style: OutlinedButton.styleFrom(
+                                foregroundColor: cs.secondary,
+                                side: BorderSide(color: cs.secondary, width: 1.5),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(14),
+                                ),
+                                textStyle: const TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              onPressed: () =>
+                                  replaceWithAuthRoute(context, '/register'),
+                              child: const Text('Crear cuenta'),
                             ),
-                            textStyle: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                            onPressed: () =>
-                                replaceWithAuthRoute(context, '/register'),
-                          child: const Text('Crear cuenta'),
-                        ),
+                          );
+                        },
                       ),
                       const SizedBox(height: 24),
                     ],
@@ -251,7 +255,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   child: IconButton(
                     icon: Icon(
                       Icons.settings_outlined,
-                      color: _purple.withOpacity(0.7),
+                      color: cs.secondary.withValues(alpha: 0.7),
                     ),
                     tooltip: 'Ajustes',
                     onPressed: () {},
@@ -288,18 +292,19 @@ class _Field extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     return TextFormField(
       controller: controller,
       keyboardType: keyboardType,
       obscureText: obscureText,
       validator: validator,
-      style: const TextStyle(color: _purple, fontSize: 15),
+      style: TextStyle(color: cs.secondary, fontSize: 15),
       decoration: InputDecoration(
         labelText: label,
-        labelStyle: TextStyle(color: _purple.withOpacity(0.7), fontSize: 14),
+        labelStyle: TextStyle(color: cs.secondary.withValues(alpha: 0.7), fontSize: 14),
         filled: true,
-        fillColor: _fieldBg,
-        prefixIcon: Icon(icon, color: _purple.withOpacity(0.7), size: 22),
+        fillColor: cs.primaryContainer,
+        prefixIcon: Icon(icon, color: cs.secondary.withValues(alpha: 0.7), size: 22),
         suffixIcon: suffix,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
@@ -307,15 +312,15 @@ class _Field extends StatelessWidget {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: _purple, width: 1.5),
+          borderSide: BorderSide(color: cs.secondary, width: 1.5),
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Colors.red.shade700, width: 1.5),
+          borderSide: BorderSide(color: cs.error, width: 1.5),
         ),
         focusedErrorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Colors.red.shade700, width: 1.5),
+          borderSide: BorderSide(color: cs.error, width: 1.5),
         ),
         contentPadding:
             const EdgeInsets.symmetric(vertical: 16, horizontal: 16),

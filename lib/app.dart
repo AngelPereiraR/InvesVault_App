@@ -42,6 +42,7 @@ import 'presentation/cubits/store/store_cubit.dart';
 import 'presentation/cubits/warehouse/warehouse_cubit.dart';
 import 'presentation/cubits/warehouse_detail/warehouse_detail_cubit.dart';
 import 'presentation/cubits/warehouse_user/warehouse_user_cubit.dart';
+import 'presentation/cubits/theme/theme_cubit.dart';
 
 class InvesVaultApp extends StatefulWidget {
   final StorageService storageService;
@@ -124,6 +125,10 @@ class _InvesVaultAppState extends State<InvesVaultApp> {
       providers: [
         BlocProvider(
           lazy: false,
+          create: (_) => ThemeCubit(widget.storageService),
+        ),
+        BlocProvider(
+          lazy: false,
           create: (_) => AuthCubit(_authRepo, widget.storageService),
         ),
         BlocProvider(
@@ -173,14 +178,22 @@ class _InvesVaultAppState extends State<InvesVaultApp> {
           create: (_) => StockChangeCubit(_stockChangeRepo),
         ),
       ],
-      child: MaterialApp(
-        title: 'InvesVault',
-        theme: AppTheme.light,
-        themeMode: ThemeMode.light,
-        navigatorKey: rootNavigatorKey,
-        initialRoute: '/splash',
-        onGenerateRoute: generateRoute,
-        debugShowCheckedModeBanner: false,
+      child: BlocBuilder<ThemeCubit, ThemeState>(
+        builder: (context, themeState) {
+          final themeMode = themeState is ThemeLoaded
+              ? themeState.themeMode
+              : ThemeMode.system;
+          return MaterialApp(
+            title: 'InvesVault',
+            theme: AppTheme.light,
+            darkTheme: AppTheme.dark,
+            themeMode: themeMode,
+            navigatorKey: rootNavigatorKey,
+            initialRoute: '/splash',
+            onGenerateRoute: generateRoute,
+            debugShowCheckedModeBanner: false,
+          );
+        },
       ),
     );
   }

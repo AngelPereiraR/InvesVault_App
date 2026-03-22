@@ -4,10 +4,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../core/router/app_router.dart';
 import '../../cubits/auth/auth_cubit.dart';
 
-const _purple = Color(0xFF3C096C);
 const _mint = Color(0xFFD8F3DC);
 const _mintBg = Color(0xFFF2FBF4);
-const _accentGreen = Color(0xFF52B788);
 
 class AppDrawer extends StatelessWidget {
   const AppDrawer({super.key});
@@ -20,8 +18,11 @@ class AppDrawer extends StatelessWidget {
     final String userEmail =
         authState is AuthAuthenticated ? authState.email : '';
 
+    final cs = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Drawer(
-      backgroundColor: _mintBg,
+      backgroundColor: isDark ? cs.surface : _mintBg,
       child: Column(
         children: [
           // ── Purple header ───────────────────────────────────────────
@@ -94,11 +95,17 @@ class AppDrawer extends StatelessWidget {
 
                 const _Divider(),
 
-                // SOPORTE (Próximamente)
+                // SOPORTE
+                const _SectionHeader('Soporte'),
+                const _DrawerTile(
+                  icon: Icons.help_outline,
+                  label: 'Ayuda y tutoriales',
+                  route: '/help',
+                  mode: ShellNavigationMode.preserveStack,
+                ),
                 const _SectionHeader('Soporte · Próximamente'),
                 const _ComingSoonTile(
                     icon: Icons.support_agent_outlined, label: 'Asistencia'),
-                const _ComingSoonTile(icon: Icons.help_outline, label: 'Ayuda'),
                 const _ComingSoonTile(
                     icon: Icons.newspaper_outlined, label: 'Noticias'),
                 const _ComingSoonTile(
@@ -109,29 +116,30 @@ class AppDrawer extends StatelessWidget {
                 // ACCIONES FINALES
                 ListTile(
                   enabled: false,
-                  leading:
-                      Icon(Icons.restart_alt, color: Colors.blueGrey.shade300),
+                  leading: Icon(Icons.restart_alt,
+                      color: cs.onSurfaceVariant.withValues(alpha: 0.5)),
                   title: Text('Reiniciar',
-                      style: TextStyle(color: Colors.blueGrey.shade400)),
+                      style: TextStyle(
+                          color: cs.onSurfaceVariant.withValues(alpha: 0.6))),
                   trailing: Container(
                     padding:
                         const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                     decoration: BoxDecoration(
-                      color: _accentGreen.withOpacity(0.15),
+                      color: cs.primary.withValues(alpha: 0.15),
                       borderRadius: BorderRadius.circular(6),
                     ),
-                    child: const Text('Próximamente',
+                    child: Text('Próximamente',
                         style: TextStyle(
                             fontSize: 10,
                             fontWeight: FontWeight.w600,
-                            color: _accentGreen)),
+                            color: cs.primary)),
                   ),
                   onTap: null,
                 ),
                 ListTile(
-                  leading: const Icon(Icons.logout, color: Colors.red),
-                  title: const Text('Cerrar sesión',
-                      style: TextStyle(color: Colors.red)),
+                  leading: Icon(Icons.logout, color: Theme.of(context).colorScheme.error),
+                  title: Text('Cerrar sesión',
+                      style: TextStyle(color: Theme.of(context).colorScheme.error)),
                   onTap: () {
                     Navigator.of(context).pop();
                     context.read<AuthCubit>().logout();
@@ -158,8 +166,12 @@ class _DrawerHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final abt = Theme.of(context).appBarTheme;
+    final cs = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Container(
-      color: _purple,
+      color: isDark ? cs.secondaryContainer : abt.backgroundColor,
       padding: EdgeInsets.fromLTRB(
           20, MediaQuery.of(context).padding.top + 20, 20, 20),
       child: Column(
@@ -168,15 +180,15 @@ class _DrawerHeader extends StatelessWidget {
           // Logo + app name row
           Row(
             children: [
-              Container(
+              SizedBox(
                 width: 44,
                 height: 44,
                 child: Image.asset('assets/logo.png', width: 44, height: 44),
               ),
               const SizedBox(width: 12),
-              Column(
+              const Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                children: const [
+                children: [
                   Text('InvesVault',
                       style: TextStyle(
                           color: Colors.white,
@@ -209,41 +221,42 @@ class _DrawerTile extends StatelessWidget {
   final IconData icon;
   final String label;
   final String route;
+  final ShellNavigationMode mode;
 
   const _DrawerTile({
     required this.icon,
     required this.label,
     required this.route,
+    this.mode = ShellNavigationMode.resetFromDashboard,
   });
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final current = currentRouteName(context);
     final selected = current == route ||
         (route != '/dashboard' && current.startsWith(route));
     return ListTile(
       dense: true,
       leading: Icon(icon,
-          size: 22, color: selected ? _purple : Colors.blueGrey.shade700),
+          size: 22,
+          color: selected ? cs.primary : cs.onSurfaceVariant),
       title: Text(label,
           style: TextStyle(
             fontSize: 14,
             fontWeight: selected ? FontWeight.w700 : FontWeight.w400,
-            color: selected ? _purple : Colors.blueGrey.shade900,
+            color: selected ? cs.primary : cs.onSurface,
           )),
       selected: selected,
-      selectedTileColor: _mint,
+      selectedTileColor: isDark ? cs.primaryContainer : _mint,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       horizontalTitleGap: 6,
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
       onTap: () {
         Navigator.of(context).pop();
         if (!selected) {
-          navigateToShellSection(
-            context,
-            route,
-            mode: ShellNavigationMode.resetFromDashboard,
-          );
+          navigateToShellSection(context, route, mode: mode);
         }
       },
     );
@@ -258,22 +271,23 @@ class _ComingSoonTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     return ListTile(
       dense: true,
-      leading: Icon(icon, size: 22, color: Colors.blueGrey.shade300),
+      leading: Icon(icon, size: 22, color: cs.onSurfaceVariant.withValues(alpha: 0.5)),
       title: Text(label,
-          style: TextStyle(fontSize: 14, color: Colors.blueGrey.shade400)),
+          style: TextStyle(fontSize: 14, color: cs.onSurfaceVariant.withValues(alpha: 0.6))),
       trailing: Container(
         padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
         decoration: BoxDecoration(
-          color: _accentGreen.withOpacity(0.15),
+          color: cs.primary.withValues(alpha: 0.15),
           borderRadius: BorderRadius.circular(6),
         ),
-        child: const Text('Pronto',
+        child: Text('Pronto',
             style: TextStyle(
                 fontSize: 10,
                 fontWeight: FontWeight.w600,
-                color: _accentGreen)),
+                color: cs.primary)),
       ),
       horizontalTitleGap: 6,
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
@@ -295,7 +309,7 @@ class _SectionHeader extends StatelessWidget {
         style: TextStyle(
           fontSize: 10,
           fontWeight: FontWeight.w700,
-          color: Colors.blueGrey.shade400,
+          color: Theme.of(context).colorScheme.onSurfaceVariant,
           letterSpacing: 1.2,
         ),
       ),

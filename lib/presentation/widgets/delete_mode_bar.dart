@@ -7,34 +7,44 @@ class DeleteModeBar extends StatelessWidget {
   final VoidCallback onCancel;
   /// Null → Eliminar button is disabled (nothing selected yet).
   final VoidCallback? onDelete;
+  /// Text shown when count == 0 (e.g. 'Selecciona marcas').
+  final String emptyLabel;
+  /// Full label after the count when count == 1 (e.g. 'marca seleccionada').
+  final String selectedSingular;
+  /// Full label after the count when count != 1 (e.g. 'marcas seleccionadas').
+  final String selectedPlural;
 
   const DeleteModeBar({
     super.key,
     required this.count,
     required this.onCancel,
     this.onDelete,
+    this.emptyLabel = 'Selecciona elementos',
+    this.selectedSingular = 'elemento seleccionado',
+    this.selectedPlural = 'elementos seleccionados',
   });
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     return Container(
-      color: Colors.red.shade50,
+      color: cs.errorContainer,
       padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
       child: Row(
         children: [
           IconButton(
             icon: const Icon(Icons.close),
-            color: Colors.red.shade700,
+            color: cs.error,
             tooltip: 'Cancelar selección',
             onPressed: onCancel,
           ),
           Expanded(
             child: Text(
               count == 0
-                  ? 'Selecciona elementos'
-                  : '$count ${count == 1 ? 'elemento seleccionado' : 'elementos seleccionados'}',
+                  ? emptyLabel
+                  : '$count ${count == 1 ? selectedSingular : selectedPlural}',
               style: TextStyle(
-                color: Colors.red.shade700,
+                color: cs.error,
                 fontWeight: FontWeight.w600,
                 fontSize: 14,
               ),
@@ -43,7 +53,7 @@ class DeleteModeBar extends StatelessWidget {
           TextButton(
             onPressed: onDelete,
             style: TextButton.styleFrom(
-              foregroundColor: Colors.red.shade700,
+              foregroundColor: cs.error,
             ),
             child: const Text('Eliminar'),
           ),

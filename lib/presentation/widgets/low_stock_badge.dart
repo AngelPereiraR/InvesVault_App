@@ -16,13 +16,13 @@ class LowStockBadge extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Icon(Icons.warning_amber_rounded,
-              size: 14, color: Colors.white),
+          Icon(Icons.warning_amber_rounded,
+              size: 14, color: Theme.of(context).colorScheme.onError),
           const SizedBox(width: 4),
           Text(
             '$count bajo mínimo',
-            style: const TextStyle(
-                color: Colors.white,
+            style: TextStyle(
+                color: Theme.of(context).colorScheme.onError,
                 fontSize: 12,
                 fontWeight: FontWeight.w600),
           ),

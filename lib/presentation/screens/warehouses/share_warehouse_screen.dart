@@ -9,8 +9,6 @@ import '../../widgets/empty_view.dart';
 import '../../widgets/error_view.dart';
 import '../../widgets/loading_indicator.dart';
 
-const _purple = Color(0xFF3C096C);
-
 class ShareWarehouseScreen extends StatefulWidget {
   final int warehouseId;
   const ShareWarehouseScreen({super.key, required this.warehouseId});
@@ -73,6 +71,7 @@ class _ShareWarehouseScreenState extends State<ShareWarehouseScreen> {
             loaded.users.any(
                 (u) => u.userId == currentUserId && u.role == 'admin');
 
+        final cs = Theme.of(context).colorScheme;
         return Scaffold(
           appBar: AppBar(title: const Text('Compartir almacén')),
           body: SafeArea(top: false, child: Column(
@@ -105,8 +104,8 @@ class _ShareWarehouseScreenState extends State<ShareWarehouseScreen> {
                               value: _selectedRole,
                               underline: const SizedBox(),
                               isDense: true,
-                              style: const TextStyle(
-                                  fontSize: 13, color: _purple),
+                              style: TextStyle(
+                                  fontSize: 13, color: cs.secondary),
                               items: const [
                                 DropdownMenuItem(
                                     value: 'viewer', child: Text('Lector')),
@@ -119,18 +118,18 @@ class _ShareWarehouseScreenState extends State<ShareWarehouseScreen> {
                             const SizedBox(width: 8),
                             FilledButton(
                               style: FilledButton.styleFrom(
-                                  backgroundColor: _purple,
+                                  backgroundColor: cs.secondary,
                                   padding: const EdgeInsets.symmetric(
                                       horizontal: 12, vertical: 14)),
                               onPressed:
                                   loaded.isAdding ? null : _add,
                               child: loaded.isAdding
-                                  ? const SizedBox(
+                                  ? SizedBox(
                                       width: 16,
                                       height: 16,
                                       child: CircularProgressIndicator(
                                           strokeWidth: 2,
-                                          color: Colors.white))
+                                          color: cs.onPrimary))
                                   : const Icon(
                                       Icons.person_add_outlined, size: 18),
                             ),
@@ -142,14 +141,14 @@ class _ShareWarehouseScreenState extends State<ShareWarehouseScreen> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Icon(Icons.error_outline,
-                                  size: 15, color: Colors.red.shade400),
+                                  size: 15, color: cs.error),
                               const SizedBox(width: 6),
                               Expanded(
                                 child: Text(
                                   loaded.addError!,
                                   style: TextStyle(
                                       fontSize: 12,
-                                      color: Colors.red.shade400),
+                                      color: cs.error),
                                 ),
                               ),
                             ],
@@ -178,13 +177,13 @@ class _ShareWarehouseScreenState extends State<ShareWarehouseScreen> {
                                       return ListTile(
                                         leading: CircleAvatar(
                                           backgroundColor:
-                                              _purple.withOpacity(0.12),
+                                              cs.secondary.withValues(alpha: 0.12),
                                           child: Text(
                                             (u.userName ?? '#${u.userId}')
                                                 .substring(0, 1)
                                                 .toUpperCase(),
-                                            style: const TextStyle(
-                                                color: _purple,
+                                            style: TextStyle(
+                                                color: cs.secondary,
                                                 fontWeight: FontWeight.w600),
                                           ),
                                         ),
@@ -201,14 +200,14 @@ class _ShareWarehouseScreenState extends State<ShareWarehouseScreen> {
                                                         horizontal: 8,
                                                         vertical: 4),
                                                 decoration: BoxDecoration(
-                                                  color: _purple.withOpacity(0.1),
+                                                  color: cs.secondary.withValues(alpha: 0.1),
                                                   borderRadius:
                                                       BorderRadius.circular(8),
                                                 ),
-                                                child: const Text('Admin',
+                                                child: Text('Admin',
                                                     style: TextStyle(
                                                         fontSize: 12,
-                                                        color: _purple,
+                                                        color: cs.secondary,
                                                         fontWeight:
                                                             FontWeight.w600)),
                                               )
@@ -237,9 +236,9 @@ class _ShareWarehouseScreenState extends State<ShareWarehouseScreen> {
                                               ),
                                             if (u.role != 'admin' && isAdmin)
                                               IconButton(
-                                                icon: const Icon(
+                                                icon: Icon(
                                                     Icons.person_remove,
-                                                    color: Colors.red),
+                                                    color: cs.error),
                                                 onPressed: () async {
                                                   final confirm =
                                                       await showConfirmDialog(

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../cubits/auth/auth_cubit.dart';
+import '../../cubits/theme/theme_cubit.dart';
 import '../../widgets/app_button.dart';
 import '../../widgets/app_text_field.dart';
 import '../../../core/utils/validators.dart';
@@ -101,6 +102,32 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
 
             const SizedBox(height: 32),
+            const Divider(),
+            const SizedBox(height: 16),
+
+            // Appearance
+            Text('Apariencia',
+                style: Theme.of(context).textTheme.titleMedium),
+            const SizedBox(height: 8),
+            BlocBuilder<ThemeCubit, ThemeState>(
+              builder: (context, themeState) {
+                final isDark = themeState is ThemeLoaded &&
+                    themeState.themeMode == ThemeMode.dark;
+                return SwitchListTile(
+                  contentPadding: EdgeInsets.zero,
+                  secondary: const Icon(Icons.dark_mode_outlined),
+                  title: const Text('Modo oscuro'),
+                  subtitle: const Text('Activar tema oscuro'),
+                  value: isDark,
+                  onChanged: (enabled) =>
+                      context.read<ThemeCubit>().setThemeMode(
+                            enabled ? ThemeMode.dark : ThemeMode.light,
+                          ),
+                );
+              },
+            ),
+
+            const SizedBox(height: 16),
             const Divider(),
             const SizedBox(height: 16),
 

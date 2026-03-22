@@ -7,12 +7,6 @@ import '../../cubits/auth/auth_cubit.dart';
 import '../../widgets/confirm_dialog.dart';
 import '../../../core/utils/validators.dart';
 
-const _bg = Color(0xFFD8F3DC);
-const _purple = Color(0xFF3C096C);
-const _fieldBg = Color(0xFFC3E6CB);
-const _accentGreen = Color(0xFF52B788);
-const _white = Color(0xFFFFFFFF);
-
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
 
@@ -80,6 +74,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     return BlocListener<AuthCubit, AuthState>(
       listener: (context, state) {
         if (state is AuthAuthenticated) {
@@ -89,13 +84,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(state.message),
-              backgroundColor: Colors.red.shade700,
+              backgroundColor: cs.error,
             ),
           );
         }
       },
       child: Scaffold(
-        backgroundColor: _bg,
+        backgroundColor: cs.surface,
         body: Stack(
           children: [
             SafeArea(
@@ -106,9 +101,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     IconButton(
-                      icon: const Icon(
+                      icon: Icon(
                         Icons.arrow_back_ios_new,
-                        color: _purple,
+                        color: cs.secondary,
                         size: 20,
                       ),
                       onPressed: () => replaceWithAuthRoute(context, '/login'),
@@ -120,20 +115,20 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           Image.asset('assets/logo.png', width: 80, height: 80),
                     ),
                     const SizedBox(height: 12),
-                    const Center(
+                    Center(
                       child: Text(
                         'InvesVault',
                         style: TextStyle(
                           fontSize: 24,
                           fontWeight: FontWeight.w700,
-                          color: _purple,
+                          color: cs.secondary,
                           letterSpacing: 0.5,
                         ),
                       ),
                     ),
                     const SizedBox(height: 28),
                     Card(
-                      color: _white,
+                      color: cs.surface,
                       elevation: 0,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(28),
@@ -148,12 +143,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               Center(
                                 child: Column(
                                   children: [
-                                    const Text(
+                                    Text(
                                       'Crear cuenta',
                                       style: TextStyle(
                                         fontSize: 20,
                                         fontWeight: FontWeight.w700,
-                                        color: _purple,
+                                        color: cs.secondary,
                                       ),
                                     ),
                                     const SizedBox(height: 4),
@@ -161,7 +156,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                       'Únete a InvesVault hoy mismo',
                                       style: TextStyle(
                                         fontSize: 16,
-                                        color: _purple.withOpacity(0.6),
+                                        color: cs.secondary.withValues(alpha: 0.6),
                                       ),
                                     ),
                                     const SizedBox(height: 20),
@@ -194,7 +189,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                     _obscurePass
                                         ? Icons.visibility_outlined
                                         : Icons.visibility_off_outlined,
-                                    color: _purple.withOpacity(0.6),
+                                    color: cs.secondary.withValues(alpha: 0.6),
                                   ),
                                   onPressed: () => setState(
                                     () => _obscurePass = !_obscurePass,
@@ -221,7 +216,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                     _obscureConfirm
                                         ? Icons.visibility_outlined
                                         : Icons.visibility_off_outlined,
-                                    color: _purple.withOpacity(0.6),
+                                    color: cs.secondary.withValues(alpha: 0.6),
                                   ),
                                   onPressed: () => setState(
                                     () => _obscureConfirm = !_obscureConfirm,
@@ -233,7 +228,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                 children: [
                                   Checkbox(
                                     value: _acceptTerms,
-                                    activeColor: _accentGreen,
+                                    activeColor: cs.primary,
                                     shape: RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(4),
                                     ),
@@ -250,7 +245,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                         'Acepto los términos y condiciones',
                                         style: TextStyle(
                                           fontSize: 13,
-                                          color: _purple.withOpacity(0.8),
+                                          color: cs.secondary.withValues(alpha: 0.8),
                                         ),
                                       ),
                                     ),
@@ -259,35 +254,38 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               ),
                               const SizedBox(height: 20),
                               BlocBuilder<AuthCubit, AuthState>(
-                                builder: (context, state) => SizedBox(
-                                  width: double.infinity,
-                                  child: ElevatedButton(
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: _purple,
-                                      foregroundColor: _white,
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(14),
+                                builder: (context, state) {
+                                  final cs = Theme.of(context).colorScheme;
+                                  return SizedBox(
+                                    width: double.infinity,
+                                    child: ElevatedButton(
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: cs.secondary,
+                                        foregroundColor: cs.onPrimary,
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(14),
+                                        ),
+                                        elevation: 0,
+                                        textStyle: const TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.w700,
+                                        ),
                                       ),
-                                      elevation: 0,
-                                      textStyle: const TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.w700,
-                                      ),
+                                      onPressed:
+                                          state is AuthLoading ? null : _submit,
+                                      child: state is AuthLoading
+                                          ? SizedBox(
+                                              width: 22,
+                                              height: 22,
+                                              child: CircularProgressIndicator(
+                                                strokeWidth: 2.5,
+                                                color: cs.onPrimary,
+                                              ),
+                                            )
+                                          : const Text('Registrar'),
                                     ),
-                                    onPressed:
-                                        state is AuthLoading ? null : _submit,
-                                    child: state is AuthLoading
-                                        ? const SizedBox(
-                                            width: 22,
-                                            height: 22,
-                                            child: CircularProgressIndicator(
-                                              strokeWidth: 2.5,
-                                              color: _white,
-                                            ),
-                                          )
-                                        : const Text('Registrar'),
-                                  ),
-                                ),
+                                  );
+                                },
                               ),
                             ],
                           ),
@@ -297,7 +295,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     const SizedBox(height: 16),
                     Center(
                       child: TextButton(
-                        style: TextButton.styleFrom(foregroundColor: _purple),
+                        style: TextButton.styleFrom(foregroundColor: cs.secondary),
                         onPressed: () =>
                             replaceWithAuthRoute(context, '/login'),
                         child: const Text(
@@ -319,7 +317,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   child: IconButton(
                     icon: Icon(
                       Icons.settings_outlined,
-                      color: _purple.withOpacity(0.7),
+                      color: cs.secondary.withValues(alpha: 0.7),
                     ),
                     tooltip: 'Ajustes',
                     onPressed: () {},
@@ -356,18 +354,19 @@ class _Field extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     return TextFormField(
       controller: controller,
       keyboardType: keyboardType,
       obscureText: obscureText,
       validator: validator,
-      style: const TextStyle(color: _purple, fontSize: 15),
+      style: TextStyle(color: cs.secondary, fontSize: 15),
       decoration: InputDecoration(
         labelText: label,
-        labelStyle: TextStyle(color: _purple.withOpacity(0.7), fontSize: 14),
+        labelStyle: TextStyle(color: cs.secondary.withValues(alpha: 0.7), fontSize: 14),
         filled: true,
-        fillColor: _fieldBg,
-        prefixIcon: Icon(icon, color: _purple.withOpacity(0.7), size: 22),
+        fillColor: cs.primaryContainer,
+        prefixIcon: Icon(icon, color: cs.secondary.withValues(alpha: 0.7), size: 22),
         suffixIcon: suffix,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
@@ -375,15 +374,15 @@ class _Field extends StatelessWidget {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: _purple, width: 1.5),
+          borderSide: BorderSide(color: cs.secondary, width: 1.5),
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Colors.red.shade700, width: 1.5),
+          borderSide: BorderSide(color: cs.error, width: 1.5),
         ),
         focusedErrorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Colors.red.shade700, width: 1.5),
+          borderSide: BorderSide(color: cs.error, width: 1.5),
         ),
         contentPadding:
             const EdgeInsets.symmetric(vertical: 16, horizontal: 16),

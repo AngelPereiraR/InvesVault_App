@@ -8,10 +8,6 @@ import '../../widgets/error_view.dart';
 import '../../widgets/loading_indicator.dart';
 import '../warehouses/warehouse_list_screen.dart' show showWarehouseDialog;
 
-const _purple = Color(0xFF3C096C);
-const _mint = Color(0xFFD8F3DC);
-const _accentGreen = Color(0xFF52B788);
-const _white = Color(0xFFFFFFFF);
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -48,6 +44,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return BlocBuilder<DashboardCubit, DashboardState>(
       builder: (context, state) {
         if (state is DashboardLoading || state is DashboardInitial) {
@@ -77,8 +75,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       label: 'Bajo stock',
                       value: '${state.lowStockCount}',
                       color: state.lowStockCount > 0
-                          ? Colors.red.shade600
-                          : _accentGreen,
+                          ? cs.error
+                          : cs.primary,
                       onTap: state.lowStockCount > 0
                           ? _scrollToLowStock
                           : () {},
@@ -88,7 +86,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       icon: Icons.inventory_2_outlined,
                       label: 'Catálogo',
                       value: '${state.productCount}',
-                      color: _purple,
+                      color: cs.secondary,
                       onTap: () => navigateToShellSection(context, '/products'),
                     ),
                     const SizedBox(width: 10),
@@ -96,7 +94,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       icon: Icons.shopping_basket_outlined,
                       label: 'Lista compra',
                       value: '',
-                      color: _accentGreen,
+                      color: cs.primary,
                       onTap: () => navigateToShellSection(
                         context,
                         '/shopping-list',
@@ -115,29 +113,29 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   padding:
                       const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                   decoration: BoxDecoration(
-                    color: _white,
+                    color: cs.surface,
                     borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: Colors.grey.shade200, width: 1.5),
+                    border: Border.all(color: cs.outlineVariant, width: 1.5),
                     boxShadow: [
                       BoxShadow(
-                          color: Colors.black.withOpacity(0.04),
+                          color: Colors.black.withValues(alpha: 0.04),
                           blurRadius: 8,
                           offset: const Offset(0, 2)),
                     ],
                   ),
                   child: Row(
                     children: [
-                      Icon(Icons.search, color: Colors.grey.shade400, size: 20),
+                      Icon(Icons.search, color: cs.onSurfaceVariant, size: 20),
                       const SizedBox(width: 10),
                       Expanded(
                         child: Text(
                           'Buscar productos…',
                           style: TextStyle(
-                              color: Colors.grey.shade400, fontSize: 14),
+                              color: cs.onSurfaceVariant, fontSize: 14),
                         ),
                       ),
                       Icon(Icons.qr_code_scanner,
-                          color: _purple.withOpacity(0.7), size: 22),
+                          color: cs.secondary.withValues(alpha: 0.7), size: 22),
                     ],
                   ),
                 ),
@@ -163,44 +161,44 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   _QuickActionTile(
                     icon: Icons.swap_vert_circle_outlined,
                     label: 'Movimientos',
-                    backgroundColor: _mint,
-                    iconColor: _purple,
+                    backgroundColor: isDark ? cs.primaryContainer : const Color(0xFFD8F3DC),
+                    iconColor: cs.secondary,
                     onTap: () =>
                       navigateToShellSection(context, '/stock-history'),
                   ),
                   _QuickActionTile(
                     icon: Icons.add_business_outlined,
                     label: 'Nuevo almacén',
-                    backgroundColor: const Color(0xFFE9D8FD),
-                    iconColor: _purple,
+                    backgroundColor: isDark ? cs.secondaryContainer : const Color(0xFFE9D8FD),
+                    iconColor: cs.secondary,
                     onTap: () => showWarehouseDialog(context),
                   ),
                   _QuickActionTile(
                     icon: Icons.store_outlined,
                     label: 'Tiendas',
-                    backgroundColor: const Color(0xFFDFF3E4),
-                    iconColor: _accentGreen,
+                    backgroundColor: isDark ? cs.primaryContainer : const Color(0xFFDFF3E4),
+                    iconColor: cs.primary,
                     onTap: () => navigateToShellSection(context, '/stores'),
                   ),
                   _QuickActionTile(
                     icon: Icons.label_outlined,
                     label: 'Marcas',
-                    backgroundColor: const Color(0xFFFDE2E4),
-                    iconColor: const Color(0xFFB02A37),
+                    backgroundColor: isDark ? cs.errorContainer : const Color(0xFFFDE2E4),
+                    iconColor: cs.error,
                     onTap: () => navigateToShellSection(context, '/brands'),
                   ),
                   _QuickActionTile(
                     icon: Icons.inventory_2_outlined,
                     label: 'Catálogo',
-                    backgroundColor: const Color(0xFFE3F2FD),
-                    iconColor: const Color(0xFF1565C0),
+                    backgroundColor: isDark ? cs.surfaceContainerHighest : const Color(0xFFE3F2FD),
+                    iconColor: cs.primary,
                     onTap: () => navigateToShellSection(context, '/products'),
                   ),
                   _QuickActionTile(
                     icon: Icons.add_box_outlined,
                     label: 'Nuevo producto',
-                    backgroundColor: const Color(0xFFFFF3BF),
-                    iconColor: const Color(0xFF9C6B00),
+                    backgroundColor: isDark ? cs.surfaceContainerHighest : const Color(0xFFFFF3BF),
+                    iconColor: cs.secondary,
                     onTap: () =>
                         context.openAuxiliaryRoute('/products/new'),
                   ),
@@ -260,13 +258,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       padding: const EdgeInsets.symmetric(
                           horizontal: 8, vertical: 2),
                       decoration: BoxDecoration(
-                        color: Colors.red.shade50,
+                        color: cs.errorContainer,
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Text(
                         '${state.lowStockCount}',
                         style: TextStyle(
-                            color: Colors.red.shade700,
+                            color: cs.error,
                             fontSize: 12,
                             fontWeight: FontWeight.w700),
                       ),
@@ -317,17 +315,18 @@ class _StatButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     return Expanded(
       child: GestureDetector(
         onTap: onTap,
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 10),
           decoration: BoxDecoration(
-            color: _white,
+            color: cs.surfaceContainerHighest,
             borderRadius: BorderRadius.circular(14),
             boxShadow: [
               BoxShadow(
-                  color: Colors.black.withOpacity(0.05),
+                  color: Colors.black.withValues(alpha: 0.05),
                   blurRadius: 6,
                   offset: const Offset(0, 2)),
             ],
@@ -346,7 +345,7 @@ class _StatButton extends StatelessWidget {
                         color: color)),
               Text(label,
                   textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 11, color: Colors.grey.shade600)),
+                  style: TextStyle(fontSize: 11, color: cs.onSurfaceVariant)),
             ],
           ),
         ),
@@ -391,7 +390,7 @@ class _QuickActionTile extends StatelessWidget {
                 width: 52,
                 height: 52,
                 decoration: BoxDecoration(
-                  color: _white.withOpacity(0.75),
+                  color: Colors.white.withValues(alpha: 0.25),
                   shape: BoxShape.circle,
                 ),
                 child: Icon(icon, color: iconColor, size: 26),
@@ -431,16 +430,17 @@ class _SectionTitle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Text(title,
-            style: const TextStyle(
-                fontSize: 16, fontWeight: FontWeight.w700, color: _purple)),
+            style: TextStyle(
+                fontSize: 16, fontWeight: FontWeight.w700, color: cs.secondary)),
         if (actionLabel != null && onAction != null)
           TextButton.icon(
             style: TextButton.styleFrom(
-              foregroundColor: _accentGreen,
+              foregroundColor: cs.primary,
               padding: const EdgeInsets.symmetric(horizontal: 4),
             ),
             onPressed: onAction,
@@ -468,17 +468,18 @@ class _WarehouseButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     return GestureDetector(
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         decoration: BoxDecoration(
-          color: _white,
+          color: cs.surface,
           borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: _purple.withOpacity(0.15)),
+          border: Border.all(color: cs.secondary.withValues(alpha: 0.15)),
           boxShadow: [
             BoxShadow(
-                color: Colors.black.withOpacity(0.05),
+                color: Colors.black.withValues(alpha: 0.05),
                 blurRadius: 6,
                 offset: const Offset(0, 2)),
           ],
@@ -488,10 +489,10 @@ class _WarehouseButton extends StatelessWidget {
             Container(
               width: 32,
               height: 32,
-              decoration: const BoxDecoration(
-                  color: _mint, shape: BoxShape.circle),
-              child: const Icon(Icons.warehouse_outlined,
-                  color: _purple, size: 18),
+              decoration: BoxDecoration(
+                  color: cs.primaryContainer, shape: BoxShape.circle),
+              child: Icon(Icons.warehouse_outlined,
+                  color: cs.secondary, size: 18),
             ),
             const SizedBox(width: 10),
             Expanded(
@@ -503,14 +504,14 @@ class _WarehouseButton extends StatelessWidget {
                     name,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
+                    style: TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.w600,
-                        color: _purple),
+                        color: cs.secondary),
                   ),
                   Text(
                     '$productCount ${productCount == 1 ? 'producto' : 'productos'}',
-                    style: TextStyle(fontSize: 11, color: Colors.grey.shade500),
+                    style: TextStyle(fontSize: 11, color: cs.onSurfaceVariant),
                   ),
                 ],
               ),
@@ -529,14 +530,15 @@ class _WarehouseViewAllButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     return GestureDetector(
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         decoration: BoxDecoration(
-          color: _purple.withValues(alpha: 0.06),
+          color: cs.secondary.withValues(alpha: 0.06),
           borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: _purple.withValues(alpha: 0.2)),
+          border: Border.all(color: cs.secondary.withValues(alpha: 0.2)),
         ),
         child: Row(
           children: [
@@ -544,17 +546,17 @@ class _WarehouseViewAllButton extends StatelessWidget {
               width: 32,
               height: 32,
               decoration: BoxDecoration(
-                  color: _purple.withValues(alpha: 0.12),
+                  color: cs.secondary.withValues(alpha: 0.12),
                   shape: BoxShape.circle),
-              child: const Icon(Icons.grid_view_rounded,
-                  color: _purple, size: 18),
+              child: Icon(Icons.grid_view_rounded,
+                  color: cs.secondary, size: 18),
             ),
             const SizedBox(width: 10),
-            const Text('Ver todos',
+            Text('Ver todos',
                 style: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
-                    color: _purple)),
+                    color: cs.secondary)),
           ],
         ),
       ),
@@ -578,20 +580,24 @@ class _LowStockRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return GestureDetector(
       onTap: onTap,
       child: Container(
         margin: const EdgeInsets.only(bottom: 8),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         decoration: BoxDecoration(
-          color: Colors.red.shade50,
+          color: isDark ? cs.errorContainer : const Color(0xFFFDE2E4),
           borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: Colors.red.shade100),
+          border: Border.all(
+              color: isDark
+                  ? cs.error.withValues(alpha: 0.3)
+                  : const Color(0xFFFBD0D3)),
         ),
         child: Row(
           children: [
-            Icon(Icons.warning_amber_rounded,
-                color: Colors.red.shade600, size: 20),
+            Icon(Icons.warning_amber_rounded, color: cs.error, size: 20),
             const SizedBox(width: 12),
             Expanded(
               child: Column(
@@ -601,12 +607,12 @@ class _LowStockRow extends StatelessWidget {
                       style: const TextStyle(
                           fontSize: 14, fontWeight: FontWeight.w600)),
                   Text('Stock: ${qty.toInt()} / Mín: ${min?.toInt() ?? 0}',
-                      style:
-                          TextStyle(fontSize: 12, color: Colors.grey.shade600)),
+                      style: TextStyle(
+                          fontSize: 12, color: cs.onSurfaceVariant)),
                 ],
               ),
             ),
-            Icon(Icons.chevron_right, color: Colors.red.shade300, size: 20),
+            Icon(Icons.chevron_right, color: cs.error, size: 20),
           ],
         ),
       ),

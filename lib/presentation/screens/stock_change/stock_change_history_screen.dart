@@ -3,15 +3,12 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 
 import '../../../core/models/filter_params.dart';
+import '../../../core/theme/app_colors.dart';
 import '../../cubits/stock_change/stock_change_cubit.dart';
 import '../../cubits/warehouse/warehouse_cubit.dart';
 import '../../widgets/empty_view.dart';
 import '../../widgets/error_view.dart';
 import '../../widgets/loading_indicator.dart';
-
-const _purple = Color(0xFF3C096C);
-const _mint = Color(0xFFD8F3DC);
-const _white = Color(0xFFFFFFFF);
 
 class StockChangeHistoryScreen extends StatefulWidget {
   const StockChangeHistoryScreen({super.key});
@@ -64,11 +61,12 @@ class _StockChangeHistoryScreenState
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     return Column(
       children: [
         // ── Warehouse selector ──────────────────────────────────────────
         Container(
-          color: _white,
+          color: cs.surface,
           padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
           child: BlocBuilder<WarehouseCubit, WarehouseState>(
             builder: (context, state) {
@@ -78,14 +76,14 @@ class _StockChangeHistoryScreenState
                 decoration: InputDecoration(
                   labelText: 'Almacén',
                   prefixIcon:
-                      const Icon(Icons.warehouse_outlined, color: _purple),
+                      Icon(Icons.warehouse_outlined, color: cs.secondary),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
                     borderSide: BorderSide.none,
                   ),
                   filled: true,
-                  fillColor: _mint,
-                  labelStyle: const TextStyle(color: _purple),
+                  fillColor: cs.primaryContainer,
+                  labelStyle: TextStyle(color: cs.secondary),
                   contentPadding: const EdgeInsets.symmetric(
                       horizontal: 12, vertical: 12),
                 ),
@@ -118,26 +116,27 @@ class _StockChangeHistoryScreenState
                 children: [
                   _TypeChip(
                       label: 'Todos',
+                      color: Theme.of(context).colorScheme.secondary,
                       selected: _typeFilter == 'all',
                       onTap: () => setState(() => _typeFilter = 'all')),
                   const SizedBox(width: 8),
                   _TypeChip(
                       label: 'Entradas',
-                      color: Colors.green.shade600,
+                      color: AppColors.success,
                       selected: _typeFilter == 'inbound',
                       onTap: () =>
                           setState(() => _typeFilter = 'inbound')),
                   const SizedBox(width: 8),
                   _TypeChip(
                       label: 'Salidas',
-                      color: Colors.red.shade600,
+                      color: cs.error,
                       selected: _typeFilter == 'outbound',
                       onTap: () =>
                           setState(() => _typeFilter = 'outbound')),
                   const SizedBox(width: 8),
                   _TypeChip(
                       label: 'Ajustes',
-                      color: Colors.orange.shade700,
+                      color: AppColors.warning,
                       selected: _typeFilter == 'adjustment',
                       onTap: () =>
                           setState(() => _typeFilter = 'adjustment')),
@@ -160,7 +159,7 @@ class _StockChangeHistoryScreenState
                     if (state is StockChangeError) {
                       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
                         content: Text(state.message),
-                        backgroundColor: Colors.red.shade700,
+                        backgroundColor: Theme.of(context).colorScheme.error,
                       ));
                     }
                   },
@@ -202,14 +201,15 @@ class _StockChangeHistoryScreenState
                             horizontal: 16, vertical: 8),
                         itemCount: items.length,
                         itemBuilder: (context, i) {
+                          final cs = Theme.of(context).colorScheme;
                           final c = items[i];
                           final isEntry = c.changeType == 'inbound';
                           final isAdjust = c.changeType == 'adjustment';
                           final color = isAdjust
-                              ? Colors.orange.shade700
+                              ? AppColors.warning
                               : isEntry
-                                  ? Colors.green.shade600
-                                  : Colors.red.shade600;
+                                  ? AppColors.success
+                                  : cs.error;
                           final icon = isAdjust
                               ? Icons.tune
                               : isEntry
@@ -225,7 +225,7 @@ class _StockChangeHistoryScreenState
                           return Container(
                             margin: const EdgeInsets.only(bottom: 8),
                             decoration: BoxDecoration(
-                              color: _white,
+                              color: cs.surface,
                               borderRadius: BorderRadius.circular(14),
                               boxShadow: [
                                 BoxShadow(
@@ -248,10 +248,10 @@ class _StockChangeHistoryScreenState
                               title: Text(
                                 c.productName ??
                                     'Producto ${c.productId}',
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontSize: 14,
                                   fontWeight: FontWeight.w600,
-                                  color: _purple,
+                                  color: cs.secondary,
                                 ),
                               ),
                               subtitle: Column(
@@ -287,7 +287,7 @@ class _StockChangeHistoryScreenState
                                             c.reason!,
                                             style: TextStyle(
                                               fontSize: 11,
-                                              color: Colors.grey.shade600,
+                                              color: cs.onSurfaceVariant,
                                             ),
                                             overflow: TextOverflow.ellipsis,
                                           ),
@@ -300,24 +300,24 @@ class _StockChangeHistoryScreenState
                                     children: [
                                       Icon(Icons.person_outline,
                                           size: 11,
-                                          color: Colors.grey.shade500),
+                                          color: cs.onSurfaceVariant),
                                       const SizedBox(width: 3),
                                       Text(
                                         c.userName ?? 'Sistema',
                                         style: TextStyle(
                                             fontSize: 11,
-                                            color: Colors.grey.shade500),
+                                            color: cs.onSurfaceVariant),
                                       ),
                                       const SizedBox(width: 10),
                                       Icon(Icons.access_time,
                                           size: 11,
-                                          color: Colors.grey.shade400),
+                                          color: cs.onSurfaceVariant),
                                       const SizedBox(width: 3),
                                       Text(
                                         dateStr,
                                         style: TextStyle(
                                             fontSize: 11,
-                                            color: Colors.grey.shade400),
+                                            color: cs.onSurfaceVariant),
                                       ),
                                     ],
                                   ),
@@ -356,11 +356,12 @@ class _TypeChip extends StatelessWidget {
     required this.label,
     required this.selected,
     required this.onTap,
-    this.color = _purple,
+    required this.color,
   });
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     return GestureDetector(
       onTap: onTap,
       child: AnimatedContainer(
@@ -368,7 +369,7 @@ class _TypeChip extends StatelessWidget {
         padding:
             const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
         decoration: BoxDecoration(
-          color: selected ? color : Colors.grey.shade100,
+          color: selected ? color : cs.surfaceContainerHighest,
           borderRadius: BorderRadius.circular(20),
         ),
         child: Text(
@@ -376,7 +377,7 @@ class _TypeChip extends StatelessWidget {
           style: TextStyle(
             fontSize: 12,
             fontWeight: FontWeight.w600,
-            color: selected ? _white : Colors.grey.shade600,
+            color: selected ? cs.onPrimary : cs.onSurfaceVariant,
           ),
         ),
       ),

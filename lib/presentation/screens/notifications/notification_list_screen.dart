@@ -155,8 +155,8 @@ class _NotificationListScreenState extends State<NotificationListScreen> {
                         alignment: Alignment.centerRight,
                         padding: const EdgeInsets.only(right: 16),
                         color: Theme.of(context).colorScheme.error,
-                        child: const Icon(Icons.delete,
-                            color: Colors.white),
+                        child: Icon(Icons.delete,
+                            color: Theme.of(context).colorScheme.onError),
                       ),
                       onDismissed: (_) =>
                           context.read<NotificationCubit>().delete(n.id),

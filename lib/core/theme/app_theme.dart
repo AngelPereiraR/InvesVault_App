@@ -7,8 +7,8 @@ class AppTheme {
   // ── Tipografía ─────────────────────────────────────────────────────────────
   static TextTheme _buildTextTheme({required bool dark}) {
     final textColor = dark ? AppNeutrals.c200 : AppColors.textPrimary;
-    final subColor  = dark ? AppNeutrals.c400 : AppColors.textSecondary;
-    final hintColor = dark ? AppNeutrals.c400 : AppColors.textHint;
+    final subColor  = dark ? const Color(0xFFBBBBBB) : AppColors.textSecondary;
+    final hintColor = dark ? const Color(0xFFBBBBBB) : AppColors.textHint;
 
     return TextTheme(
       // H1 — Títulos de página: 24px, Roboto, Bold
@@ -75,7 +75,7 @@ class AppTheme {
         textTheme: _buildTextTheme(dark: false),
         scaffoldBackgroundColor: AppColors.background,
         appBarTheme: AppBarTheme(
-          backgroundColor: AppColors.primary,
+          backgroundColor: AppColors.shellAppBar,
           foregroundColor: AppColors.surface,
           elevation: 0,
           centerTitle: false,
@@ -84,6 +84,7 @@ class AppTheme {
             color: AppColors.surface,
           ),
           shadowColor: AppColors.shadowDark,
+          iconTheme: const IconThemeData(color: AppColors.surface),
         ),
         drawerTheme: const DrawerThemeData(
           backgroundColor: AppColors.surface,
@@ -184,30 +185,36 @@ class AppTheme {
           onPrimary: AppNeutrals.c600,
           primaryContainer: AppGreens.c600,
           onPrimaryContainer: AppGreens.c100,
-          secondary: AppPurples.c200,
+          secondary: AppPurples.c100,
           onSecondary: AppNeutrals.c600,
           secondaryContainer: AppPurples.c600,
           onSecondaryContainer: AppPurples.c100,
-          error: AppColors.danger,
-          onError: AppColors.surface,
+          error: Color(0xFFFF8585),
+          onError: AppNeutrals.c600,
+          errorContainer: Color(0xFF4A1515),
+          onErrorContainer: Color(0xFFFF8585),
           surface: Color(0xFF1E1E1E),
           onSurface: AppNeutrals.c200,
           surfaceContainerHighest: Color(0xFF2C2C2C),
-          onSurfaceVariant: AppNeutrals.c400,
-          outline: AppNeutrals.c500,
-          outlineVariant: AppNeutrals.c500,
+          onSurfaceVariant: Color(0xFFBBBBBB),
+          outline: Color(0xFF757575),
+          outlineVariant: Color(0xFF757575),
           shadow: AppColors.shadowDark,
         ),
         textTheme: _buildTextTheme(dark: true),
         appBarTheme: AppBarTheme(
+          backgroundColor: AppPurples.c600,
+          foregroundColor: AppNeutrals.c200,
           elevation: 0,
           centerTitle: false,
           titleTextStyle: GoogleFonts.roboto(
             fontSize: 20, fontWeight: FontWeight.w500,
             color: AppNeutrals.c200,
           ),
+          iconTheme: const IconThemeData(color: AppNeutrals.c200),
         ),
         cardTheme: CardThemeData(
+          color: const Color(0xFF2C2C2C),
           elevation: 2,
           shadowColor: AppColors.shadowDark,
           shape: RoundedRectangleBorder(

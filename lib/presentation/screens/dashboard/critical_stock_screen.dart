@@ -7,8 +7,6 @@ import '../../widgets/empty_view.dart';
 import '../../widgets/error_view.dart';
 import '../../widgets/loading_indicator.dart';
 
-const _purple = Color(0xFF3C096C);
-
 class CriticalStockScreen extends StatelessWidget {
   const CriticalStockScreen({super.key});
 
@@ -17,8 +15,6 @@ class CriticalStockScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Stock crítico'),
-        backgroundColor: _purple,
-        foregroundColor: Colors.white,
         elevation: 0,
       ),
       body: BlocBuilder<DashboardCubit, DashboardState>(
@@ -47,6 +43,8 @@ class CriticalStockScreen extends StatelessWidget {
             padding: const EdgeInsets.all(16),
             itemCount: items.length,
             itemBuilder: (context, index) {
+              final cs = Theme.of(context).colorScheme;
+              final isDark = Theme.of(context).brightness == Brightness.dark;
               final item = items[index];
               return GestureDetector(
                 onTap: () => context.openAuxiliaryRoute(
@@ -58,14 +56,17 @@ class CriticalStockScreen extends StatelessWidget {
                   padding: const EdgeInsets.symmetric(
                       horizontal: 16, vertical: 12),
                   decoration: BoxDecoration(
-                    color: Colors.red.shade50,
+                    color: isDark ? cs.errorContainer : const Color(0xFFFDE2E4),
                     borderRadius: BorderRadius.circular(14),
-                    border: Border.all(color: Colors.red.shade100),
+                    border: Border.all(
+                        color: isDark
+                            ? cs.error.withValues(alpha: 0.3)
+                            : const Color(0xFFFBD0D3)),
                   ),
                   child: Row(
                     children: [
                       Icon(Icons.warning_amber_rounded,
-                          color: Colors.red.shade600, size: 20),
+                          color: cs.error, size: 20),
                       const SizedBox(width: 12),
                       Expanded(
                         child: Column(
@@ -74,21 +75,22 @@ class CriticalStockScreen extends StatelessWidget {
                             Text(
                               item.product?.name ??
                                   'Producto ${item.productId}',
-                              style: const TextStyle(
+                              style: TextStyle(
                                   fontSize: 14,
-                                  fontWeight: FontWeight.w600),
+                                  fontWeight: FontWeight.w600,
+                                  color: cs.onSurface),
                             ),
                             Text(
                               'Stock: ${item.quantity.toInt()} / Mín: ${item.minQuantity?.toInt() ?? 0}',
                               style: TextStyle(
                                   fontSize: 12,
-                                  color: Colors.grey.shade600),
+                                  color: cs.onSurfaceVariant),
                             ),
                           ],
                         ),
                       ),
                       Icon(Icons.chevron_right,
-                          color: Colors.red.shade300, size: 20),
+                          color: cs.error.withValues(alpha: 0.6), size: 20),
                     ],
                   ),
                 ),

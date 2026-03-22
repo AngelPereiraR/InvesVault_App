@@ -9,11 +9,6 @@ import '../../widgets/empty_view.dart';
 import '../../widgets/error_view.dart';
 import '../../widgets/loading_indicator.dart';
 
-const _purple = Color(0xFF3C096C);
-const _mint = Color(0xFFD8F3DC);
-const _accentGreen = Color(0xFF52B788);
-const _white = Color(0xFFFFFFFF);
-
 class StoreListScreen extends StatefulWidget {
   const StoreListScreen({super.key});
 
@@ -92,6 +87,7 @@ class _StoreListScreenState extends State<StoreListScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     return BlocConsumer<StoreCubit, StoreState>(
       listenWhen: (_, curr) => curr is StoreError,
       listener: (context, state) {
@@ -99,7 +95,7 @@ class _StoreListScreenState extends State<StoreListScreen> {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(state.message),
-              backgroundColor: Colors.red.shade700,
+              backgroundColor: cs.error,
             ),
           );
         }
@@ -152,13 +148,16 @@ class _StoreListScreenState extends State<StoreListScreen> {
                   count: _selected.length,
                   onCancel: _exitDeleteMode,
                   onDelete: _selected.isEmpty ? null : _deleteSelected,
+                  emptyLabel: 'Selecciona tiendas',
+                  selectedSingular: 'tienda seleccionada',
+                  selectedPlural: 'tiendas seleccionadas',
                 )
               else
                 Align(
                   alignment: Alignment.centerRight,
                   child: IconButton(
                     icon: Icon(Icons.checklist_rounded,
-                        color: Colors.grey.shade500),
+                        color: cs.onSurfaceVariant),
                     tooltip: 'Seleccionar para borrar',
                     onPressed: () => setState(() => _deleteMode = true),
                   ),
@@ -199,12 +198,12 @@ class _StoreListScreenState extends State<StoreListScreen> {
                         child: Container(
                           decoration: BoxDecoration(
                             color: isSelected && _deleteMode
-                                ? Colors.red.shade50
-                                : _white,
+                                ? cs.errorContainer
+                                : cs.surfaceContainerHighest,
                             borderRadius: BorderRadius.circular(16),
                             border: isSelected && _deleteMode
                                 ? Border.all(
-                                    color: Colors.red.shade300, width: 1.5)
+                                    color: cs.error, width: 1.5)
                                 : null,
                             boxShadow: [
                               BoxShadow(
@@ -220,19 +219,19 @@ class _StoreListScreenState extends State<StoreListScreen> {
                             leading: Container(
                               width: 44,
                               height: 44,
-                              decoration: const BoxDecoration(
-                                color: _mint,
+                              decoration: BoxDecoration(
+                                color: cs.primaryContainer,
                                 shape: BoxShape.circle,
                               ),
-                              child: const Icon(Icons.store_outlined,
-                                  color: _purple, size: 22),
+                              child: Icon(Icons.store_outlined,
+                                  color: cs.secondary, size: 22),
                             ),
                             title: Text(
                               store.name,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontWeight: FontWeight.w600,
                                 fontSize: 15,
-                                color: _purple,
+                                color: cs.secondary,
                               ),
                             ),
                             subtitle: store.location != null
@@ -242,7 +241,7 @@ class _StoreListScreenState extends State<StoreListScreen> {
                                       store.location!,
                                       style: TextStyle(
                                           fontSize: 13,
-                                          color: Colors.grey.shade500),
+                                          color: cs.onSurfaceVariant),
                                     ),
                                   )
                                 : null,
@@ -252,15 +251,15 @@ class _StoreListScreenState extends State<StoreListScreen> {
                                         ? Icons.check_circle
                                         : Icons.radio_button_unchecked,
                                     color: isSelected
-                                        ? Colors.red.shade600
-                                        : Colors.grey.shade400,
+                                        ? cs.error
+                                        : cs.onSurfaceVariant,
                                   )
                                 : Row(
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
                                       IconButton(
                                         icon: Icon(Icons.edit_outlined,
-                                            color: _purple.withValues(
+                                            color: cs.secondary.withValues(
                                                 alpha: 0.6),
                                             size: 20),
                                         tooltip: 'Editar',
@@ -270,7 +269,7 @@ class _StoreListScreenState extends State<StoreListScreen> {
                                       ),
                                       IconButton(
                                         icon: Icon(Icons.delete_outline,
-                                            color: Colors.red.shade300,
+                                            color: cs.error,
                                             size: 20),
                                         tooltip: 'Eliminar',
                                         onPressed: () async {
@@ -327,132 +326,135 @@ Future<void> showStoreDialog(
 
   await showDialog<void>(
     context: context,
-    builder: (ctx) => Dialog(
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.all(Radius.circular(20)),
-      ),
-      insetPadding:
-          const EdgeInsets.symmetric(horizontal: 24, vertical: 40),
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
-        child: Form(
-          key: formKey,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                store == null ? 'Añadir tienda' : 'Editar tienda',
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w700,
-                  color: _purple,
+    builder: (ctx) {
+      final cs = Theme.of(ctx).colorScheme;
+      return Dialog(
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.all(Radius.circular(20)),
+        ),
+        insetPadding:
+            const EdgeInsets.symmetric(horizontal: 24, vertical: 40),
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(24),
+          child: Form(
+            key: formKey,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  store == null ? 'Añadir tienda' : 'Editar tienda',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w700,
+                    color: cs.secondary,
+                  ),
                 ),
-              ),
-              const SizedBox(height: 20),
+                const SizedBox(height: 20),
 
-              // Name
-              TextFormField(
-                controller: nameCtrl,
-                decoration: _fieldDecoration('Nombre de la tienda',
-                    Icons.store_outlined),
-                validator: (v) =>
-                    (v == null || v.trim().isEmpty) ? 'Campo obligatorio' : null,
-              ),
-              const SizedBox(height: 14),
+                // Name
+                TextFormField(
+                  controller: nameCtrl,
+                  decoration: _fieldDecoration('Nombre de la tienda',
+                      Icons.store_outlined, cs),
+                  validator: (v) =>
+                      (v == null || v.trim().isEmpty) ? 'Campo obligatorio' : null,
+                ),
+                const SizedBox(height: 14),
 
-              // Location
-              TextFormField(
-                controller: locationCtrl,
-                decoration: _fieldDecoration(
-                    'Dirección (opcional)', Icons.location_on_outlined),
-              ),
-              const SizedBox(height: 24),
+                // Location
+                TextFormField(
+                  controller: locationCtrl,
+                  decoration: _fieldDecoration(
+                      'Dirección (opcional)', Icons.location_on_outlined, cs),
+                ),
+                const SizedBox(height: 24),
 
-              // Actions
-              Row(
-                children: [
-                  Expanded(
-                    child: OutlinedButton(
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: _purple,
-                        side: const BorderSide(color: _purple),
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12)),
-                        padding:
-                            const EdgeInsets.symmetric(vertical: 14),
+                // Actions
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton(
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: cs.secondary,
+                          side: BorderSide(color: cs.secondary),
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12)),
+                          padding:
+                              const EdgeInsets.symmetric(vertical: 14),
+                        ),
+                        onPressed: () => Navigator.of(ctx).pop(),
+                        child: const Text('Cancelar'),
                       ),
-                      onPressed: () => Navigator.of(ctx).pop(),
-                      child: const Text('Cancelar'),
                     ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: _accentGreen,
-                        foregroundColor: _white,
-                        elevation: 0,
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12)),
-                        padding:
-                            const EdgeInsets.symmetric(vertical: 14),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: cs.primary,
+                          foregroundColor: cs.onPrimary,
+                          elevation: 0,
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12)),
+                          padding:
+                              const EdgeInsets.symmetric(vertical: 14),
+                        ),
+                        onPressed: () {
+                          if (!formKey.currentState!.validate()) return;
+                          final name = nameCtrl.text.trim();
+                          final location =
+                              locationCtrl.text.trim().isEmpty
+                                  ? null
+                                  : locationCtrl.text.trim();
+                          Navigator.of(ctx).pop();
+                          if (!context.mounted) return;
+                          if (store == null) {
+                            context
+                                .read<StoreCubit>()
+                                .create(name: name, location: location);
+                          } else {
+                            context.read<StoreCubit>().update(store.id, {
+                              'name': name,
+                              if (location != null) 'location': location,
+                            });
+                          }
+                        },
+                        child: const Text('Guardar'),
                       ),
-                      onPressed: () {
-                        if (!formKey.currentState!.validate()) return;
-                        final name = nameCtrl.text.trim();
-                        final location =
-                            locationCtrl.text.trim().isEmpty
-                                ? null
-                                : locationCtrl.text.trim();
-                        Navigator.of(ctx).pop();
-                        if (!context.mounted) return;
-                        if (store == null) {
-                          context
-                              .read<StoreCubit>()
-                              .create(name: name, location: location);
-                        } else {
-                          context.read<StoreCubit>().update(store.id, {
-                            'name': name,
-                            if (location != null) 'location': location,
-                          });
-                        }
-                      },
-                      child: const Text('Guardar'),
                     ),
-                  ),
-                ],
-              ),
-            ],
+                  ],
+                ),
+              ],
+            ),
           ),
         ),
-      ),
-    ),
+      );
+    },
   );
 }
 
-InputDecoration _fieldDecoration(String label, IconData icon) =>
+InputDecoration _fieldDecoration(String label, IconData icon, ColorScheme cs) =>
     InputDecoration(
       labelText: label,
       labelStyle:
-          TextStyle(color: _purple.withOpacity(0.7), fontSize: 14),
-      prefixIcon: Icon(icon, color: _purple.withOpacity(0.6), size: 20),
+          TextStyle(color: cs.secondary.withValues(alpha: 0.7), fontSize: 14),
+      prefixIcon: Icon(icon, color: cs.secondary.withValues(alpha: 0.6), size: 20),
       filled: true,
-      fillColor: _mint,
+      fillColor: cs.primaryContainer,
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
         borderSide: BorderSide.none,
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: _purple, width: 1.5),
+        borderSide: BorderSide(color: cs.secondary, width: 1.5),
       ),
       errorBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide(color: Colors.red.shade700, width: 1.5),
+        borderSide: BorderSide(color: cs.error, width: 1.5),
       ),
       focusedErrorBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide(color: Colors.red.shade700, width: 1.5),
+        borderSide: BorderSide(color: cs.error, width: 1.5),
       ),
     );

@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../core/theme/app_colors.dart';
 import '../../cubits/notification/notification_cubit.dart';
 import '../../cubits/product_form/product_form_cubit.dart';
 import '../../cubits/shopping_list/shopping_list_cubit.dart';
@@ -12,11 +13,6 @@ import '../../widgets/confirm_dialog.dart';
 import '../../widgets/empty_view.dart';
 import '../../widgets/error_view.dart';
 import '../../widgets/loading_indicator.dart';
-
-const _purple = Color(0xFF3C096C);
-const _mint = Color(0xFFD8F3DC);
-const _accentGreen = Color(0xFF52B788);
-const _white = Color(0xFFFFFFFF);
 
 class ShoppingListScreen extends StatefulWidget {
   const ShoppingListScreen({super.key});
@@ -177,7 +173,98 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
     return null;
   }
 
-  //  Buy logic 
+  // ── Info dialog ─────────────────────────────────────────────────────────────
+  void _showInfoDialog(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    showDialog<void>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Row(
+          children: [
+            Icon(Icons.shopping_cart_outlined, color: cs.secondary),
+            const SizedBox(width: 8),
+            Text('Lista de la compra',
+                style: TextStyle(
+                    color: cs.secondary,
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold)),
+          ],
+        ),
+        content: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _InfoRow(
+                icon: Icons.auto_awesome,
+                color: cs.primary,
+                title: 'Generación automática',
+                body:
+                    'Pulsa ✨ para que el sistema calcule qué productos necesitas reponer según su stock mínimo.',
+              ),
+              const SizedBox(height: 12),
+              _InfoRow(
+                icon: Icons.check_circle_outline,
+                color: cs.primary,
+                title: 'Marcar para comprar',
+                body:
+                    'Toca el check de un producto para marcarlo. Solo los marcados se procesan al pulsar "Comprar seleccionados".',
+              ),
+              const SizedBox(height: 12),
+              _InfoRow(
+                icon: Icons.tune,
+                color: cs.secondary,
+                title: 'Ajustar cantidades',
+                body:
+                    'Usa los botones + / − para cambiar la cantidad planificada (cuánto necesitas) o la cantidad a comprar ahora.',
+              ),
+              const SizedBox(height: 12),
+              _InfoRow(
+                icon: Icons.shopping_bag_outlined,
+                color: cs.secondary,
+                title: 'Registrar la compra',
+                body:
+                    'Al pulsar "Comprar seleccionados", el stock de cada producto marcado se incrementa automáticamente y el artículo se elimina de la lista.',
+              ),
+              const SizedBox(height: 12),
+              _InfoRow(
+                icon: Icons.store_outlined,
+                color: cs.primary,
+                title: 'Filtrar por tienda',
+                body:
+                    'Usa las etiquetas superiores (pestaña Tiendas) para ver solo los productos de una tienda concreta.',
+              ),
+              const SizedBox(height: 12),
+              _InfoRow(
+                icon: Icons.checklist_rounded,
+                color: cs.onSurfaceVariant,
+                title: 'Eliminar varios a la vez',
+                body:
+                    'El icono de lista con checks activa la selección múltiple. Marca los productos que quieras y pulsa "Eliminar" para borrarlos todos de la lista a la vez.',
+              ),
+              const SizedBox(height: 12),
+              _InfoRow(
+                icon: Icons.delete_outline,
+                color: cs.error,
+                title: 'Eliminar de la lista',
+                body:
+                    'La papelera solo elimina el producto de la lista de la compra. No modifica el stock ni elimina el producto del almacén.',
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: Text('Entendido', style: TextStyle(color: cs.secondary)),
+          ),
+        ],
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      ),
+    );
+  }
+
+  //  Buy logic
   Future<void> _buy(List items) async {
     final toProcess = List.of(_checkedSet);
     for (final id in toProcess) {
@@ -256,13 +343,14 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
         if (state is ShoppingListError) {
           ScaffoldMessenger.of(context).showSnackBar(SnackBar(
             content: Text(state.message),
-            backgroundColor: Colors.red.shade700,
+            backgroundColor: Theme.of(context).colorScheme.error,
           ));
         }
       },
       buildWhen: (prev, curr) =>
           !(curr is ShoppingListError && prev is ShoppingListLoaded),
       builder: (context, state) {
+        final cs = Theme.of(context).colorScheme;
         // Derive data for the toolbar (always present)
         final List items =
             state is ShoppingListLoaded ? state.items : const [];
@@ -294,7 +382,7 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
               )
             else
               Container(
-                color: _white,
+                color: cs.surface,
                 padding:
                     const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                 child: Row(
@@ -340,24 +428,30 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
                       ),
                     ),
                     IconButton(
-                      icon:
-                          const Icon(Icons.auto_awesome, color: _accentGreen),
+                      icon: Icon(Icons.auto_awesome, color: cs.primary),
                       tooltip: 'Generar automáticamente',
                       onPressed: () => _showGenerateDialog(context),
                     ),
                     IconButton(
-                      icon: const Icon(Icons.add_circle_outline,
-                          color: _purple),
+                      icon: Icon(Icons.add_circle_outline, color: cs.secondary),
                       tooltip: 'Añadir producto',
                       onPressed: () =>
                           _showAddDialogWithWarehouseSelection(context),
                     ),
                     IconButton(
                       icon: Icon(
+                        Icons.info_outline,
+                        color: cs.onSurfaceVariant,
+                      ),
+                      tooltip: 'Cómo funciona la lista',
+                      onPressed: () => _showInfoDialog(context),
+                    ),
+                    IconButton(
+                      icon: Icon(
                         Icons.checklist_rounded,
                         color: _deleteMode
-                            ? Colors.red.shade600
-                            : Colors.grey.shade500,
+                            ? cs.error
+                            : cs.onSurfaceVariant,
                       ),
                       tooltip: _deleteMode
                           ? 'Salir del modo borrado'
@@ -429,10 +523,11 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
           )
         else
         Container(
-          color: _white,
+          color: Theme.of(context).colorScheme.surface,
           padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
           child: BlocBuilder<WarehouseCubit, WarehouseState>(
             builder: (context, state) {
+              final cs = Theme.of(context).colorScheme;
               if (state is! WarehouseLoaded) return const LoadingIndicator();
               return Row(
                 children: [
@@ -442,15 +537,15 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
                       value: _selectedWarehouseId,
                       decoration: InputDecoration(
                         labelText: 'Almacén',
-                        prefixIcon: const Icon(Icons.warehouse_outlined,
-                            color: _purple),
+                        prefixIcon: Icon(Icons.warehouse_outlined,
+                            color: cs.secondary),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                           borderSide: BorderSide.none,
                         ),
                         filled: true,
-                        fillColor: _mint,
-                        labelStyle: const TextStyle(color: _purple),
+                        fillColor: cs.primaryContainer,
+                        labelStyle: TextStyle(color: cs.secondary),
                         contentPadding: const EdgeInsets.symmetric(
                             horizontal: 12, vertical: 12),
                       ),
@@ -475,8 +570,7 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
                   const SizedBox(width: 8),
                   // Generate all warehouses (always visible)
                   IconButton(
-                    icon: const Icon(Icons.auto_awesome_mosaic,
-                        color: _accentGreen),
+                    icon: Icon(Icons.auto_awesome_mosaic, color: cs.primary),
                     tooltip: 'Generar todos los almacenes',
                     onPressed: () async {
                       await context
@@ -490,11 +584,18 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
                       }
                     },
                   ),
+                  IconButton(
+                    icon: Icon(
+                      Icons.info_outline,
+                      color: cs.onSurfaceVariant,
+                    ),
+                    tooltip: 'Cómo funciona la lista',
+                    onPressed: () => _showInfoDialog(context),
+                  ),
                   if (_selectedWarehouseId != null) ...[
                     const SizedBox(width: 8),
                     IconButton(
-                      icon: const Icon(Icons.add_circle_outline,
-                          color: _purple),
+                      icon: Icon(Icons.add_circle_outline, color: cs.secondary),
                       tooltip: 'Añadir producto',
                       onPressed: () => _showAddDialog(context),
                     ),
@@ -502,8 +603,8 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
                       icon: Icon(
                         Icons.checklist_rounded,
                         color: _deleteMode
-                            ? Colors.red.shade600
-                            : Colors.grey.shade500,
+                            ? cs.error
+                            : cs.onSurfaceVariant,
                       ),
                       tooltip: _deleteMode
                           ? 'Salir del modo borrado'
@@ -513,16 +614,14 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
                           : setState(() => _deleteMode = true),
                     ),
                     IconButton(
-                      icon: const Icon(Icons.auto_awesome,
-                          color: _accentGreen),
+                      icon: Icon(Icons.auto_awesome, color: cs.primary),
                       tooltip: 'Generar automáticamente',
                       onPressed: () => context
                           .read<ShoppingListCubit>()
                           .generate(_selectedWarehouseId!),
                     ),
                     IconButton(
-                      icon:
-                          Icon(Icons.delete_sweep, color: Colors.red.shade400),
+                      icon: Icon(Icons.delete_sweep, color: cs.error),
                       tooltip: 'Limpiar lista',
                       onPressed: () async {
                         final confirm = await showConfirmDialog(
@@ -567,7 +666,7 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
                       ScaffoldMessenger.of(context)
                           .showSnackBar(SnackBar(
                         content: Text(state.message),
-                        backgroundColor: Colors.red.shade700,
+                        backgroundColor: Theme.of(context).colorScheme.error,
                       ));
                     }
                   },
@@ -627,19 +726,20 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
     final coverMin = alertGap <= 0 || buyNow >= alertGap;
     final buyAll = buyNow >= planned;
 
+    final cs = Theme.of(context).colorScheme;
     return GestureDetector(
       onTap: _deleteMode ? () => _toggleDeleteSelection(id) : null,
       child: Container(
       margin: const EdgeInsets.only(bottom: 10),
       decoration: BoxDecoration(
         color: _deleteMode
-            ? (isSelectedForDelete ? Colors.red.shade50 : _white)
+            ? (isSelectedForDelete ? cs.errorContainer : cs.surface)
             : (isChecked
-                ? (buyAll ? Colors.green.shade50 : Colors.orange.shade50)
-                : _white),
+                ? (buyAll ? AppColors.success.withValues(alpha: 0.15) : AppColors.warning.withValues(alpha: 0.15))
+                : cs.surface),
         borderRadius: BorderRadius.circular(14),
         border: isSelectedForDelete
-            ? Border.all(color: Colors.red.shade400, width: 1.5)
+            ? Border.all(color: cs.error, width: 1.5)
             : null,
         boxShadow: [
           BoxShadow(
@@ -655,7 +755,7 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 4),
               child: Checkbox(
                 value: isSelectedForDelete,
-                activeColor: Colors.red.shade600,
+                activeColor: cs.error,
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(4)),
                 onChanged: (_) => _toggleDeleteSelection(id),
@@ -664,7 +764,7 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
           else
             Checkbox(
             value: isChecked,
-            activeColor: _accentGreen,
+            activeColor: cs.primary,
             shape:
                 RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
             onChanged: (v) => setState(() {
@@ -688,7 +788,7 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
-                      color: isChecked ? Colors.grey.shade600 : _purple,
+                      color: isChecked ? cs.onSurfaceVariant : cs.secondary,
                       decoration: (isChecked && buyAll)
                           ? TextDecoration.lineThrough
                           : null,
@@ -704,7 +804,7 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
                           fontSize: 11,
-                          color: _purple.withValues(alpha: 0.55),
+                          color: cs.secondary.withValues(alpha: 0.55),
                           fontWeight: FontWeight.w500),
                     ),
                   ],
@@ -714,7 +814,7 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
                       'Mínimo sugerido: ${alertGap.toStringAsFixed(0)}'
                       '${item.product?.defaultUnit != null ? ' ${item.product!.defaultUnit}' : ''}',
                       style: TextStyle(
-                          fontSize: 11, color: Colors.grey.shade500),
+                          fontSize: 11, color: cs.onSurfaceVariant),
                     ),
                   ],
                   if (isChecked) ...[
@@ -730,8 +830,8 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
                       style: TextStyle(
                           fontSize: 11,
                           color: buyAll
-                              ? Colors.green.shade600
-                              : Colors.orange.shade700),
+                              ? AppColors.success
+                              : AppColors.warning),
                     ),
                   ],
                 ],
@@ -744,7 +844,7 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
             children: [
               Text('A comprar',
                   style:
-                      TextStyle(fontSize: 10, color: Colors.grey.shade500)),
+                      TextStyle(fontSize: 10, color: cs.onSurfaceVariant)),
               const SizedBox(height: 2),
               _QtySelector(
                 qty: planned,
@@ -762,7 +862,7 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text('Ahora',
-                    style: TextStyle(fontSize: 10, color: _accentGreen)),
+                    style: TextStyle(fontSize: 10, color: cs.primary)),
                 const SizedBox(height: 2),
                 _QtySelector(
                   qty: buyNow,
@@ -778,7 +878,7 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
           // Delete
           IconButton(
             icon: Icon(Icons.delete_outline,
-                color: Colors.red.shade300, size: 20),
+                color: Theme.of(context).colorScheme.error, size: 20),
             onPressed: () async {
               final confirm = await showConfirmDialog(
                 context,
@@ -807,12 +907,13 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
 
   Widget _buildBuyButton(List items) {
     final count = _checkedSet.length;
+    final cs = Theme.of(context).colorScheme;
     return SizedBox(
       width: double.infinity,
       child: ElevatedButton.icon(
         style: ElevatedButton.styleFrom(
-          backgroundColor: _accentGreen,
-          foregroundColor: _white,
+          backgroundColor: cs.primary,
+          foregroundColor: cs.surface,
           shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(14)),
           elevation: 0,
@@ -855,32 +956,32 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
+                Text(
                   'Generar lista automáticamente',
                   style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.w700,
-                      color: _purple),
+                      color: Theme.of(ctx).colorScheme.secondary),
                 ),
                 const SizedBox(height: 8),
-                const Text(
+                Text(
                   'Selecciona el almacén para generar la lista basándose en el stock bajo.',
-                  style: TextStyle(fontSize: 13, color: Colors.grey),
+                  style: TextStyle(fontSize: 13, color: Theme.of(ctx).colorScheme.onSurfaceVariant),
                 ),
                 const SizedBox(height: 20),
                 DropdownButtonFormField<int>(
                   isExpanded: true,
                   value: selectedWarehouseId,
                   decoration:
-                      _fieldDeco('Almacén', Icons.warehouse_outlined),
+                      _fieldDeco(ctx, 'Almacén', Icons.warehouse_outlined),
                   items: [
-                    const DropdownMenuItem<int>(
+                    DropdownMenuItem<int>(
                       value: -1,
                       child: Row(
                         children: [
-                          Icon(Icons.all_inclusive, color: _accentGreen, size: 18),
-                          SizedBox(width: 8),
-                          Text('Todos los almacenes'),
+                          Icon(Icons.all_inclusive, color: Theme.of(ctx).colorScheme.primary, size: 18),
+                          const SizedBox(width: 8),
+                          const Text('Todos los almacenes'),
                         ],
                       ),
                     ),
@@ -955,23 +1056,23 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('Añadir producto',
+                    Text('Añadir producto',
                         style: TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.w700,
-                            color: _purple)),
+                            color: Theme.of(ctx).colorScheme.secondary)),
                     const SizedBox(height: 20),
                     if (formState is ProductFormLoading)
                       const Center(child: CircularProgressIndicator())
                     else if (products.isEmpty)
-                      const Text('Todos los productos ya están en la lista.',
-                          style: TextStyle(color: Colors.grey))
+                      Text('Todos los productos ya están en la lista.',
+                          style: TextStyle(color: Theme.of(ctx).colorScheme.onSurfaceVariant))
                     else
                       DropdownButtonFormField<int>(
                         isExpanded: true,
                         value: selectedProductId,
                         decoration: _fieldDeco(
-                            'Producto', Icons.inventory_2_outlined),
+                            ctx, 'Producto', Icons.inventory_2_outlined),
                         items: products
                             .map((p) => DropdownMenuItem<int>(
                                 value: p.id as int,
@@ -981,7 +1082,7 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
                             setInner(() => selectedProductId = v),
                       ),
                     const SizedBox(height: 16),
-                    _qtyRow(qty, setInner),
+                    _qtyRow(ctx, qty, setInner),
                     const SizedBox(height: 24),
                     _dialogButtons(
                       ctx: ctx,
@@ -1045,17 +1146,17 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('Añadir producto',
+                    Text('Añadir producto',
                         style: TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.w700,
-                            color: _purple)),
+                            color: Theme.of(ctx).colorScheme.secondary)),
                     const SizedBox(height: 20),
                     DropdownButtonFormField<int>(
                       isExpanded: true,
                       value: selectedWarehouseId,
                       decoration:
-                          _fieldDeco('Almacén', Icons.warehouse_outlined),
+                          _fieldDeco(ctx, 'Almacén', Icons.warehouse_outlined),
                       items: warehouseState.warehouses
                           .map((w) => DropdownMenuItem<int>(
                               value: w.id, child: Text(w.name)))
@@ -1067,14 +1168,14 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
                     if (formState is ProductFormLoading)
                       const Center(child: CircularProgressIndicator())
                     else if (products.isEmpty)
-                      const Text('Todos los productos ya están en la lista.',
-                          style: TextStyle(color: Colors.grey))
+                      Text('Todos los productos ya están en la lista.',
+                          style: TextStyle(color: Theme.of(ctx).colorScheme.onSurfaceVariant))
                     else
                       DropdownButtonFormField<int>(
                         isExpanded: true,
                         value: selectedProductId,
                         decoration: _fieldDeco(
-                            'Producto', Icons.inventory_2_outlined),
+                            ctx, 'Producto', Icons.inventory_2_outlined),
                         items: products
                             .map((p) => DropdownMenuItem<int>(
                                 value: p.id as int,
@@ -1084,7 +1185,7 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
                             setInner(() => selectedProductId = v),
                       ),
                     const SizedBox(height: 16),
-                    _qtyRow(qty, setInner),
+                    _qtyRow(ctx, qty, setInner),
                     const SizedBox(height: 24),
                     _dialogButtons(
                       ctx: ctx,
@@ -1106,36 +1207,42 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
     );
   }
 
-  //  Dialog helpers 
-  InputDecoration _fieldDeco(String label, IconData icon) => InputDecoration(
-        labelText: label,
-        prefixIcon: Icon(icon, color: _purple),
-        filled: true,
-        fillColor: _mint,
-        border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide.none),
-        focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: const BorderSide(color: _purple, width: 1.5)),
-        labelStyle: const TextStyle(color: _purple),
-      );
+  //  Dialog helpers
+  InputDecoration _fieldDeco(BuildContext ctx, String label, IconData icon) {
+    final cs = Theme.of(ctx).colorScheme;
+    return InputDecoration(
+      labelText: label,
+      prefixIcon: Icon(icon, color: cs.secondary),
+      filled: true,
+      fillColor: cs.primaryContainer,
+      border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide.none),
+      focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: cs.secondary, width: 1.5)),
+      labelStyle: TextStyle(color: cs.secondary),
+    );
+  }
 
-  Widget _qtyRow(int qty, StateSetter setInner) => Row(
-        children: [
-          const Text('Cantidad:',
-              style: TextStyle(
-                  color: _purple, fontWeight: FontWeight.w600)),
-          const Spacer(),
-          _QtySelector(
-            qty: qty,
-            onDecrement: () =>
-                setInner(() => qty = (qty - 1).clamp(1, 999)),
-            onIncrement: () =>
-                setInner(() => qty = (qty + 1).clamp(1, 999)),
-          ),
-        ],
-      );
+  Widget _qtyRow(BuildContext ctx, int qty, StateSetter setInner) {
+    final cs = Theme.of(ctx).colorScheme;
+    return Row(
+      children: [
+        Text('Cantidad:',
+            style: TextStyle(
+                color: cs.secondary, fontWeight: FontWeight.w600)),
+        const Spacer(),
+        _QtySelector(
+          qty: qty,
+          onDecrement: () =>
+              setInner(() => qty = (qty - 1).clamp(1, 999)),
+          onIncrement: () =>
+              setInner(() => qty = (qty + 1).clamp(1, 999)),
+        ),
+      ],
+    );
+  }
 
   Widget _dialogButtons({
     required BuildContext ctx,
@@ -1143,45 +1250,47 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
     required bool enabled,
     required VoidCallback onConfirm,
     String confirmLabel = 'Añadir',
-  }) =>
-      Row(
-        children: [
-          Expanded(
-            child: OutlinedButton(
-              style: OutlinedButton.styleFrom(
-                foregroundColor: _purple,
-                side: const BorderSide(color: _purple),
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12)),
-                padding: const EdgeInsets.symmetric(vertical: 14),
-              ),
-              onPressed: () => Navigator.of(ctx).pop(),
-              child: const Text('Cancelar'),
+  }) {
+    final cs = Theme.of(ctx).colorScheme;
+    return Row(
+      children: [
+        Expanded(
+          child: OutlinedButton(
+            style: OutlinedButton.styleFrom(
+              foregroundColor: cs.secondary,
+              side: BorderSide(color: cs.secondary),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12)),
+              padding: const EdgeInsets.symmetric(vertical: 14),
             ),
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: const Text('Cancelar'),
           ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: _accentGreen,
-                foregroundColor: _white,
-                elevation: 0,
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12)),
-                padding: const EdgeInsets.symmetric(vertical: 14),
-              ),
-              onPressed: enabled
-                  ? () {
-                      Navigator.of(ctx).pop();
-                      if (!outerCtx.mounted) return;
-                      onConfirm();
-                    }
-                  : null,
-              child: Text(confirmLabel),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: cs.primary,
+              foregroundColor: cs.surface,
+              elevation: 0,
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12)),
+              padding: const EdgeInsets.symmetric(vertical: 14),
             ),
+            onPressed: enabled
+                ? () {
+                    Navigator.of(ctx).pop();
+                    if (!outerCtx.mounted) return;
+                    onConfirm();
+                  }
+                : null,
+            child: Text(confirmLabel),
           ),
-        ],
-      );
+        ),
+      ],
+    );
+  }
 }
 
 //  Sliding tab header 
@@ -1198,8 +1307,9 @@ class _SlidingTabHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     return Container(
-      color: _purple,
+      color: cs.secondary,
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
       child: LayoutBuilder(
         builder: (context, constraints) {
@@ -1227,8 +1337,8 @@ class _SlidingTabHeader extends StatelessWidget {
                                 ? FontWeight.w700
                                 : FontWeight.w400,
                             color: isSelected
-                                ? _white
-                                : _white.withValues(alpha: 0.55),
+                                ? cs.onPrimary
+                                : cs.onPrimary.withValues(alpha: 0.55),
                           ),
                         ),
                       ),
@@ -1240,7 +1350,7 @@ class _SlidingTabHeader extends StatelessWidget {
                 height: 3,
                 child: Stack(
                   children: [
-                    Container(color: _white.withValues(alpha: 0.15)),
+                    Container(color: cs.onPrimary.withValues(alpha: 0.15)),
                     AnimatedPositioned(
                       duration: const Duration(milliseconds: 220),
                       curve: Curves.easeInOut,
@@ -1250,7 +1360,7 @@ class _SlidingTabHeader extends StatelessWidget {
                       bottom: 0,
                       child: Container(
                         decoration: BoxDecoration(
-                          color: _accentGreen,
+                          color: cs.primary,
                           borderRadius: BorderRadius.circular(2),
                         ),
                       ),
@@ -1280,6 +1390,7 @@ class _StoreChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     return GestureDetector(
       onTap: onTap,
       child: AnimatedContainer(
@@ -1288,12 +1399,12 @@ class _StoreChip extends StatelessWidget {
         padding:
             const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
         decoration: BoxDecoration(
-          color: selected ? _purple : _mint,
+          color: selected ? cs.secondary : cs.primaryContainer,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
               color: selected
-                  ? _purple
-                  : _accentGreen.withValues(alpha: 0.4),
+                  ? cs.secondary
+                  : cs.primary.withValues(alpha: 0.4),
               width: 1),
         ),
         child: Text(
@@ -1301,7 +1412,7 @@ class _StoreChip extends StatelessWidget {
           style: TextStyle(
             fontSize: 13,
             fontWeight: FontWeight.w600,
-            color: selected ? _white : _purple,
+            color: selected ? cs.onPrimary : cs.secondary,
           ),
         ),
       ),
@@ -1323,9 +1434,10 @@ class _QtySelector extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     return Container(
       decoration: BoxDecoration(
-        color: _mint,
+        color: cs.primaryContainer,
         borderRadius: BorderRadius.circular(10),
       ),
       child: Row(
@@ -1336,10 +1448,10 @@ class _QtySelector extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 6),
             child: Text(
               '$qty',
-              style: const TextStyle(
+              style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w700,
-                  color: _purple),
+                  color: cs.secondary),
             ),
           ),
           _QtyBtn(icon: Icons.add, onTap: onIncrement),
@@ -1356,17 +1468,61 @@ class _QtyBtn extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     return GestureDetector(
       onTap: onTap,
       child: Container(
         width: 30,
         height: 30,
         decoration: BoxDecoration(
-          color: _accentGreen,
+          color: cs.primary,
           borderRadius: BorderRadius.circular(8),
         ),
-        child: Icon(icon, color: _white, size: 16),
+        child: Icon(icon, color: cs.surface, size: 16),
       ),
+    );
+  }
+}
+
+// ─── Info row used inside the shopping-list info dialog ──────────────────────
+class _InfoRow extends StatelessWidget {
+  final IconData icon;
+  final Color color;
+  final String title;
+  final String body;
+
+  const _InfoRow({
+    required this.icon,
+    required this.color,
+    required this.title,
+    required this.body,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        CircleAvatar(
+          radius: 16,
+          backgroundColor: color.withValues(alpha: 0.15),
+          child: Icon(icon, size: 16, color: color),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(title,
+                  style: const TextStyle(
+                      fontWeight: FontWeight.w700, fontSize: 13)),
+              const SizedBox(height: 2),
+              Text(body,
+                  style: const TextStyle(fontSize: 13, height: 1.4)),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }
@@ -1385,30 +1541,33 @@ class _DeleteModeBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     return Container(
-      color: Colors.red.shade50,
+      color: cs.errorContainer,
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       child: Row(
         children: [
           IconButton(
             icon: const Icon(Icons.close),
-            color: Colors.red.shade700,
+            color: cs.error,
             onPressed: onCancel,
             tooltip: 'Cancelar selección',
           ),
           Expanded(
             child: Text(
-              '$count ${count == 1 ? 'elemento seleccionado' : 'elementos seleccionados'}',
+              count == 0
+                  ? 'Selecciona productos'
+                  : '$count ${count == 1 ? 'producto seleccionado' : 'productos seleccionados'}',
               style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
-                  color: Colors.red.shade700),
+                  color: cs.error),
             ),
           ),
           TextButton.icon(
             style: TextButton.styleFrom(
-              foregroundColor: _white,
-              backgroundColor: Colors.red.shade600,
+              foregroundColor: cs.onError,
+              backgroundColor: cs.error,
               padding:
                   const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               shape: RoundedRectangleBorder(

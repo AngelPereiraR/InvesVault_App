@@ -16,7 +16,6 @@ import '../stores/store_list_screen.dart';
 import '../warehouses/warehouse_list_screen.dart';
 import 'app_drawer.dart';
 
-const _appBarBg = Color(0xFF3C096C);
 
 class AppShell extends StatefulWidget {
   final Widget child;
@@ -90,8 +89,8 @@ class _AppShellState extends State<AppShell> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text('Selecciona el almacén o genera para todos:',
-                  style: TextStyle(fontSize: 13, color: Colors.grey)),
+              Text('Selecciona el almacén o genera para todos:',
+                  style: TextStyle(fontSize: 13, color: Theme.of(dCtx).colorScheme.onSurfaceVariant)),
               const SizedBox(height: 16),
               DropdownButtonFormField<int>(
                 value: selectedId,
@@ -146,10 +145,7 @@ class _AppShellState extends State<AppShell> {
       },
       child: Scaffold(
         appBar: AppBar(
-          backgroundColor: _appBarBg,
-          foregroundColor: Colors.white,
           title: _buildAppBarTitle(context),
-          iconTheme: const IconThemeData(color: Colors.white),
           actions: [
             // Context-sensitive add button
             if (widget.currentLocation == '/warehouses')
@@ -214,7 +210,10 @@ class _AppShellState extends State<AppShell> {
   }
 
   Widget _buildAppBarTitle(BuildContext context) {
-    const style = TextStyle(color: Colors.white, fontWeight: FontWeight.w600);
+    final style = TextStyle(
+      color: Theme.of(context).appBarTheme.foregroundColor,
+      fontWeight: FontWeight.w600,
+    );
     if (widget.currentLocation.contains('/detail') &&
         widget.currentLocation.startsWith('/warehouses/')) {
       return BlocBuilder<WarehouseDetailCubit, WarehouseDetailState>(

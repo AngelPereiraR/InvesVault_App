@@ -20,6 +20,7 @@ import '../../presentation/screens/warehouses/warehouse_form_screen.dart';
 import '../../presentation/screens/products/search_screen.dart';
 import '../../presentation/screens/brands/brand_list_screen.dart';
 import '../../presentation/screens/stores/store_list_screen.dart';
+import '../../presentation/screens/help/help_screen.dart';
 import '../../presentation/screens/warehouses/warehouse_list_screen.dart';
 
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
@@ -185,6 +186,7 @@ Widget _buildPage(String route, Object? extra) {
   if (route == '/login') return const LoginScreen();
   if (route == '/register') return const RegisterScreen();
   if (route == '/notifications') return const NotificationListScreen();
+  if (route == '/help') return const HelpScreen();
   if (route == '/warehouses/new') return const WarehouseFormScreen();
   if (route == '/products/new') return const ProductFormScreen();
   if (route == '/search') return const GlobalSearchScreen();
