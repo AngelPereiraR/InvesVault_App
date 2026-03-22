@@ -1308,8 +1308,10 @@ class _SlidingTabHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
+    final abt = Theme.of(context).appBarTheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
-      color: cs.secondary,
+      color: abt.backgroundColor,
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
       child: LayoutBuilder(
         builder: (context, constraints) {
@@ -1337,8 +1339,8 @@ class _SlidingTabHeader extends StatelessWidget {
                                 ? FontWeight.w700
                                 : FontWeight.w400,
                             color: isSelected
-                                ? cs.onPrimary
-                                : cs.onPrimary.withValues(alpha: 0.55),
+                                ? isDark ? cs.onSurface : cs.onPrimary
+                                : isDark ? cs.onSurface : cs.onPrimary.withValues(alpha: 0.55),
                           ),
                         ),
                       ),
@@ -1350,7 +1352,7 @@ class _SlidingTabHeader extends StatelessWidget {
                 height: 3,
                 child: Stack(
                   children: [
-                    Container(color: cs.onPrimary.withValues(alpha: 0.15)),
+                    Container(color: cs.onSecondary.withValues(alpha: 0.15)),
                     AnimatedPositioned(
                       duration: const Duration(milliseconds: 220),
                       curve: Curves.easeInOut,
