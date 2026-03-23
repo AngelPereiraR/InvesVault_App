@@ -125,7 +125,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                         ),
                       ),
                       Text(
-                        'v1.0.7',
+                        'v1.0.8',
                         style: TextStyle(
                           fontSize: 11,
                           color: cs.secondary.withValues(alpha: 0.5),

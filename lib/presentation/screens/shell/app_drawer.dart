@@ -194,7 +194,7 @@ class _DrawerHeader extends StatelessWidget {
                           color: Colors.white,
                           fontSize: 18,
                           fontWeight: FontWeight.w700)),
-                    Text('v1.0.7',
+                    Text('v1.0.8',
                       style: TextStyle(color: Colors.white54, fontSize: 11)),
                 ],
               ),
