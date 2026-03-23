@@ -10,6 +10,7 @@ import '../../presentation/screens/products/barcode_scanner_screen.dart';
 import '../../presentation/screens/products/product_detail_screen.dart';
 import '../../presentation/screens/products/product_form_screen.dart';
 import '../../presentation/screens/products/product_list_screen.dart';
+import '../../presentation/screens/products/product_warehouses_screen.dart';
 import '../../presentation/screens/settings/settings_screen.dart';
 import '../../presentation/screens/shell/app_shell.dart';
 import '../../presentation/screens/shopping_list/shopping_list_screen.dart';
@@ -277,6 +278,16 @@ Widget _buildPage(String route, Object? extra) {
   if (productEditMatch != null) {
     return ProductFormScreen(
       productId: int.parse(productEditMatch.group(1)!),
+    );
+  }
+
+  final productWarehousesMatch =
+      RegExp(r'^/products/(\d+)/warehouses$').firstMatch(route);
+  if (productWarehousesMatch != null) {
+    final args = extra as Map<String, dynamic>?;
+    return ProductWarehousesScreen(
+      productId: int.parse(productWarehousesMatch.group(1)!),
+      productName: args?['productName'] as String? ?? '',
     );
   }
 

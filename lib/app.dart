@@ -42,6 +42,7 @@ import 'presentation/cubits/store/store_cubit.dart';
 import 'presentation/cubits/warehouse/warehouse_cubit.dart';
 import 'presentation/cubits/warehouse_detail/warehouse_detail_cubit.dart';
 import 'presentation/cubits/warehouse_user/warehouse_user_cubit.dart';
+import 'presentation/cubits/product_warehouses/product_warehouses_cubit.dart';
 import 'presentation/cubits/theme/theme_cubit.dart';
 
 class InvesVaultApp extends StatefulWidget {
@@ -161,6 +162,9 @@ class _InvesVaultAppState extends State<InvesVaultApp> {
             _stockChangeRepo,
             widget.notificationService,
           ),
+        ),
+        BlocProvider(
+          create: (_) => ProductWarehousesCubit(_warehouseProductRepo),
         ),
         BlocProvider(
           create: (_) => BrandCubit(_brandRepo),

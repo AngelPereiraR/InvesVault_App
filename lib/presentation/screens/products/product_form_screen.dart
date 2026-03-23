@@ -159,6 +159,20 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
                     loading: state is ProductFormLoading,
                     onPressed: () => _save(state),
                   ),
+                  if (isEdit) ...[
+                    const SizedBox(height: 12),
+                    SizedBox(
+                      width: double.infinity,
+                      child: OutlinedButton.icon(
+                        icon: const Icon(Icons.warehouse_outlined),
+                        label: const Text('Ver en almacenes'),
+                        onPressed: () => context.openAuxiliaryRoute(
+                          '/products/${widget.productId}/warehouses',
+                          extra: {'productName': _nameCtrl.text},
+                        ),
+                      ),
+                    ),
+                  ],
                 ],
               ),
             ),
