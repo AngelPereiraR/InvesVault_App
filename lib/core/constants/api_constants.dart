@@ -43,6 +43,7 @@ abstract class ApiConstants {
       '/warehouses/$warehouseId/products';
   static String warehouseProductsLowStock(int warehouseId) =>
       '/warehouses/$warehouseId/products/low-stock';
+  static String productWarehouses(int id) => '/products/$id/warehouses';
 
   // Brands
   static const String brands = '/brands';

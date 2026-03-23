@@ -55,4 +55,16 @@ class WarehouseProductRemoteDatasource {
 
   Future<void> deleteProduct(int id) =>
       _dio.delete(ApiConstants.warehouseProductById(id));
+
+  Future<List<WarehouseProductModel>> getWarehousesByProduct(int productId) async {
+    try {
+      final response = await _dio.get(ApiConstants.productWarehouses(productId));
+      return (response.data as List)
+          .map((e) => WarehouseProductModel.fromJson(e as Map<String, dynamic>))
+          .toList();
+    } on DioException catch (e) {
+      if (e.response?.statusCode == 404) return [];
+      rethrow;
+    }
+  }
 }

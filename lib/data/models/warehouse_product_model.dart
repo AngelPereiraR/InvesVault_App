@@ -13,6 +13,7 @@ class WarehouseProductModel extends Equatable {
   final String? lastUpdated;
   final ProductModel? product;
   final StoreModel? store;
+  final String? warehouseName;
 
   const WarehouseProductModel({
     required this.id,
@@ -25,6 +26,7 @@ class WarehouseProductModel extends Equatable {
     this.lastUpdated,
     this.product,
     this.store,
+    this.warehouseName,
   });
 
   bool get isLowStock =>
@@ -48,6 +50,7 @@ class WarehouseProductModel extends Equatable {
       lastUpdated: json['last_updated'] as String?,
       product: productJson != null ? ProductModel.fromJson(productJson) : null,
       store: storeJson != null ? StoreModel.fromJson(storeJson) : null,
+      warehouseName: (json['warehouse'] as Map<String, dynamic>?)?['name'] as String?,
     );
   }
 
@@ -76,5 +79,5 @@ class WarehouseProductModel extends Equatable {
       );
 
   @override
-  List<Object?> get props => [id, warehouseId, productId, quantity, minQuantity];
+  List<Object?> get props => [id, warehouseId, productId, quantity, minQuantity, warehouseName];
 }
