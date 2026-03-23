@@ -28,14 +28,16 @@ class AuthRemoteDatasource {
       'email': email,
       'password': password,
     });
-    return response.data as Map<String, dynamic>;
+    final responseData = response.data as Map<String, dynamic>;
+    return responseData;
   }
 
   Future<UserModel> updateUser(
       int id, Map<String, dynamic> data) async {
     final response =
         await _dio.put(ApiConstants.userById(id), data: data);
-    return UserModel.fromJson(response.data as Map<String, dynamic>);
+    final responseData = response.data as Map<String, dynamic>;
+    return UserModel.fromJson(responseData['user'] as Map<String, dynamic>);
   }
 
   Future<UserModel?> searchByEmail(String email) async {
