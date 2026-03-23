@@ -53,12 +53,15 @@ x-api-key: <key>
       "name": "Almacén Principal",
       "is_shared": false
     },
-    "last_store": { "id": 1, "name": "Mercadona" }
+    "last_store": { "id": 1, "name": "Mercadona" },
+    "product": { "id": 7, "name": "Leche", "default_unit": "l", "barcode": null, "brand": null }
   }
 ]
 ```
 
-**Filtrado de acceso:** solo se devuelven almacenes a los que el usuario autenticado tiene acceso (es propietario o miembro vía `WarehouseUser`).
+> **Nota:** el campo `last_store` sigue la convención existente del modelo `WarehouseProductModel.fromJson`, que ya parsea la tienda desde esa clave. El embed `product` se incluye para permitir mostrar `product.defaultUnit` en la tarjeta; el servicio backend debe incluir la asociación `Product` en el query (siguiendo el mismo patrón que `getProducts(warehouseId)`).
+
+**Control de acceso:** se devuelven únicamente los almacenes donde el usuario autenticado es propietario (`Warehouse.owner_id`) O es miembro vía `WarehouseUser`, independientemente del valor de `is_shared`.
 
 ### Archivos a modificar (backend)
 
@@ -81,8 +84,9 @@ static String productWarehouses(int id) => '/products/$id/warehouses';
 
 **`lib/data/models/warehouse_product_model.dart`**
 - Añadir campo opcional `final String? warehouseName`
-- `fromJson`: `warehouseName: json['warehouse']?['name'] as String?`
+- `fromJson`: `warehouseName: (json['warehouse'] as Map<String, dynamic>?)?['name'] as String?`
 - Incluir `warehouseName` en `props` de `Equatable`
+- El getter `isLowStock` **ya existe** en el modelo: `bool get isLowStock => minQuantity != null && quantity < minQuantity!`. No requiere cambios.
 
 **`lib/data/datasources/warehouse_product_remote_datasource.dart`**
 - Nuevo método:
@@ -90,6 +94,13 @@ static String productWarehouses(int id) => '/products/$id/warehouses';
 Future<List<WarehouseProductModel>> getWarehousesByProduct(int productId) async
 ```
 Llama a `GET /products/$productId/warehouses`. Retorna lista vacía en 404.
+
+**`lib/data/repositories/warehouse_product_repository.dart`**
+- Nuevo método que delega al datasource:
+```dart
+Future<List<WarehouseProductModel>> getWarehousesByProduct(int productId) =>
+    _datasource.getWarehousesByProduct(productId);
+```
 
 ### Estado (Cubit)
 
@@ -111,18 +122,19 @@ class ProductWarehousesError extends ProductWarehousesState {
 **`product_warehouses_cubit.dart`**
 ```dart
 class ProductWarehousesCubit extends Cubit<ProductWarehousesState> {
+  final WarehouseProductRepository _repo;
   Future<void> load(int productId) async { ... }
 }
 ```
 
-Provisto en `lib/app.dart` junto al resto de `BlocProvider`s, usando el patrón `BlocProvider(create: (_) => ProductWarehousesCubit(...))`.
+El cubit depende de `WarehouseProductRepository` (ya existente). Se provee **globalmente** en `lib/app.dart` dentro del `MultiBlocProvider`, siguiendo el patrón de todos los demás cubits del proyecto.
 
 ### Pantalla
 
 **`lib/presentation/screens/products/product_warehouses_screen.dart`**
 
 - Constructor: `ProductWarehousesScreen({ required int productId, required String productName })`
-- `AppBar` título: `'Almacenes con este producto'` (subtítulo o descripción con `productName`)
+- `AppBar` título: `'Almacenes con este producto'`
 - `initState`: llama a `ProductWarehousesCubit.load(productId)`
 - **Estados:**
   - Loading → `LoadingIndicator`
@@ -130,17 +142,18 @@ Provisto en `lib/app.dart` junto al resto de `BlocProvider`s, usando el patrón 
   - Loaded vacío → `EmptyView('Este producto no está en ningún almacén')`
   - Loaded con datos → `ListView` de tarjetas
 - **Cada tarjeta muestra:**
-  - Nombre del almacén (`warehouseName`)
-  - Stock actual + unidad
-  - Cantidad mínima (si existe), con badge de alerta si `isLowStock`
+  - Nombre del almacén (`wp.warehouseName`)
+  - Stock actual + unidad (del `product.defaultUnit` embebido)
+  - Cantidad mínima (si existe), con badge de alerta si `wp.isLowStock` (getter existente)
   - Precio/unidad (si existe)
-  - Tienda (si existe)
-  - Flecha de navegación (`Icons.chevron_right`)
-- **Tap en tarjeta** → navega a ruta existente `/products/${wp.id}/detail` con `extra: {'warehouseId': wp.warehouseId}`
+  - Tienda (`wp.store?.name`, si existe)
+  - Icono `Icons.chevron_right`
+- **Tap en tarjeta** → navega a `/products/${wp.id}/detail` con `extra: {'warehouseId': wp.warehouseId}`
+  > **Nota:** `wp.id` es el `WarehouseProductModel.id`, es decir, el id del registro join (`warehouseProductId`) que espera `ProductDetailScreen`. No confundir con `wp.productId`.
 
 ### Navegación
 
-**`lib/core/router/app_router.dart`** — nuevo case:
+**`lib/core/router/app_router.dart`** — nuevo case en `_buildPage`:
 
 ```dart
 final productWarehousesMatch =
@@ -172,6 +185,8 @@ if (isEdit) ...[
 ]
 ```
 
+> `context.openAuxiliaryRoute` es una extension existente en `AppNavigationContext` (`app_router.dart`).
+
 ---
 
 ## Flujo completo
@@ -189,5 +204,6 @@ Catálogo → [popup Editar] → ProductFormScreen (edit)
 
 - `ProductDetailScreen` ya implementa toda la UI de edición por almacén (`_WarehouseDetailsEditor`). No se duplica lógica.
 - El campo `warehouseName` en `WarehouseProductModel` es opcional y backwards-compatible; los usos existentes no se ven afectados.
-- El nuevo endpoint filtra por acceso del usuario, coherente con el resto de la API.
-- No se requieren cambios en tests existentes del frontend (no hay tests de widget en el proyecto). En el backend se deberá añadir test para el nuevo endpoint si se sigue el patrón del proyecto.
+- El getter `isLowStock` ya existe en el modelo; no requiere cambios.
+- El nuevo endpoint filtra por acceso del usuario (propietario o miembro vía `WarehouseUser`), coherente con el resto de la API.
+- El repositorio `WarehouseProductRepository` ya existe; solo se añade un método.
