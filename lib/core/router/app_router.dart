@@ -294,10 +294,10 @@ Widget _buildPage(String route, Object? extra) {
   final productDetailMatch =
       RegExp(r'^/products/(\d+)/detail$').firstMatch(route);
   if (productDetailMatch != null) {
-    final args = extra as Map<String, int>?;
+    final args = extra as Map<String, dynamic>?;
     return ProductDetailScreen(
       warehouseProductId: int.parse(productDetailMatch.group(1)!),
-      warehouseId: args?['warehouseId'] ?? 0,
+      warehouseId: args?['warehouseId'] as int? ?? 0,
     );
   }
 

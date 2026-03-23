@@ -64,7 +64,7 @@ class WarehouseProductModel extends Equatable {
         'store_id': storeId,
       };
 
-  WarehouseProductModel copyWith({double? quantity, double? minQuantity}) =>
+  WarehouseProductModel copyWith({double? quantity, double? minQuantity, String? warehouseName}) =>
       WarehouseProductModel(
         id: id,
         warehouseId: warehouseId,
@@ -76,6 +76,7 @@ class WarehouseProductModel extends Equatable {
         lastUpdated: lastUpdated,
         product: product,
         store: store,
+        warehouseName: warehouseName ?? this.warehouseName,
       );
 
   @override
