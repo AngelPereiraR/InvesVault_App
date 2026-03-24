@@ -277,166 +277,222 @@ class _WarehouseDetailScreenState extends State<WarehouseDetailScreen> {
                                     create: (context) => BatchCubit(
                                       context.read(),
                                     ),
-                                    child: ExpansionTile(
-                                      tilePadding: EdgeInsets.zero,
-                                      childrenPadding: EdgeInsets.zero,
-                                      title: ProductListTile(
-                                        warehouseProduct: item,
-                                        isUpdating: isUpdating,
-                                        onTap: _deleteMode
-                                            ? null
-                                            : () => context.openAuxiliaryRoute(
-                                                '/products/${item.id}/detail',
-                                                extra: {
-                                                  'warehouseId':
-                                                      widget.warehouseId
-                                                }),
-                                        onAdd: _deleteMode ||
-                                                !state.canEdit ||
-                                                isUpdating
-                                            ? null
-                                            : () => context
-                                                .read<WarehouseDetailCubit>()
-                                                .quickUpdate(
-                                                  warehouseProductId: item.id,
-                                                  productId: item.productId,
-                                                  warehouseId:
-                                                      widget.warehouseId,
-                                                  userId: userId,
-                                                  delta: 1.0,
-                                                ),
-                                        onRemove: _deleteMode ||
-                                                !state.canEdit ||
-                                                isUpdating
-                                            ? null
-                                            : () async {
-                                                if ((item.quantity - 1) < 0) {
-                                                  return;
-                                                }
-                                                context
-                                                    .read<
-                                                        WarehouseDetailCubit>()
-                                                    .quickUpdate(
-                                                      warehouseProductId:
-                                                          item.id,
-                                                      productId: item.productId,
-                                                      warehouseId:
-                                                          widget.warehouseId,
-                                                      userId: userId,
-                                                      delta: -1.0,
-                                                    );
-                                              },
-                                        onDelete: _deleteMode ||
-                                                !state.canEdit ||
-                                                isUpdating
-                                            ? null
-                                            : () async {
-                                                final confirm =
-                                                    await showConfirmDialog(
-                                                  context,
-                                                  title: 'Eliminar producto',
-                                                  message:
-                                                      '¿Quieres eliminar "${item.product?.name ?? 'este producto'}" de este almacén?',
-                                                  confirmLabel: 'Eliminar',
-                                                  isDangerous: true,
-                                                );
-                                                if (confirm == true &&
-                                                    context.mounted) {
-                                                  context
-                                                      .read<
-                                                          WarehouseDetailCubit>()
-                                                      .removeProduct(
-                                                        item.id,
-                                                        widget.warehouseId,
-                                                      );
-                                                }
-                                              },
-                                        trailing: _deleteMode
-                                            ? Icon(
-                                                isSelected
-                                                    ? Icons.check_circle
-                                                    : Icons
-                                                        .radio_button_unchecked,
-                                                color: isSelected
-                                                    ? cs.error
-                                                    : cs.onSurfaceVariant,
-                                              )
-                                            : null,
-                                      ),
-                                      onExpansionChanged: (expanded) {
-                                        if (expanded) {
-                                          context
-                                              .read<BatchCubit>()
-                                              .load(item.id);
-                                        }
-                                      },
-                                      children: [
+                                    child: Builder(
+                                      builder: (batchContext) =>
                                         BlocBuilder<BatchCubit, BatchState>(
-                                          builder: (context, batchState) {
-                                            if (batchState is BatchLoading ||
-                                                batchState is BatchMutating) {
-                                              return const Padding(
-                                                padding: EdgeInsets.symmetric(
-                                                    vertical: 12),
-                                                child: Center(
-                                                  child:
-                                                      CircularProgressIndicator(
-                                                          strokeWidth: 2),
-                                                ),
-                                              );
-                                            }
-                                            if (batchState is BatchError) {
-                                              return Padding(
-                                                padding:
-                                                    const EdgeInsets.all(12),
-                                                child: Text(
-                                                  batchState.message,
-                                                  style: TextStyle(
-                                                      color: cs.error),
-                                                ),
-                                              );
-                                            }
-                                            if (batchState is BatchLoaded) {
-                                              return Column(
-                                                children: [
-                                                  ...batchState.batches.map(
-                                                    (b) => _BatchTile(
-                                                      batch: b,
-                                                      warehouseProductId:
-                                                          item.id,
-                                                    ),
+                                          bloc: batchContext.read<BatchCubit>(),
+                                          builder: (_, batchState) {
+                                            // Derive hasExpiringBatch locally
+                                            // from the loaded batch state so
+                                            // the chip updates immediately
+                                            // without waiting for an API reload.
+                                            final localItem = batchState is BatchLoaded
+                                                ? item.copyWith(
+                                                    hasExpiringBatch: batchState
+                                                        .batches
+                                                        .any((b) => b.isExpiringSoon),
+                                                  )
+                                                : item;
+
+                                            Widget batchChildren() {
+                                              if (batchState is BatchLoading ||
+                                                  batchState is BatchMutating) {
+                                                return const Padding(
+                                                  padding: EdgeInsets.symmetric(
+                                                      vertical: 12),
+                                                  child: Center(
+                                                    child:
+                                                        CircularProgressIndicator(
+                                                            strokeWidth: 2),
                                                   ),
-                                                  Padding(
-                                                    padding: const EdgeInsets
-                                                        .fromLTRB(16, 4, 16, 8),
-                                                    child: OutlinedButton.icon(
-                                                      icon: const Icon(
-                                                          Icons.add, size: 16),
-                                                      label: const Text(
-                                                          'Añadir lote'),
-                                                      onPressed: () =>
-                                                          showDialog(
-                                                        context: context,
-                                                        builder: (_) =>
-                                                            BlocProvider.value(
-                                                          value: context.read<
-                                                              BatchCubit>(),
-                                                          child:
-                                                              AddEditBatchDialog(
-                                                            warehouseProductId:
-                                                                item.id,
+                                                );
+                                              }
+                                              if (batchState is BatchError) {
+                                                return Padding(
+                                                  padding:
+                                                      const EdgeInsets.all(12),
+                                                  child: Text(
+                                                    batchState.message,
+                                                    style: TextStyle(
+                                                        color: cs.error),
+                                                  ),
+                                                );
+                                              }
+                                              if (batchState is BatchLoaded) {
+                                                final totalBatched =
+                                                    batchState.batches.fold<double>(
+                                                        0.0,
+                                                        (s, b) => s + b.quantity);
+                                                final addMaxQty =
+                                                    item.quantity - totalBatched;
+                                                return Column(
+                                                  children: [
+                                                    ...batchState.batches.map(
+                                                      (b) => _BatchTile(
+                                                        batch: b,
+                                                        warehouseProductId:
+                                                            item.id,
+                                                        maxQuantity:
+                                                            addMaxQty + b.quantity,                                                      onDeleted: (qty) => context
+                                                          .read<
+                                                              WarehouseDetailCubit>()
+                                                          .adjustLocalQuantity(
+                                                              item.id, -qty),                                                      ),
+                                                    ),
+                                                    if (addMaxQty > 0)
+                                                      Padding(
+                                                        padding: const EdgeInsets
+                                                            .fromLTRB(
+                                                                16, 4, 16, 8),
+                                                        child:
+                                                            OutlinedButton.icon(
+                                                          icon: const Icon(
+                                                              Icons.add,
+                                                              size: 16),
+                                                          label: const Text(
+                                                              'Asignar caducidad'),
+                                                          onPressed: () =>
+                                                              showDialog(
+                                                            context: batchContext,
+                                                            builder: (_) =>
+                                                                BlocProvider
+                                                                    .value(
+                                                              value: batchContext
+                                                                  .read<
+                                                                      BatchCubit>(),
+                                                              child:
+                                                                  AddEditBatchDialog(
+                                                                warehouseProductId:
+                                                                    item.id,
+                                                                maxQuantity:
+                                                                    addMaxQty,
+                                                              ),
+                                                            ),
                                                           ),
                                                         ),
                                                       ),
-                                                    ),
-                                                  ),
-                                                ],
-                                              );
+                                                  ],
+                                                );
+                                              }
+                                              return const SizedBox();
                                             }
-                                            return const SizedBox();
+
+                                            return ExpansionTile(
+                                              tilePadding: const EdgeInsets.only(left: 4),
+                                              childrenPadding: EdgeInsets.zero,
+                                              controlAffinity:
+                                                  ListTileControlAffinity.leading,
+                                              title: ProductListTile(
+                                                warehouseProduct: localItem,
+                                                isUpdating: isUpdating,
+                                                onTap: _deleteMode
+                                                    ? null
+                                                    : () => context
+                                                        .openAuxiliaryRoute(
+                                                            '/products/${item.id}/detail',
+                                                            extra: {
+                                                          'warehouseId':
+                                                              widget.warehouseId
+                                                        }),
+                                                onAdd: _deleteMode ||
+                                                        !state.canEdit ||
+                                                        isUpdating
+                                                    ? null
+                                                    : () => context
+                                                        .read<
+                                                            WarehouseDetailCubit>()
+                                                        .quickUpdate(
+                                                          warehouseProductId:
+                                                              item.id,
+                                                          productId:
+                                                              item.productId,
+                                                          warehouseId:
+                                                              widget.warehouseId,
+                                                          userId: userId,
+                                                          delta: 1.0,
+                                                        ),
+                                                onRemove: _deleteMode ||
+                                                        !state.canEdit ||
+                                                        isUpdating
+                                                    ? null
+                                                    : () async {
+                                                        if ((item.quantity - 1) <
+                                                            0) {
+                                                          return;
+                                                        }
+                                                        final newStock =
+                                                            item.quantity - 1;
+                                                        context
+                                                            .read<
+                                                                WarehouseDetailCubit>()
+                                                            .quickUpdate(
+                                                              warehouseProductId:
+                                                                  item.id,
+                                                              productId:
+                                                                  item.productId,
+                                                              warehouseId:
+                                                                  widget
+                                                                      .warehouseId,
+                                                              userId: userId,
+                                                              delta: -1.0,
+                                                            );
+                                                        await batchContext
+                                                            .read<BatchCubit>()
+                                                            .trimToStock(
+                                                                item.id,
+                                                                newStock);
+                                                      },
+                                                onDelete: _deleteMode ||
+                                                        !state.canEdit ||
+                                                        isUpdating
+                                                    ? null
+                                                    : () async {
+                                                        final confirm =
+                                                            await showConfirmDialog(
+                                                          context,
+                                                          title:
+                                                              'Eliminar producto',
+                                                          message:
+                                                              '¿Quieres eliminar "${item.product?.name ?? 'este producto'}" de este almacén?',
+                                                          confirmLabel:
+                                                              'Eliminar',
+                                                          isDangerous: true,
+                                                        );
+                                                        if (confirm == true &&
+                                                            context.mounted) {
+                                                          context
+                                                              .read<
+                                                                  WarehouseDetailCubit>()
+                                                              .removeProduct(
+                                                                item.id,
+                                                                widget
+                                                                    .warehouseId,
+                                                              );
+                                                        }
+                                                      },
+                                                trailing: _deleteMode
+                                                    ? Icon(
+                                                        isSelected
+                                                            ? Icons.check_circle
+                                                            : Icons
+                                                                .radio_button_unchecked,
+                                                        color: isSelected
+                                                            ? cs.error
+                                                            : cs.onSurfaceVariant,
+                                                      )
+                                                    : null,
+                                              ),
+                                              onExpansionChanged: (expanded) {
+                                                if (expanded) {
+                                                  batchContext
+                                                      .read<BatchCubit>()
+                                                      .load(item.id);
+                                                }
+                                              },
+                                              children: [batchChildren()],
+                                            );
                                           },
                                         ),
-                                      ],
                                     ),
                                   ),
                                 ),
@@ -682,7 +738,14 @@ class _AddProductSheetState extends State<_AddProductSheet> {
 class _BatchTile extends StatelessWidget {
   final BatchModel batch;
   final int warehouseProductId;
-  const _BatchTile({required this.batch, required this.warehouseProductId});
+  final double maxQuantity;
+  final void Function(double quantity)? onDeleted;
+  const _BatchTile({
+    required this.batch,
+    required this.warehouseProductId,
+    required this.maxQuantity,
+    this.onDeleted,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -737,6 +800,7 @@ class _BatchTile extends StatelessWidget {
                 value: context.read<BatchCubit>(),
                 child: AddEditBatchDialog(
                   warehouseProductId: warehouseProductId,
+                  maxQuantity: maxQuantity,
                   batch: BatchItem(
                     id: batch.id,
                     quantity: batch.quantity,
@@ -751,12 +815,18 @@ class _BatchTile extends StatelessWidget {
             icon: Icon(Icons.delete_outline, size: 18, color: cs.error),
             tooltip: 'Eliminar',
             onPressed: () async {
+              final qtyStr = batch.quantity % 1 == 0
+                  ? '${batch.quantity.toInt()}'
+                  : '${batch.quantity}';
               final confirm = await showDialog<bool>(
                 context: context,
                 builder: (dialogCtx) => AlertDialog(
-                  title: const Text('Eliminar lote'),
-                  content: const Text(
-                      '¿Estás seguro de que quieres eliminar este lote?'),
+                  title: const Text('Eliminar caducidad'),
+                  content: Text(
+                    'Se eliminarán $qtyStr uds con fecha '
+                    '${batch.expiryDate ?? 'sin asignar'}. '
+                    'El stock del producto se reducirá en la misma cantidad.',
+                  ),
                   actions: [
                     TextButton(
                       onPressed: () => Navigator.of(dialogCtx).pop(false),
@@ -764,12 +834,17 @@ class _BatchTile extends StatelessWidget {
                     ),
                     TextButton(
                       onPressed: () => Navigator.of(dialogCtx).pop(true),
-                      child: const Text('Eliminar'),
+                      child: Text(
+                        'Eliminar',
+                        style: TextStyle(
+                            color: Theme.of(dialogCtx).colorScheme.error),
+                      ),
                     ),
                   ],
                 ),
               );
               if (confirm == true && context.mounted) {
+                onDeleted?.call(batch.quantity);
                 context.read<BatchCubit>().deleteBatch(
                       batchId: batch.id,
                       warehouseProductId: warehouseProductId,

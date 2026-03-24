@@ -67,4 +67,24 @@ class WarehouseProductRemoteDatasource {
       rethrow;
     }
   }
+
+  /// Add a product to a warehouse with initial stock
+  Future<void> addWarehouseProduct({
+    required int warehouseId,
+    required int productId,
+    required int quantity,
+    required double? price,
+    required int minStock,
+  }) async {
+    await _dio.post(
+      ApiConstants.warehouseProducts,
+      data: {
+        'warehouse_id': warehouseId,
+        'product_id': productId,
+        'quantity': quantity,
+        if (price != null) 'price_per_unit': price,
+        'min_quantity': minStock,
+      },
+    );
+  }
 }

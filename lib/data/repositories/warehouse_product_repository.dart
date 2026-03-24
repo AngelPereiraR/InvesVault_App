@@ -23,4 +23,25 @@ class WarehouseProductRepository {
 
   Future<List<WarehouseProductModel>> getWarehousesByProduct(int productId) =>
       _datasource.getWarehousesByProduct(productId);
+
+  /// Add a product to a warehouse
+  Future<void> addWarehouseProduct({
+    required int warehouseId,
+    required int productId,
+    required int quantity,
+    required double? price,
+    required int minStock,
+  }) async {
+    try {
+      await _datasource.addWarehouseProduct(
+        warehouseId: warehouseId,
+        productId: productId,
+        quantity: quantity,
+        price: price,
+        minStock: minStock,
+      );
+    } catch (e) {
+      rethrow;
+    }
+  }
 }

@@ -168,6 +168,26 @@ class WarehouseDetailCubit extends Cubit<WarehouseDetailState> {
     }
   }
 
+  /// Adjusts a single product's quantity in the local state immediately,
+  /// without hitting the API. Use after an operation that the backend has
+  /// already applied (e.g. deleting a batch).
+  void adjustLocalQuantity(int warehouseProductId, double delta) {
+    final current = state;
+    if (current is! WarehouseDetailLoaded) return;
+
+    List<WarehouseProductModel> update(List<WarehouseProductModel> list) =>
+        list.map((p) {
+          if (p.id != warehouseProductId) return p;
+          final newQty = (p.quantity + delta).clamp(0.0, double.infinity);
+          return p.copyWith(quantity: newQty);
+        }).toList();
+
+    emit(current.copyWith(
+      products: update(current.products),
+      filtered: update(current.filtered),
+    ));
+  }
+
   void search(String query) {
     _searchDebounce?.cancel();
     _currentSearch = query;

@@ -84,4 +84,55 @@ class BatchCubit extends Cubit<BatchState> {
       emit(BatchError(friendlyError(e)));
     }
   }
+
+  /// Trims batch quantities so the total never exceeds [maxStock].
+  /// Batches without expiry date are removed first, then by newest creation.
+  /// Called automatically when the product's stock is reduced.
+  Future<void> trimToStock(int warehouseProductId, double maxStock) async {
+    if (maxStock < 0) maxStock = 0;
+
+    // Use already-loaded batches or fetch from API.
+    List<BatchModel> batches;
+    final currentState = state;
+    if (currentState is BatchLoaded) {
+      batches = currentState.batches;
+    } else {
+      try {
+        batches = await _repository.getBatches(warehouseProductId);
+      } catch (_) {
+        return; // Can't trim without data — skip silently.
+      }
+    }
+
+    final totalBatched =
+        batches.fold<double>(0.0, (sum, b) => sum + b.quantity);
+    if (totalBatched <= maxStock) return; // Nothing to trim.
+
+    // Sort: no-expiry first (less informative → remove first),
+    // then by createdAt descending (newest first).
+    final sorted = [...batches]
+      ..sort((a, b) {
+        if (a.expiryDate == null && b.expiryDate != null) return -1;
+        if (a.expiryDate != null && b.expiryDate == null) return 1;
+        return (b.createdAt ?? '').compareTo(a.createdAt ?? '');
+      });
+
+    double toRemove = totalBatched - maxStock;
+    for (final b in sorted) {
+      if (toRemove <= 0) break;
+      if (b.quantity <= toRemove) {
+        await _repository.deleteBatch(b.id);
+        toRemove -= b.quantity;
+      } else {
+        await _repository.updateBatch(
+            b.id, {'quantity': b.quantity - toRemove});
+        toRemove = 0;
+      }
+    }
+
+    // Refresh state only if the tile was already expanded.
+    if (currentState is BatchLoaded) {
+      await load(warehouseProductId);
+    }
+  }
 }

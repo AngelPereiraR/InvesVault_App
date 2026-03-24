@@ -20,13 +20,16 @@ class BatchItem {
 }
 
 /// Pass [batch] to open in edit mode; leave null for create mode.
+/// [maxQuantity] caps the allowed quantity (remaining unassigned stock).
 class AddEditBatchDialog extends StatefulWidget {
   final int warehouseProductId;
   final BatchItem? batch;
+  final double maxQuantity;
 
   const AddEditBatchDialog({
     super.key,
     required this.warehouseProductId,
+    required this.maxQuantity,
     this.batch,
   });
 
@@ -112,7 +115,7 @@ class _AddEditBatchDialogState extends State<AddEditBatchDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: Text(_isEdit ? 'Editar lote' : 'Añadir lote'),
+      title: Text(_isEdit ? 'Editar caducidad' : 'Asignar caducidad'),
       content: SingleChildScrollView(
         child: Form(
           key: _formKey,
@@ -129,6 +132,13 @@ class _AddEditBatchDialogState extends State<AddEditBatchDialog> {
                   final n = double.tryParse(v.trim());
                   if (n == null) return 'Número inválido';
                   if (n <= 0) return 'Debe ser mayor a 0';
+                  final max = widget.maxQuantity;
+                  if (n > max) {
+                    final maxStr = max % 1 == 0
+                        ? max.toInt().toString()
+                        : max.toString();
+                    return 'Máximo disponible: $maxStr';
+                  }
                   return null;
                 },
               ),
@@ -176,7 +186,7 @@ class _AddEditBatchDialogState extends State<AddEditBatchDialog> {
             ),
             const SizedBox(width: 12),
             AppButton(
-              label: _isEdit ? 'Guardar' : 'Añadir',
+              label: 'Guardar',
               fullWidth: false,
               loading: _loading,
               onPressed: _save,

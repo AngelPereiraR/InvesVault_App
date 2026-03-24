@@ -49,26 +49,29 @@ class ProductListTile extends StatelessWidget {
               child: Icon(Icons.inventory_2,
                   color: theme.colorScheme.onSurfaceVariant),
             ),
-      title: Row(
+      title: Text(product?.name ?? 'Producto ${warehouseProduct.productId}'),
+      subtitle: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
         children: [
-          Flexible(child: Text(product?.name ?? 'Producto ${warehouseProduct.productId}')),
-          if (isExpiring) ...[
-            const SizedBox(width: 6),
-            const Chip(
-              label: Text('Caduca pronto'),
-              labelStyle: TextStyle(fontSize: 11, color: Colors.white),
-              backgroundColor: Colors.orange,
-              padding: EdgeInsets.zero,
-              materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-              visualDensity: VisualDensity.compact,
+          Text(
+            'Stock: ${warehouseProduct.quantity.toStringAsFixed(2)} '
+            '${product?.defaultUnit ?? ''}',
+            style: isLow ? TextStyle(color: theme.colorScheme.error) : null,
+          ),
+          if (isExpiring)
+            const Padding(
+              padding: EdgeInsets.only(top: 2),
+              child: Chip(
+                label: Text('Caduca pronto'),
+                labelStyle: TextStyle(fontSize: 10, color: Colors.white),
+                backgroundColor: Colors.orange,
+                padding: EdgeInsets.zero,
+                materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                visualDensity: VisualDensity.compact,
+              ),
             ),
-          ],
         ],
-      ),
-      subtitle: Text(
-        'Stock: ${warehouseProduct.quantity.toStringAsFixed(2)} '
-        '${product?.defaultUnit ?? ''}',
-        style: isLow ? TextStyle(color: theme.colorScheme.error) : null,
       ),
       trailing: trailing ?? Row(
         mainAxisSize: MainAxisSize.min,

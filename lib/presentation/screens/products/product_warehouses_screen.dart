@@ -3,7 +3,12 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../core/router/app_router.dart';
 import '../../../data/models/warehouse_product_model.dart';
+import '../../../data/repositories/product_repository.dart';
+import '../../../data/repositories/warehouse_product_repository.dart';
+import '../../../data/repositories/warehouse_repository.dart';
+import '../../cubits/add_product_to_warehouse/add_product_to_warehouse_cubit.dart';
 import '../../cubits/product_warehouses/product_warehouses_cubit.dart';
+import '../../dialogs/add_product_to_warehouse_dialog.dart';
 import '../../widgets/empty_view.dart';
 import '../../widgets/error_view.dart';
 import '../../widgets/loading_indicator.dart';
@@ -28,6 +33,23 @@ class _ProductWarehousesScreenState extends State<ProductWarehousesScreen> {
   void initState() {
     super.initState();
     context.read<ProductWarehousesCubit>().load(widget.productId);
+  }
+
+  void _showAddProductDialog() {
+    showDialog(
+      context: context,
+      builder: (dialogContext) => BlocProvider(
+        create: (dialogContext) => AddProductToWarehouseCubit(
+          warehouseProductRepository: context.read<WarehouseProductRepository>(),
+          warehouseRepository: context.read<WarehouseRepository>(),
+          productRepository: context.read<ProductRepository>(),
+        ),
+        child: AddProductToWarehouseDialog(
+          productId: widget.productId,
+          productName: widget.productName,
+        ),
+      ),
+    );
   }
 
   @override
@@ -92,6 +114,10 @@ class _ProductWarehousesScreenState extends State<ProductWarehousesScreen> {
             return const SizedBox();
           },
         ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: _showAddProductDialog,
+        child: const Icon(Icons.add),
       ),
     );
   }

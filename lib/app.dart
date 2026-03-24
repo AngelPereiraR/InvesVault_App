@@ -129,13 +129,15 @@ class _InvesVaultAppState extends State<InvesVaultApp> {
 
   @override
   Widget build(BuildContext context) {
-    return RepositoryProvider<WarehouseProductRepository>.value(
-      value: _warehouseProductRepo,
-      child: RepositoryProvider<WarehouseRepository>.value(
-        value: _warehouseRepo,
-        child: RepositoryProvider<ProductRepository>.value(
-          value: _productRepo,
-          child: MultiBlocProvider(
+    return RepositoryProvider<BatchRepository>.value(
+      value: _batchRepo,
+      child: RepositoryProvider<WarehouseProductRepository>.value(
+        value: _warehouseProductRepo,
+        child: RepositoryProvider<WarehouseRepository>.value(
+          value: _warehouseRepo,
+          child: RepositoryProvider<ProductRepository>.value(
+            value: _productRepo,
+            child: MultiBlocProvider(
         providers: [
           BlocProvider(
             lazy: false,
@@ -216,6 +218,8 @@ class _InvesVaultAppState extends State<InvesVaultApp> {
             },
           ),
         ),
+      ),
+      ),
       ),
     );
   }
