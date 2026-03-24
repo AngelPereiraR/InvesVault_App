@@ -64,5 +64,37 @@ class NotificationService {
     );
   }
 
+  Future<void> showExpiryNotification({
+    required String title,
+    required String body,
+  }) async {
+    const androidDetails = AndroidNotificationDetails(
+      'expiry_channel',
+      'Expiry Warnings',
+      channelDescription: 'Alertas de productos próximos a caducar',
+      importance: Importance.high,
+      priority: Priority.high,
+      icon: '@mipmap/ic_launcher',
+    );
+
+    const iosDetails = DarwinNotificationDetails(
+      presentAlert: true,
+      presentBadge: true,
+      presentSound: true,
+    );
+
+    const details = NotificationDetails(
+      android: androidDetails,
+      iOS: iosDetails,
+    );
+
+    await _plugin.show(
+      title.hashCode ^ body.hashCode,
+      title,
+      body,
+      details,
+    );
+  }
+
   Future<void> cancelAll() => _plugin.cancelAll();
 }

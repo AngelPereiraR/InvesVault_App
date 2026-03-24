@@ -18,6 +18,7 @@ import 'data/datasources/store_remote_datasource.dart';
 import 'data/datasources/warehouse_product_remote_datasource.dart';
 import 'data/datasources/warehouse_remote_datasource.dart';
 import 'data/datasources/warehouse_user_remote_datasource.dart';
+import 'data/datasources/batch_remote_datasource.dart';
 import 'data/repositories/auth_repository.dart';
 import 'data/repositories/brand_repository.dart';
 import 'data/repositories/notification_repository.dart';
@@ -29,6 +30,7 @@ import 'data/repositories/warehouse_product_repository.dart';
 import 'data/repositories/warehouse_repository.dart';
 import 'data/repositories/warehouse_user_repository.dart';
 import 'data/repositories/dashboard_repository.dart';
+import 'data/repositories/batch_repository.dart';
 import 'presentation/cubits/auth/auth_cubit.dart';
 import 'presentation/cubits/brand/brand_cubit.dart';
 import 'presentation/cubits/dashboard/dashboard_cubit.dart';
@@ -43,6 +45,7 @@ import 'presentation/cubits/warehouse/warehouse_cubit.dart';
 import 'presentation/cubits/warehouse_detail/warehouse_detail_cubit.dart';
 import 'presentation/cubits/warehouse_user/warehouse_user_cubit.dart';
 import 'presentation/cubits/product_warehouses/product_warehouses_cubit.dart';
+import 'presentation/cubits/batch/batch_cubit.dart';
 import 'presentation/cubits/theme/theme_cubit.dart';
 
 class InvesVaultApp extends StatefulWidget {
@@ -74,6 +77,7 @@ class _InvesVaultAppState extends State<InvesVaultApp> {
   late final NotificationRemoteDatasource _notificationDs;
   late final StockChangeRemoteDatasource _stockChangeDs;
   late final DashboardRemoteDatasource _dashboardDs;
+  late final BatchRemoteDatasource _batchDs;
 
   // Repositories
   late final AuthRepository _authRepo;
@@ -87,6 +91,7 @@ class _InvesVaultAppState extends State<InvesVaultApp> {
   late final NotificationRepository _notificationRepo;
   late final StockChangeRepository _stockChangeRepo;
   late final DashboardRepository _dashboardRepo;
+  late final BatchRepository _batchRepo;
 
   @override
   void initState() {
@@ -118,6 +123,8 @@ class _InvesVaultAppState extends State<InvesVaultApp> {
     _stockChangeRepo = StockChangeRepository(_stockChangeDs);
     _dashboardDs = DashboardRemoteDatasource(dio);
     _dashboardRepo = DashboardRepository(_dashboardDs);
+    _batchDs = BatchRemoteDatasource(dio);
+    _batchRepo = BatchRepository(_batchDs);
   }
 
   @override
@@ -165,6 +172,9 @@ class _InvesVaultAppState extends State<InvesVaultApp> {
         ),
         BlocProvider(
           create: (_) => ProductWarehousesCubit(_warehouseProductRepo),
+        ),
+        BlocProvider(
+          create: (_) => BatchCubit(_batchRepo),
         ),
         BlocProvider(
           create: (_) => BrandCubit(_brandRepo),

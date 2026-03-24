@@ -87,4 +87,9 @@ abstract class ApiConstants {
       '/stock-changes/warehouse/$warehouseId';
   static String stockChangesByUser(int userId) =>
       '/stock-changes/user/$userId';
+
+  // Batches
+  static String batchesByWarehouseProduct(int warehouseProductId) =>
+      '/warehouse-products/$warehouseProductId/batches';
+  static String batchById(int id) => '/warehouse-product-batches/$id';
 }

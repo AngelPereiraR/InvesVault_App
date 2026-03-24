@@ -1,6 +1,7 @@
 ﻿import 'dart:async';
 
 import 'package:equatable/equatable.dart';
+import '../../../core/services/notification_service.dart';
 import '../../../core/utils/error_messages.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -15,6 +16,7 @@ class NotificationCubit extends Cubit<NotificationState> {
   FilterParams _currentParams = FilterParams.empty;
   String _currentSearch = '';
   Timer? _searchDebounce;
+  final Set<int> _shownExpiryIds = {};
 
   NotificationCubit(this._repository) : super(const NotificationInitial());
 
@@ -31,6 +33,7 @@ class NotificationCubit extends Cubit<NotificationState> {
     emit(const NotificationLoading());
     try {
       final notifications = await _repository.getNotifications(params);
+      _fireExpiryPushNotifications(notifications);
       final unreadCount = notifications.where((n) => !n.isRead).length;
       final limit = params.limit ?? 20;
       emit(NotificationLoaded(
@@ -102,6 +105,18 @@ class NotificationCubit extends Cubit<NotificationState> {
       if (isClosed) return;
       final latest = state;
       if (latest is NotificationLoaded) emit(latest.copyWith(isSearching: false));
+    }
+  }
+
+  void _fireExpiryPushNotifications(List<NotificationModel> notifications) {
+    for (final n in notifications) {
+      if (n.type == 'expiry_warning' && !n.isRead && !_shownExpiryIds.contains(n.id)) {
+        _shownExpiryIds.add(n.id);
+        NotificationService().showExpiryNotification(
+          title: 'Producto próximo a caducar',
+          body: n.message,
+        );
+      }
     }
   }
 
