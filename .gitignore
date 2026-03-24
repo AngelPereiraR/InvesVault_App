@@ -51,3 +51,4 @@ env/prod.json
 InvesVault Funcionalidades/
 
 .claude.worktrees
+.worktrees/
