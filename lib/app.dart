@@ -129,85 +129,93 @@ class _InvesVaultAppState extends State<InvesVaultApp> {
 
   @override
   Widget build(BuildContext context) {
-    return MultiBlocProvider(
-      providers: [
-        BlocProvider(
-          lazy: false,
-          create: (_) => ThemeCubit(widget.storageService),
-        ),
-        BlocProvider(
-          lazy: false,
-          create: (_) => AuthCubit(_authRepo, widget.storageService),
-        ),
-        BlocProvider(
-          create: (_) => WarehouseCubit(_warehouseRepo),
-        ),
-        BlocProvider(
-          create: (_) => DashboardCubit(_dashboardRepo),
-        ),
-        BlocProvider(
-          create: (_) => WarehouseDetailCubit(
-            _warehouseRepo,
-            _warehouseProductRepo,
-            _stockChangeRepo,
-            widget.notificationService,
-            _warehouseUserRepo,
+    return RepositoryProvider<WarehouseProductRepository>.value(
+      value: _warehouseProductRepo,
+      child: RepositoryProvider<WarehouseRepository>.value(
+        value: _warehouseRepo,
+        child: RepositoryProvider<ProductRepository>.value(
+          value: _productRepo,
+          child: MultiBlocProvider(
+        providers: [
+          BlocProvider(
+            lazy: false,
+            create: (_) => ThemeCubit(widget.storageService),
+          ),
+          BlocProvider(
+            lazy: false,
+            create: (_) => AuthCubit(_authRepo, widget.storageService),
+          ),
+          BlocProvider(
+            create: (_) => WarehouseCubit(_warehouseRepo),
+          ),
+          BlocProvider(
+            create: (_) => DashboardCubit(_dashboardRepo),
+          ),
+          BlocProvider(
+            create: (_) => WarehouseDetailCubit(
+              _warehouseRepo,
+              _warehouseProductRepo,
+              _stockChangeRepo,
+              widget.notificationService,
+              _warehouseUserRepo,
+            ),
+          ),
+          BlocProvider(
+            create: (_) => WarehouseUserCubit(_warehouseUserRepo),
+          ),
+          BlocProvider(
+            create: (_) => ProductListCubit(_productRepo),
+          ),
+          BlocProvider(
+            create: (_) => ProductFormCubit(_productRepo, _brandRepo, _storeRepo),
+          ),
+          BlocProvider(
+            create: (_) => ProductDetailCubit(
+              _warehouseProductRepo,
+              _stockChangeRepo,
+              widget.notificationService,
+            ),
+          ),
+          BlocProvider(
+            create: (_) => ProductWarehousesCubit(_warehouseProductRepo),
+          ),
+          BlocProvider(
+            create: (_) => BrandCubit(_brandRepo),
+          ),
+          BlocProvider(
+            create: (_) => StoreCubit(_storeRepo),
+          ),
+          BlocProvider(
+            create: (_) => ShoppingListCubit(_shoppingListRepo),
+          ),
+          BlocProvider(
+            create: (_) => NotificationCubit(_notificationRepo),
+          ),
+          BlocProvider(
+            create: (_) => StockChangeCubit(_stockChangeRepo),
+          ),
+          BlocProvider(
+            create: (_) => BatchCubit(_batchRepo),
+          ),
+        ],
+          child: BlocBuilder<ThemeCubit, ThemeState>(
+            builder: (context, themeState) {
+              final themeMode = themeState is ThemeLoaded
+                  ? themeState.themeMode
+                  : ThemeMode.system;
+              return MaterialApp(
+                title: 'InvesVault',
+                theme: AppTheme.light,
+                darkTheme: AppTheme.dark,
+                themeMode: themeMode,
+                navigatorKey: rootNavigatorKey,
+                initialRoute: '/splash',
+                onGenerateRoute: generateRoute,
+                debugShowCheckedModeBanner: false,
+              );
+            },
           ),
         ),
-        BlocProvider(
-          create: (_) => WarehouseUserCubit(_warehouseUserRepo),
-        ),
-        BlocProvider(
-          create: (_) => ProductListCubit(_productRepo),
-        ),
-        BlocProvider(
-          create: (_) => ProductFormCubit(_productRepo, _brandRepo, _storeRepo),
-        ),
-        BlocProvider(
-          create: (_) => ProductDetailCubit(
-            _warehouseProductRepo,
-            _stockChangeRepo,
-            widget.notificationService,
-          ),
-        ),
-        BlocProvider(
-          create: (_) => ProductWarehousesCubit(_warehouseProductRepo),
-        ),
-        BlocProvider(
-          create: (_) => BatchCubit(_batchRepo),
-        ),
-        BlocProvider(
-          create: (_) => BrandCubit(_brandRepo),
-        ),
-        BlocProvider(
-          create: (_) => StoreCubit(_storeRepo),
-        ),
-        BlocProvider(
-          create: (_) => ShoppingListCubit(_shoppingListRepo),
-        ),
-        BlocProvider(
-          create: (_) => NotificationCubit(_notificationRepo),
-        ),
-        BlocProvider(
-          create: (_) => StockChangeCubit(_stockChangeRepo),
-        ),
-      ],
-      child: BlocBuilder<ThemeCubit, ThemeState>(
-        builder: (context, themeState) {
-          final themeMode = themeState is ThemeLoaded
-              ? themeState.themeMode
-              : ThemeMode.system;
-          return MaterialApp(
-            title: 'InvesVault',
-            theme: AppTheme.light,
-            darkTheme: AppTheme.dark,
-            themeMode: themeMode,
-            navigatorKey: rootNavigatorKey,
-            initialRoute: '/splash',
-            onGenerateRoute: generateRoute,
-            debugShowCheckedModeBanner: false,
-          );
-        },
       ),
     );
   }
