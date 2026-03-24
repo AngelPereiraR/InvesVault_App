@@ -28,6 +28,7 @@ class ProductListTile extends StatelessWidget {
     final theme = Theme.of(context);
     final product = warehouseProduct.product;
     final isLow = warehouseProduct.isLowStock;
+    final isExpiring = warehouseProduct.hasExpiringBatch;
 
     return ListTile(
       onTap: isUpdating ? null : onTap,
@@ -48,7 +49,22 @@ class ProductListTile extends StatelessWidget {
               child: Icon(Icons.inventory_2,
                   color: theme.colorScheme.onSurfaceVariant),
             ),
-      title: Text(product?.name ?? 'Producto ${warehouseProduct.productId}'),
+      title: Row(
+        children: [
+          Flexible(child: Text(product?.name ?? 'Producto ${warehouseProduct.productId}')),
+          if (isExpiring) ...[
+            const SizedBox(width: 6),
+            const Chip(
+              label: Text('Caduca pronto'),
+              labelStyle: TextStyle(fontSize: 11, color: Colors.white),
+              backgroundColor: Colors.orange,
+              padding: EdgeInsets.zero,
+              materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              visualDensity: VisualDensity.compact,
+            ),
+          ],
+        ],
+      ),
       subtitle: Text(
         'Stock: ${warehouseProduct.quantity.toStringAsFixed(2)} '
         '${product?.defaultUnit ?? ''}',

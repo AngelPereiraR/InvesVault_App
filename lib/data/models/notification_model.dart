@@ -10,6 +10,8 @@ class NotificationModel extends Equatable {
   final String? createdAt;
   final String? productName;
   final String? warehouseName;
+  final String type;
+  final int? batchId;
 
   const NotificationModel({
     required this.id,
@@ -21,6 +23,8 @@ class NotificationModel extends Equatable {
     this.createdAt,
     this.productName,
     this.warehouseName,
+    this.type = 'low_stock',
+    this.batchId,
   });
 
   factory NotificationModel.fromJson(Map<String, dynamic> json) {
@@ -36,6 +40,8 @@ class NotificationModel extends Equatable {
       createdAt: json['created_at'] as String?,
       productName: product?['name'] as String?,
       warehouseName: warehouse?['name'] as String?,
+      type: json['type'] as String? ?? 'low_stock',
+      batchId: json['batch_id'] as int?,
     );
   }
 
@@ -46,9 +52,11 @@ class NotificationModel extends Equatable {
         'warehouse_id': warehouseId,
         'message': message,
         'is_read': isRead,
+        'type': type,
+        'batch_id': batchId,
       };
 
-  NotificationModel copyWith({bool? isRead}) => NotificationModel(
+  NotificationModel copyWith({bool? isRead, String? type, int? batchId}) => NotificationModel(
         id: id,
         userId: userId,
         productId: productId,
@@ -58,8 +66,10 @@ class NotificationModel extends Equatable {
         createdAt: createdAt,
         productName: productName,
         warehouseName: warehouseName,
+        type: type ?? this.type,
+        batchId: batchId ?? this.batchId,
       );
 
   @override
-  List<Object?> get props => [id, userId, productId, warehouseId, isRead];
+  List<Object?> get props => [id, userId, productId, warehouseId, isRead, type, batchId];
 }

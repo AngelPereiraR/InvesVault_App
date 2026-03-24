@@ -14,6 +14,7 @@ class WarehouseProductModel extends Equatable {
   final ProductModel? product;
   final StoreModel? store;
   final String? warehouseName;
+  final bool hasExpiringBatch;
 
   const WarehouseProductModel({
     required this.id,
@@ -27,6 +28,7 @@ class WarehouseProductModel extends Equatable {
     this.product,
     this.store,
     this.warehouseName,
+    this.hasExpiringBatch = false,
   });
 
   bool get isLowStock =>
@@ -51,6 +53,7 @@ class WarehouseProductModel extends Equatable {
       product: productJson != null ? ProductModel.fromJson(productJson) : null,
       store: storeJson != null ? StoreModel.fromJson(storeJson) : null,
       warehouseName: (json['warehouse'] as Map<String, dynamic>?)?['name'] as String?,
+      hasExpiringBatch: json['has_expiring_batch'] as bool? ?? false,
     );
   }
 
@@ -62,9 +65,10 @@ class WarehouseProductModel extends Equatable {
         'min_quantity': minQuantity,
         'price_per_unit': pricePerUnit,
         'store_id': storeId,
+        'has_expiring_batch': hasExpiringBatch,
       };
 
-  WarehouseProductModel copyWith({double? quantity, double? minQuantity, String? warehouseName}) =>
+  WarehouseProductModel copyWith({double? quantity, double? minQuantity, String? warehouseName, bool? hasExpiringBatch}) =>
       WarehouseProductModel(
         id: id,
         warehouseId: warehouseId,
@@ -77,8 +81,9 @@ class WarehouseProductModel extends Equatable {
         product: product,
         store: store,
         warehouseName: warehouseName ?? this.warehouseName,
+        hasExpiringBatch: hasExpiringBatch ?? this.hasExpiringBatch,
       );
 
   @override
-  List<Object?> get props => [id, warehouseId, productId, quantity, minQuantity, warehouseName];
+  List<Object?> get props => [id, warehouseId, productId, quantity, minQuantity, warehouseName, hasExpiringBatch];
 }

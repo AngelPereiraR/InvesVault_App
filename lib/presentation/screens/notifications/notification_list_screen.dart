@@ -168,16 +168,20 @@ class _NotificationListScreenState extends State<NotificationListScreen> {
                                 .primaryContainer
                                 .withValues(alpha: 0.3),
                         leading: CircleAvatar(
-                          backgroundColor: n.isRead
-                              ? Theme.of(context).colorScheme.surfaceContainerHighest
-                              : Theme.of(context).colorScheme.primaryContainer,
+                          backgroundColor: n.type == 'expiry_warning'
+                              ? Colors.orange.withValues(alpha: 0.15)
+                              : n.isRead
+                                  ? Theme.of(context).colorScheme.surfaceContainerHighest
+                                  : Theme.of(context).colorScheme.primaryContainer,
                           child: Icon(
-                            Icons.notifications,
-                            color: n.isRead
-                                ? Theme.of(context)
-                                    .colorScheme
-                                    .onSurfaceVariant
-                                : Theme.of(context).colorScheme.primary,
+                            n.type == 'expiry_warning'
+                                ? Icons.calendar_today
+                                : Icons.notifications,
+                            color: n.type == 'expiry_warning'
+                                ? Colors.orange
+                                : n.isRead
+                                    ? Theme.of(context).colorScheme.onSurfaceVariant
+                                    : Theme.of(context).colorScheme.primary,
                           ),
                         ),
                         title: Text(n.message,
