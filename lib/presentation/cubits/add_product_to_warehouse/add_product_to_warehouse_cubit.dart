@@ -68,6 +68,7 @@ class AddProductToWarehouseCubit extends Cubit<AddProductToWarehouseState> {
     required double? price,
     required int minStock,
     required int productId,
+    String? observations,
   }) async {
     try {
       emit(const AddProductToWarehouseLoading());
@@ -78,6 +79,7 @@ class AddProductToWarehouseCubit extends Cubit<AddProductToWarehouseState> {
         quantity: quantity,
         price: price,
         minStock: minStock,
+        observations: observations,
       );
 
       emit(const AddProductToWarehouseSuccess());

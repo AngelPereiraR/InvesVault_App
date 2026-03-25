@@ -197,6 +197,16 @@ class _WarehouseTile extends StatelessWidget {
                       color: cs.onSurfaceVariant,
                     ),
               ),
+            if (wp.observations != null && wp.observations!.isNotEmpty)
+              Text(
+                wp.observations!,
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: cs.onSurfaceVariant,
+                      fontStyle: FontStyle.italic,
+                    ),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
           ],
         ),
         trailing: const Icon(Icons.chevron_right),

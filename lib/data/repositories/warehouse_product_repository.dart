@@ -31,6 +31,7 @@ class WarehouseProductRepository {
     required int quantity,
     required double? price,
     required int minStock,
+    String? observations,
   }) async {
     try {
       await _datasource.addWarehouseProduct(
@@ -39,6 +40,7 @@ class WarehouseProductRepository {
         quantity: quantity,
         price: price,
         minStock: minStock,
+        observations: observations,
       );
     } catch (e) {
       rethrow;

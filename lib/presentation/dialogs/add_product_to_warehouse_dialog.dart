@@ -29,6 +29,7 @@ class _AddProductToWarehouseDialogState
   final _quantityCtrl = TextEditingController();
   final _priceCtrl = TextEditingController();
   final _minStockCtrl = TextEditingController();
+  final _observationsCtrl = TextEditingController();
 
   int? _selectedWarehouseId;
 
@@ -43,6 +44,7 @@ class _AddProductToWarehouseDialogState
     _quantityCtrl.dispose();
     _priceCtrl.dispose();
     _minStockCtrl.dispose();
+    _observationsCtrl.dispose();
     super.dispose();
   }
 
@@ -60,6 +62,7 @@ class _AddProductToWarehouseDialogState
       quantity: quantity,
       price: price,
       minStock: minStock,
+      observations: _observationsCtrl.text.trim().isEmpty ? null : _observationsCtrl.text.trim(),
     );
   }
 
@@ -174,6 +177,15 @@ class _AddProductToWarehouseDialogState
                       return null;
                     },
                     onChanged: (_) => setState(() {}), // Trigger rebuild for alert
+                  ),
+
+                  const SizedBox(height: 16),
+
+                  // Observations field (optional)
+                  AppTextField(
+                    controller: _observationsCtrl,
+                    label: 'Observaciones (opcional)',
+                    keyboardType: TextInputType.multiline,
                   ),
 
                   // Dynamic alert if minStock > quantity

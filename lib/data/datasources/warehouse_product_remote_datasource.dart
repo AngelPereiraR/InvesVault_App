@@ -75,6 +75,7 @@ class WarehouseProductRemoteDatasource {
     required int quantity,
     required double? price,
     required int minStock,
+    String? observations,
   }) async {
     await _dio.post(
       ApiConstants.warehouseProducts,
@@ -84,6 +85,7 @@ class WarehouseProductRemoteDatasource {
         'quantity': quantity,
         if (price != null) 'price_per_unit': price,
         'min_quantity': minStock,
+        if (observations != null && observations.isNotEmpty) 'observations': observations,
       },
     );
   }

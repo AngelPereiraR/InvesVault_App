@@ -379,6 +379,7 @@ class _AddProductSheetState extends State<_AddProductSheet> {
   final _qtyCtrl = TextEditingController(text: '1');
   final _minQtyCtrl = TextEditingController();
   final _priceCtrl = TextEditingController();
+  final _obsCtrl = TextEditingController();
   int? _storeId;
   String _query = '';
 
@@ -387,6 +388,7 @@ class _AddProductSheetState extends State<_AddProductSheet> {
     _qtyCtrl.dispose();
     _minQtyCtrl.dispose();
     _priceCtrl.dispose();
+    _obsCtrl.dispose();
     super.dispose();
   }
 
@@ -407,6 +409,7 @@ class _AddProductSheetState extends State<_AddProductSheet> {
       if (_priceCtrl.text.isNotEmpty)
         'price_per_unit': double.tryParse(_priceCtrl.text),
       if (_storeId != null) 'store_id': _storeId,
+      if (_obsCtrl.text.trim().isNotEmpty) 'observations': _obsCtrl.text.trim(),
     };
     ctx.read<WarehouseDetailCubit>().addProduct(data);
     Navigator.of(ctx).pop();
@@ -564,6 +567,17 @@ class _AddProductSheetState extends State<_AddProductSheet> {
                             onChanged: (v) => setState(() => _storeId = v),
                           );
                         },
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+
+                    // Observations
+                    TextField(
+                      controller: _obsCtrl,
+                      maxLines: 2,
+                      decoration: const InputDecoration(
+                        labelText: 'Observaciones (opcional)',
+                        prefixIcon: Icon(Icons.notes_outlined),
                       ),
                     ),
                     const SizedBox(height: 20),

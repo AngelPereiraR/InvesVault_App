@@ -126,6 +126,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                     _InfoRow('Precio/unidad',
                         '${wp.pricePerUnit!.toStringAsFixed(2)} €'),
                   if (wp.store != null) _InfoRow('Tienda', wp.store!.name),
+                  if (wp.observations != null && wp.observations!.isNotEmpty)
+                    _InfoRow('Observaciones', wp.observations!),
                   _InfoRow('Código de barras',
                       product?.barcode ?? 'No especificado'),
                 ]),
@@ -502,6 +504,7 @@ class _WarehouseDetailsEditor extends StatefulWidget {
 class _WarehouseDetailsEditorState extends State<_WarehouseDetailsEditor> {
   late final TextEditingController _minQtyCtrl;
   late final TextEditingController _priceCtrl;
+  late final TextEditingController _obsCtrl;
   int? _storeId;
   bool _expanded = false;
 
@@ -511,6 +514,7 @@ class _WarehouseDetailsEditorState extends State<_WarehouseDetailsEditor> {
         wp.minQuantity != null ? wp.minQuantity!.toStringAsFixed(2) : '';
     _priceCtrl.text =
         wp.pricePerUnit != null ? wp.pricePerUnit!.toStringAsFixed(2) : '';
+    _obsCtrl.text = wp.observations ?? '';
     _storeId = wp.storeId;
   }
 
@@ -519,6 +523,7 @@ class _WarehouseDetailsEditorState extends State<_WarehouseDetailsEditor> {
     super.initState();
     _minQtyCtrl = TextEditingController();
     _priceCtrl = TextEditingController();
+    _obsCtrl = TextEditingController();
     _syncFromWidget();
   }
 
@@ -528,7 +533,8 @@ class _WarehouseDetailsEditorState extends State<_WarehouseDetailsEditor> {
     if (oldWidget.wp.id != widget.wp.id ||
         oldWidget.wp.minQuantity != widget.wp.minQuantity ||
         oldWidget.wp.pricePerUnit != widget.wp.pricePerUnit ||
-        oldWidget.wp.storeId != widget.wp.storeId) {
+        oldWidget.wp.storeId != widget.wp.storeId ||
+        oldWidget.wp.observations != widget.wp.observations) {
       _syncFromWidget();
     }
   }
@@ -537,6 +543,7 @@ class _WarehouseDetailsEditorState extends State<_WarehouseDetailsEditor> {
   void dispose() {
     _minQtyCtrl.dispose();
     _priceCtrl.dispose();
+    _obsCtrl.dispose();
     super.dispose();
   }
 
@@ -546,6 +553,7 @@ class _WarehouseDetailsEditorState extends State<_WarehouseDetailsEditor> {
           ? null
           : (double.tryParse(_minQtyCtrl.text) ?? 0),
       'store_id': _storeId,
+      'observations': _obsCtrl.text.trim().isEmpty ? null : _obsCtrl.text.trim(),
     };
     if (_priceCtrl.text.isNotEmpty) {
       data['price_per_unit'] = double.tryParse(_priceCtrl.text) ?? 0;
@@ -615,6 +623,15 @@ class _WarehouseDetailsEditorState extends State<_WarehouseDetailsEditor> {
                 onChanged: (v) => setState(() => _storeId = v),
               );
             },
+          ),
+          const SizedBox(height: 10),
+          TextField(
+            controller: _obsCtrl,
+            maxLines: 2,
+            decoration: const InputDecoration(
+              labelText: 'Observaciones (opcional)',
+              prefixIcon: Icon(Icons.notes_outlined),
+            ),
           ),
           const SizedBox(height: 16),
           SizedBox(
