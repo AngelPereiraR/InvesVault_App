@@ -3,13 +3,17 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 
 import '../../../core/router/app_router.dart';
+import '../../../data/models/batch_model.dart';
 import '../../../data/models/product_model.dart';
 import '../../../data/models/warehouse_product_model.dart';
 import '../../cubits/auth/auth_cubit.dart';
+import '../../cubits/batch/batch_cubit.dart';
 import '../../cubits/notification/notification_cubit.dart';
 import '../../cubits/product_detail/product_detail_cubit.dart';
 import '../../cubits/stock_change/stock_change_cubit.dart';
 import '../../cubits/store/store_cubit.dart';
+import '../../cubits/warehouse_detail/warehouse_detail_cubit.dart';
+import '../../dialogs/add_edit_batch_dialog.dart';
 import '../../widgets/error_view.dart';
 import '../../widgets/loading_indicator.dart';
 import '../../widgets/quantity_stepper.dart';
@@ -42,6 +46,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     context
         .read<StockChangeCubit>()
         .loadByProduct(0); // will reload after first load
+    context.read<BatchCubit>().load(widget.warehouseProductId);
   }
 
   void _applyDelta() {
@@ -227,6 +232,15 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                       ),
                   icon: const Icon(Icons.edit),
                   label: const Text('Editar información del producto'),
+                ),
+
+                const SizedBox(height: 24),
+
+                // Batch / expiry dates
+                _BatchSection(
+                  warehouseProductId: widget.warehouseProductId,
+                  warehouseId: widget.warehouseId,
+                  totalStock: wp.quantity,
                 ),
 
                 const SizedBox(height: 32),
@@ -612,6 +626,210 @@ class _WarehouseDetailsEditorState extends State<_WarehouseDetailsEditor> {
           ),
         ],
       ],
+    );
+  }
+}
+
+// ── Batch / expiry date section ────────────────────────────────────────────
+class _BatchSection extends StatelessWidget {
+  final int warehouseProductId;
+  final int warehouseId;
+  final double totalStock;
+  const _BatchSection({
+    required this.warehouseProductId,
+    required this.warehouseId,
+    required this.totalStock,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    return BlocBuilder<BatchCubit, BatchState>(
+      builder: (context, state) {
+        final batches = state is BatchLoaded ? state.batches : <BatchModel>[];
+        final totalBatched =
+            batches.fold<double>(0.0, (s, b) => s + b.quantity);
+        final addMaxQty = totalStock - totalBatched;
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Text('Fechas de caducidad',
+                    style: Theme.of(context).textTheme.titleMedium),
+                const Spacer(),
+                if (addMaxQty > 0)
+                  TextButton.icon(
+                    icon: const Icon(Icons.add, size: 18),
+                    label: const Text('Asignar'),
+                    onPressed: () => showDialog(
+                      context: context,
+                      builder: (_) => BlocProvider.value(
+                        value: context.read<BatchCubit>(),
+                        child: AddEditBatchDialog(
+                          warehouseProductId: warehouseProductId,
+                          maxQuantity: addMaxQty,
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            if (state is BatchLoading || state is BatchMutating)
+              const Padding(
+                padding: EdgeInsets.symmetric(vertical: 12),
+                child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
+              )
+            else if (state is BatchError)
+              Padding(
+                padding: const EdgeInsets.all(8),
+                child: Text(state.message,
+                    style: TextStyle(color: cs.error)),
+              )
+            else if (batches.isEmpty)
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                child: Text(
+                  'Sin fechas asignadas',
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: cs.onSurfaceVariant),
+                ),
+              )
+            else
+              Card(
+                child: Column(
+                  children: batches.map((b) {
+                    final isExpiring = b.isExpiringSoon;
+                    final qtyStr = b.quantity % 1 == 0
+                        ? '${b.quantity.toInt()} uds'
+                        : '${b.quantity} uds';
+                    return ListTile(
+                      dense: true,
+                      leading: Icon(
+                        Icons.inventory_2_outlined,
+                        size: 18,
+                        color: isExpiring ? Colors.orange : cs.onSurfaceVariant,
+                      ),
+                      title: Row(
+                        children: [
+                          Text(qtyStr),
+                          if (b.expiryDate != null) ...[
+                            const SizedBox(width: 8),
+                            Text(
+                              'vence ${b.expiryDate}',
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodySmall
+                                  ?.copyWith(
+                                      color: isExpiring
+                                          ? Colors.orange
+                                          : null),
+                            ),
+                            if (isExpiring) ...[
+                              const SizedBox(width: 4),
+                              const Text('⚠️',
+                                  style: TextStyle(fontSize: 12)),
+                            ],
+                          ] else
+                            Text(
+                              ' sin fecha',
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodySmall
+                                  ?.copyWith(color: cs.onSurfaceVariant),
+                            ),
+                        ],
+                      ),
+                      subtitle: b.notes != null ? Text(b.notes!) : null,
+                      trailing: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          IconButton(
+                            icon:
+                                const Icon(Icons.edit_outlined, size: 18),
+                            tooltip: 'Editar',
+                            onPressed: () => showDialog(
+                              context: context,
+                              builder: (_) => BlocProvider.value(
+                                value: context.read<BatchCubit>(),
+                                child: AddEditBatchDialog(
+                                  warehouseProductId: warehouseProductId,
+                                  maxQuantity: addMaxQty + b.quantity,
+                                  batch: BatchItem(
+                                    id: b.id,
+                                    quantity: b.quantity,
+                                    expiryDate: b.expiryDate,
+                                    notes: b.notes,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                          IconButton(
+                            icon: Icon(Icons.delete_outline,
+                                size: 18, color: cs.error),
+                            tooltip: 'Eliminar',
+                            onPressed: () async {
+                              final confirm = await showDialog<bool>(
+                                context: context,
+                                builder: (dialogCtx) => AlertDialog(
+                                  title:
+                                      const Text('Eliminar caducidad'),
+                                  content: Text(
+                                    'Se eliminarán $qtyStr con fecha '
+                                    '${b.expiryDate ?? 'sin asignar'}. '
+                                    'El stock se reducirá en la misma cantidad.',
+                                  ),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () =>
+                                          Navigator.of(dialogCtx)
+                                              .pop(false),
+                                      child: const Text('Cancelar'),
+                                    ),
+                                    TextButton(
+                                      onPressed: () =>
+                                          Navigator.of(dialogCtx)
+                                              .pop(true),
+                                      child: Text(
+                                        'Eliminar',
+                                        style: TextStyle(
+                                            color: Theme.of(dialogCtx)
+                                                .colorScheme
+                                                .error),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              );
+                              if (confirm == true && context.mounted) {
+                                await context.read<BatchCubit>().deleteBatch(
+                                      batchId: b.id,
+                                      warehouseProductId: warehouseProductId,
+                                    );
+                                if (context.mounted) {
+                                  context.read<ProductDetailCubit>().load(
+                                        warehouseId,
+                                        warehouseProductId,
+                                      );
+                                  context
+                                      .read<WarehouseDetailCubit>()
+                                      .refresh();
+                                }
+                              }
+                            },
+                          ),
+                        ],
+                      ),
+                    );
+                  }).toList(),
+                ),
+              ),
+          ],
+        );
+      },
     );
   }
 }

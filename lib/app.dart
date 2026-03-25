@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:dio/dio.dart';
 
 import 'core/network/dio_client.dart';
@@ -214,6 +215,12 @@ class _InvesVaultAppState extends State<InvesVaultApp> {
                 initialRoute: '/splash',
                 onGenerateRoute: generateRoute,
                 debugShowCheckedModeBanner: false,
+                localizationsDelegates: const [
+                  GlobalMaterialLocalizations.delegate,
+                  GlobalWidgetsLocalizations.delegate,
+                  GlobalCupertinoLocalizations.delegate,
+                ],
+                supportedLocales: const [Locale('es')],
               );
             },
           ),

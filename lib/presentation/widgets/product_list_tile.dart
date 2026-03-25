@@ -73,7 +73,9 @@ class ProductListTile extends StatelessWidget {
             ),
         ],
       ),
-      trailing: trailing ?? Row(
+      trailing: trailing ?? Transform.translate(
+        offset: const Offset(16, 0),
+        child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           if (isLow)
@@ -94,12 +96,18 @@ class ProductListTile extends StatelessWidget {
                 icon: const Icon(Icons.remove_circle_outline),
                 onPressed: onRemove,
                 tooltip: 'Reducir stock',
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(),
+                visualDensity: VisualDensity.compact,
               ),
             if (onAdd != null)
               IconButton(
                 icon: const Icon(Icons.add_circle_outline),
                 onPressed: onAdd,
                 tooltip: 'Aumentar stock',
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(),
+                visualDensity: VisualDensity.compact,
               ),
             if (onDelete != null)
               PopupMenuButton<String>(
@@ -125,6 +133,7 @@ class ProductListTile extends StatelessWidget {
               ),
           ],
         ],
+        ),
       ),
     );
   }

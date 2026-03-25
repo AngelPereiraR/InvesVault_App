@@ -79,6 +79,7 @@ class _AddEditBatchDialogState extends State<AddEditBatchDialog> {
       initialDate: _selectedDate ?? DateTime.now(),
       firstDate: DateTime.now(),
       lastDate: DateTime(2100),
+      locale: const Locale('es'),
     );
     if (picked != null) setState(() => _selectedDate = picked);
   }

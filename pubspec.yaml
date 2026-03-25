@@ -10,6 +10,8 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  flutter_localizations:
+    sdk: flutter
 
   # State management
   flutter_bloc: ^8.1.4
@@ -37,7 +39,7 @@ dependencies:
   cached_network_image: ^3.3.1
 
   # Internationalization
-  intl: ^0.19.0
+  intl: ^0.20.2
 
   cupertino_icons: ^1.0.8
 
