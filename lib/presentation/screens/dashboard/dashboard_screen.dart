@@ -322,8 +322,9 @@ class _StatButton extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 10),
           decoration: BoxDecoration(
-            color: cs.surfaceContainerHighest,
+            color: cs.surface,
             borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: cs.secondary.withValues(alpha: 0.15)),
             boxShadow: [
               BoxShadow(
                   color: Colors.black.withValues(alpha: 0.05),

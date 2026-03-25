@@ -23,6 +23,7 @@ class AppPurples {
 /// Paleta neutral: de blanco (#FFFFFF) a negro (#121212)
 class AppNeutrals {
   static const c100 = Color(0xFFFFFFFF);
+  static const c150 = Color(0xFFECECEC);
   static const c200 = Color(0xFFF5F5F5);
   static const c300 = Color(0xFFE0E0E0);
   static const c400 = Color(0xFF9E9E9E);
