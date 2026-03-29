@@ -147,7 +147,7 @@ class WarehouseDetailCubit extends Cubit<WarehouseDetailState> {
       // Reload all pages from 1 to currentPage
       final allProducts = <WarehouseProductModel>[];
       for (int page = 1; page <= current.currentPage; page++) {
-        final params = _currentParams.copyWith(page: page);
+        final params = _effectiveParams(page: page);
         final pageItems =
             await _warehouseProductRepository.getProducts(_lastWarehouseId, params);
         allProducts.addAll(pageItems);
@@ -261,7 +261,7 @@ class WarehouseDetailCubit extends Cubit<WarehouseDetailState> {
         'user_id': userId,
       });
       // Reload products to get fresh quantities (reload current page)
-      final params = _currentParams.copyWith(page: current.currentPage);
+      final params = _effectiveParams(page: current.currentPage);
       final products =
           await _warehouseProductRepository.getProducts(warehouseId, params);
       final updatedWp = products.firstWhere(
@@ -303,7 +303,7 @@ class WarehouseDetailCubit extends Cubit<WarehouseDetailState> {
     ));
     try {
       await _warehouseProductRepository.deleteProduct(id);
-      final params = _currentParams.copyWith(page: current.currentPage);
+      final params = _effectiveParams(page: current.currentPage);
       final products =
           await _warehouseProductRepository.getProducts(warehouseId, params);
       final limit = _currentParams.limit ?? 20;
@@ -332,7 +332,7 @@ class WarehouseDetailCubit extends Cubit<WarehouseDetailState> {
       emit(WarehouseDetailError(friendlyError(e)));
       return;
     }
-    final params = _currentParams.copyWith(page: current.currentPage);
+    final params = _effectiveParams(page: current.currentPage);
     final products =
         await _warehouseProductRepository.getProducts(warehouseId, params);
     final limit = _currentParams.limit ?? 20;

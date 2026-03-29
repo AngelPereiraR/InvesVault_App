@@ -480,11 +480,17 @@ class _InfoRow extends StatelessWidget {
         padding: const EdgeInsets.symmetric(vertical: 4),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(label,
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     color: Theme.of(context).colorScheme.onSurfaceVariant)),
-            Text(value, style: Theme.of(context).textTheme.bodyMedium),
+            const SizedBox(width: 8),
+            Flexible(
+              child: Text(value,
+                  style: Theme.of(context).textTheme.bodyMedium,
+                  textAlign: TextAlign.end),
+            ),
           ],
         ),
       );

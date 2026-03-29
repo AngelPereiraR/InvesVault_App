@@ -138,7 +138,7 @@ class ProductListCubit extends Cubit<ProductListState> {
       // Reload all pages from 1 to currentPage
       final allProducts = <ProductModel>[];
       for (int page = 1; page <= current.currentPage; page++) {
-        final params = _currentParams.copyWith(page: page);
+        final params = _effectiveParams(page: page);
         final pageItems = await _repository.getProducts(params);
         allProducts.addAll(pageItems);
       }

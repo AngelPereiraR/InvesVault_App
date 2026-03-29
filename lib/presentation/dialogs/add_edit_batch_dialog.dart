@@ -77,8 +77,8 @@ class _AddEditBatchDialogState extends State<AddEditBatchDialog> {
     final picked = await showDatePicker(
       context: context,
       initialDate: _selectedDate ?? DateTime.now(),
-      firstDate: DateTime.now(),
-      lastDate: DateTime(2100),
+      firstDate: DateTime(2000),
+      lastDate: DateTime(9999),
       locale: const Locale('es'),
     );
     if (picked != null) setState(() => _selectedDate = picked);
