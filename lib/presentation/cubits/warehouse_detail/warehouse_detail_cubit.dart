@@ -47,6 +47,8 @@ class WarehouseDetailCubit extends Cubit<WarehouseDetailState> {
         search: _currentSearch.isEmpty ? null : _currentSearch,
         limit: _currentParams.limit,
         page: page,
+        categoryId: _currentParams.categoryId,
+        isLowStock: _currentParams.isLowStock,
       );
 
   Future<void> load(int warehouseId, {required int userId, FilterParams params = FilterParams.empty}) async {

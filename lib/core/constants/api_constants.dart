@@ -92,4 +92,8 @@ abstract class ApiConstants {
   static String batchesByWarehouseProduct(int warehouseProductId) =>
       '/warehouse-products/$warehouseProductId/batches';
   static String batchById(int id) => '/warehouse-product-batches/$id';
+
+  // Categories
+  static const String categories = '/categories';
+  static String categoryById(int id) => '/categories/$id';
 }

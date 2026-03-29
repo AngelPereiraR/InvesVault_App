@@ -9,6 +9,7 @@ import 'core/services/notification_service.dart';
 import 'core/services/storage_service.dart';
 import 'core/theme/app_theme.dart';
 import 'data/datasources/auth_remote_datasource.dart';
+import 'data/datasources/category_remote_datasource.dart';
 import 'data/datasources/dashboard_remote_datasource.dart';
 import 'data/datasources/brand_remote_datasource.dart';
 import 'data/datasources/notification_remote_datasource.dart';
@@ -22,6 +23,7 @@ import 'data/datasources/warehouse_user_remote_datasource.dart';
 import 'data/datasources/batch_remote_datasource.dart';
 import 'data/repositories/auth_repository.dart';
 import 'data/repositories/brand_repository.dart';
+import 'data/repositories/category_repository.dart';
 import 'data/repositories/notification_repository.dart';
 import 'data/repositories/product_repository.dart';
 import 'data/repositories/shopping_list_repository.dart';
@@ -34,6 +36,7 @@ import 'data/repositories/dashboard_repository.dart';
 import 'data/repositories/batch_repository.dart';
 import 'presentation/cubits/auth/auth_cubit.dart';
 import 'presentation/cubits/brand/brand_cubit.dart';
+import 'presentation/cubits/category/category_cubit.dart';
 import 'presentation/cubits/dashboard/dashboard_cubit.dart';
 import 'presentation/cubits/notification/notification_cubit.dart';
 import 'presentation/cubits/product_detail/product_detail_cubit.dart';
@@ -73,6 +76,7 @@ class _InvesVaultAppState extends State<InvesVaultApp> {
   late final ProductRemoteDatasource _productDs;
   late final WarehouseProductRemoteDatasource _warehouseProductDs;
   late final BrandRemoteDatasource _brandDs;
+  late final CategoryRemoteDatasource _categoryDs;
   late final StoreRemoteDatasource _storeDs;
   late final ShoppingListRemoteDatasource _shoppingListDs;
   late final NotificationRemoteDatasource _notificationDs;
@@ -87,6 +91,7 @@ class _InvesVaultAppState extends State<InvesVaultApp> {
   late final ProductRepository _productRepo;
   late final WarehouseProductRepository _warehouseProductRepo;
   late final BrandRepository _brandRepo;
+  late final CategoryRepository _categoryRepo;
   late final StoreRepository _storeRepo;
   late final ShoppingListRepository _shoppingListRepo;
   late final NotificationRepository _notificationRepo;
@@ -107,6 +112,7 @@ class _InvesVaultAppState extends State<InvesVaultApp> {
     _productDs = ProductRemoteDatasource(dio);
     _warehouseProductDs = WarehouseProductRemoteDatasource(dio);
     _brandDs = BrandRemoteDatasource(dio);
+    _categoryDs = CategoryRemoteDatasource(dio);
     _storeDs = StoreRemoteDatasource(dio);
     _shoppingListDs = ShoppingListRemoteDatasource(dio);
     _notificationDs = NotificationRemoteDatasource(dio);
@@ -118,6 +124,7 @@ class _InvesVaultAppState extends State<InvesVaultApp> {
     _productRepo = ProductRepository(_productDs);
     _warehouseProductRepo = WarehouseProductRepository(_warehouseProductDs);
     _brandRepo = BrandRepository(_brandDs);
+    _categoryRepo = CategoryRepository(_categoryDs);
     _storeRepo = StoreRepository(_storeDs);
     _shoppingListRepo = ShoppingListRepository(_shoppingListDs);
     _notificationRepo = NotificationRepository(_notificationDs);
@@ -170,7 +177,7 @@ class _InvesVaultAppState extends State<InvesVaultApp> {
             create: (_) => ProductListCubit(_productRepo),
           ),
           BlocProvider(
-            create: (_) => ProductFormCubit(_productRepo, _brandRepo, _storeRepo),
+            create: (_) => ProductFormCubit(_productRepo, _brandRepo, _storeRepo, _categoryRepo),
           ),
           BlocProvider(
             create: (_) => ProductDetailCubit(
@@ -184,6 +191,9 @@ class _InvesVaultAppState extends State<InvesVaultApp> {
           ),
           BlocProvider(
             create: (_) => BrandCubit(_brandRepo),
+          ),
+          BlocProvider(
+            create: (_) => CategoryCubit(_categoryRepo),
           ),
           BlocProvider(
             create: (_) => StoreCubit(_storeRepo),

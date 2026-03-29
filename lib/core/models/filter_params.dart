@@ -18,6 +18,7 @@ class FilterParams {
   final int? brandId;
   final int? storeId;
   final String? defaultUnit;
+  final int? categoryId;
 
   const FilterParams({
     this.search,
@@ -35,6 +36,7 @@ class FilterParams {
     this.brandId,
     this.storeId,
     this.defaultUnit,
+    this.categoryId,
   });
 
   /// Converts to a Dio queryParameters map, omitting null values.
@@ -63,6 +65,7 @@ class FilterParams {
     if (brandId != null) map['brand_id'] = brandId;
     if (storeId != null) map['store_id'] = storeId;
     if (defaultUnit != null) map['default_unit'] = defaultUnit;
+    if (categoryId != null) map['category_id'] = categoryId;
     return map;
   }
 
@@ -82,6 +85,7 @@ class FilterParams {
     int? brandId,
     int? storeId,
     String? defaultUnit,
+    int? categoryId,
   }) =>
       FilterParams(
         search: search ?? this.search,
@@ -99,6 +103,7 @@ class FilterParams {
         brandId: brandId ?? this.brandId,
         storeId: storeId ?? this.storeId,
         defaultUnit: defaultUnit ?? this.defaultUnit,
+        categoryId: categoryId ?? this.categoryId,
       );
 
   static const FilterParams empty = FilterParams();

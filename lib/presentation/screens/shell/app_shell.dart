@@ -12,6 +12,7 @@ import '../../cubits/warehouse/warehouse_cubit.dart';
 import '../../cubits/warehouse_detail/warehouse_detail_cubit.dart';
 import '../../widgets/confirm_dialog.dart';
 import '../brands/brand_list_screen.dart';
+import '../categories/category_list_screen.dart';
 import '../stores/store_list_screen.dart';
 import '../warehouses/warehouse_list_screen.dart';
 import 'app_drawer.dart';
@@ -182,6 +183,12 @@ class _AppShellState extends State<AppShell> {
                 icon: const Icon(Icons.add),
                 tooltip: 'Nueva marca',
                 onPressed: () => showBrandDialog(context),
+              )
+            else if (widget.currentLocation == '/categories')
+              IconButton(
+                icon: const Icon(Icons.add),
+                tooltip: 'Nueva categoría',
+                onPressed: () => showCategoryDialog(context),
               ),
 
             // Notifications
@@ -234,6 +241,7 @@ class _AppShellState extends State<AppShell> {
       '/warehouses': 'Inventario',
       '/stores': 'Tiendas',
       '/brands': 'Marcas',
+      '/categories': 'Categorías',
       '/products': 'Catálogo',
       '/shopping-list': 'Lista de compra',
       '/stock-history': 'Historial de cambios',

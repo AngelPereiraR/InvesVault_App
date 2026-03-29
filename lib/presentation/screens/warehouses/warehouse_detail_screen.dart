@@ -3,7 +3,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../core/models/filter_params.dart';
 import '../../../core/router/app_router.dart';
+import '../../../data/models/category_model.dart';
 import '../../cubits/auth/auth_cubit.dart';
+import '../../cubits/category/category_cubit.dart';
 import '../../cubits/product_form/product_form_cubit.dart';
 import '../../cubits/store/store_cubit.dart';
 import '../../cubits/warehouse_detail/warehouse_detail_cubit.dart';
@@ -29,6 +31,7 @@ class _WarehouseDetailScreenState extends State<WarehouseDetailScreen> {
   final Set<int> _selected = {};
   late final ScrollController _scrollController;
   int _pageLimit = 20;
+  int? _selectedCategoryId;
 
   @override
   void initState() {
@@ -43,10 +46,23 @@ class _WarehouseDetailScreenState extends State<WarehouseDetailScreen> {
     _pageLimit = (h / 88).ceil() + 3;
     final authState = context.read<AuthCubit>().state;
     final userId = authState is AuthAuthenticated ? authState.userId : 0;
+    context.read<CategoryCubit>().load();
     context.read<WarehouseDetailCubit>().load(
           widget.warehouseId,
           userId: userId,
           params: FilterParams(limit: _pageLimit),
+        );
+  }
+
+  void _applyFilter(int userId, {int? categoryId, bool clear = false}) {
+    setState(() => _selectedCategoryId = clear ? null : categoryId);
+    context.read<WarehouseDetailCubit>().load(
+          widget.warehouseId,
+          userId: userId,
+          params: FilterParams(
+            limit: _pageLimit,
+            categoryId: clear ? null : categoryId,
+          ),
         );
   }
 
@@ -140,7 +156,10 @@ class _WarehouseDetailScreenState extends State<WarehouseDetailScreen> {
                 .read<WarehouseDetailCubit>()
                 .load(widget.warehouseId,
                     userId: userId,
-                    params: FilterParams(limit: _pageLimit)),
+                    params: FilterParams(
+                      limit: _pageLimit,
+                      categoryId: _selectedCategoryId,
+                    )),
           );
         }
         if (state is! WarehouseDetailLoaded) return const SizedBox();
@@ -218,6 +237,40 @@ class _WarehouseDetailScreenState extends State<WarehouseDetailScreen> {
               ),
               if (state.isSearching)
                 const LinearProgressIndicator(minHeight: 2),
+              // ── Category chips ──
+              BlocBuilder<CategoryCubit, CategoryState>(
+                builder: (context, catState) {
+                  if (catState is! CategoryLoaded || catState.categories.isEmpty) {
+                    return const SizedBox.shrink();
+                  }
+                  return SizedBox(
+                    height: 42,
+                    child: ListView(
+                      scrollDirection: Axis.horizontal,
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.only(right: 6),
+                          child: FilterChip(
+                            label: const Text('Todas'),
+                            selected: _selectedCategoryId == null,
+                            onSelected: (_) => _applyFilter(userId, clear: true),
+                          ),
+                        ),
+                        ...catState.categories.map((cat) => Padding(
+                              padding: const EdgeInsets.only(right: 6),
+                              child: FilterChip(
+                                label: Text(cat.name),
+                                selected: _selectedCategoryId == cat.id,
+                                onSelected: (_) =>
+                                    _applyFilter(userId, categoryId: cat.id),
+                              ),
+                            )),
+                      ],
+                    ),
+                  );
+                },
+              ),
             ],
 
             // ── Loading previous indicator ─
@@ -250,7 +303,10 @@ class _WarehouseDetailScreenState extends State<WarehouseDetailScreen> {
                                 .read<WarehouseDetailCubit>()
                                 .load(widget.warehouseId,
                                     userId: userId,
-                                    params: FilterParams(limit: _pageLimit));
+                                    params: FilterParams(
+                                      limit: _pageLimit,
+                                      categoryId: _selectedCategoryId,
+                                    ));
                           },
                           child: ListView.separated(
                             controller: _scrollController,

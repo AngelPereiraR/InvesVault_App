@@ -22,6 +22,7 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
   final _barcodeCtrl = TextEditingController();
   int? _selectedBrandId;
   String _unit = 'unidad';
+  final Set<int> _selectedCategoryIds = {};
 
   bool get isEdit => widget.productId != null;
 
@@ -47,6 +48,9 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
       _barcodeCtrl.text = p.barcode ?? '';
       _selectedBrandId = p.brandId;
       _unit = p.defaultUnit;
+      _selectedCategoryIds
+        ..clear()
+        ..addAll(p.categories.map((c) => c.id));
     }
   }
 
@@ -57,6 +61,7 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
       if (_barcodeCtrl.text.isNotEmpty) 'barcode': _barcodeCtrl.text.trim(),
       if (_selectedBrandId != null) 'brand_id': _selectedBrandId,
       'default_unit': _unit,
+      'category_ids': _selectedCategoryIds.toList(),
     };
     context.read<ProductFormCubit>().save(data, productId: widget.productId);
   }
@@ -153,6 +158,35 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
                         .toList(),
                     onChanged: (v) => setState(() => _unit = v!),
                   ),
+                  const SizedBox(height: 16),
+                  if (state.categories.isNotEmpty) ...[
+                    Text(
+                      'Categorías (opcional)',
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 4,
+                      children: state.categories.map((cat) {
+                        final selected = _selectedCategoryIds.contains(cat.id);
+                        return FilterChip(
+                          label: Text(cat.name),
+                          selected: selected,
+                          onSelected: (v) => setState(() {
+                            if (v) {
+                              _selectedCategoryIds.add(cat.id);
+                            } else {
+                              _selectedCategoryIds.remove(cat.id);
+                            }
+                          }),
+                        );
+                      }).toList(),
+                    ),
+                  ],
                   const SizedBox(height: 32),
                   AppButton(
                     label: isEdit ? 'Guardar cambios' : 'Crear producto',

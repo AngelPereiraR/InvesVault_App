@@ -22,6 +22,7 @@ class ProductListCubit extends Cubit<ProductListState> {
         search: _currentSearch.isEmpty ? null : _currentSearch,
         limit: _currentParams.limit,
         page: page,
+        categoryId: _currentParams.categoryId,
       );
 
   Future<void> load([FilterParams params = FilterParams.empty]) async {

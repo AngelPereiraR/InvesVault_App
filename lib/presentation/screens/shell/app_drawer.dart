@@ -60,6 +60,11 @@ class AppDrawer extends StatelessWidget {
                   route: '/brands',
                 ),
                 const _DrawerTile(
+                  icon: Icons.category_outlined,
+                  label: 'Categorías',
+                  route: '/categories',
+                ),
+                const _DrawerTile(
                   icon: Icons.inventory_2_outlined,
                   label: 'Catálogo',
                   route: '/products',

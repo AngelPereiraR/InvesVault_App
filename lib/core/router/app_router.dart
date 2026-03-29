@@ -20,6 +20,7 @@ import '../../presentation/screens/warehouses/warehouse_detail_screen.dart';
 import '../../presentation/screens/warehouses/warehouse_form_screen.dart';
 import '../../presentation/screens/products/search_screen.dart';
 import '../../presentation/screens/brands/brand_list_screen.dart';
+import '../../presentation/screens/categories/category_list_screen.dart';
 import '../../presentation/screens/stores/store_list_screen.dart';
 import '../../presentation/screens/help/help_screen.dart';
 import '../../presentation/screens/warehouses/warehouse_list_screen.dart';
@@ -33,6 +34,7 @@ const shellRootRoutes = {
   '/warehouses',
   '/products',
   '/brands',
+  '/categories',
   '/stores',
   '/stock-history',
   '/shopping-list',
@@ -214,6 +216,12 @@ Widget _buildPage(String route, Object? extra) {
     return const AppShell(
       currentLocation: '/brands',
       child: BrandListScreen(),
+    );
+  }
+  if (route == '/categories') {
+    return const AppShell(
+      currentLocation: '/categories',
+      child: CategoryListScreen(),
     );
   }
   if (route == '/stores') {

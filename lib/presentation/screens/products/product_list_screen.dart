@@ -3,6 +3,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../core/models/filter_params.dart';
 import '../../../core/router/app_router.dart';
+import '../../../data/models/category_model.dart';
+import '../../cubits/category/category_cubit.dart';
 import '../../cubits/product_list/product_list_cubit.dart';
 import '../../widgets/confirm_dialog.dart';
 import '../../widgets/delete_mode_bar.dart';
@@ -23,6 +25,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
   late final ScrollController _scrollController;
   final _searchCtrl = TextEditingController();
   int _pageLimit = 20;
+  int? _selectedCategoryId;
 
   @override
   void initState() {
@@ -35,7 +38,16 @@ class _ProductListScreenState extends State<ProductListScreen> {
     if (!mounted) return;
     final h = MediaQuery.of(context).size.height;
     _pageLimit = ((h / 200).ceil() * 2) + 4;
+    context.read<CategoryCubit>().load();
     context.read<ProductListCubit>().load(FilterParams(limit: _pageLimit));
+  }
+
+  void _applyFilter({int? categoryId, bool clear = false}) {
+    setState(() => _selectedCategoryId = clear ? null : categoryId);
+    context.read<ProductListCubit>().load(FilterParams(
+          limit: _pageLimit,
+          categoryId: clear ? null : categoryId,
+        ));
   }
 
   void _onScroll() {
@@ -152,6 +164,40 @@ class _ProductListScreenState extends State<ProductListScreen> {
                 ),
                 if (state.isSearching)
                   const LinearProgressIndicator(minHeight: 2),
+                // ── Category chips ──
+                BlocBuilder<CategoryCubit, CategoryState>(
+                  builder: (context, catState) {
+                    if (catState is! CategoryLoaded || catState.categories.isEmpty) {
+                      return const SizedBox.shrink();
+                    }
+                    final categories = catState.categories;
+                    return SizedBox(
+                      height: 42,
+                      child: ListView(
+                        scrollDirection: Axis.horizontal,
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.only(right: 6),
+                            child: FilterChip(
+                              label: const Text('Todas'),
+                              selected: _selectedCategoryId == null,
+                              onSelected: (_) => _applyFilter(clear: true),
+                            ),
+                          ),
+                          ...categories.map((cat) => Padding(
+                                padding: const EdgeInsets.only(right: 6),
+                                child: FilterChip(
+                                  label: Text(cat.name),
+                                  selected: _selectedCategoryId == cat.id,
+                                  onSelected: (_) => _applyFilter(categoryId: cat.id),
+                                ),
+                              )),
+                        ],
+                      ),
+                    );
+                  },
+                ),
               ],
               // ── Toolbar ──
               if (_deleteMode)
@@ -199,7 +245,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
                     _searchCtrl.clear();
                     return context
                         .read<ProductListCubit>()
-                        .load(FilterParams(limit: _pageLimit));
+                        .load(FilterParams(limit: _pageLimit, categoryId: _selectedCategoryId));
                   },
                   child: GridView.builder(
                     controller: _scrollController,
@@ -291,7 +337,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
                                           if (context.mounted) {
                                             context
                                                 .read<ProductListCubit>()
-                                                .load();
+                                                .refresh();
                                           }
                                         },
                                         onDelete: () async {

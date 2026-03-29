@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 import 'brand_model.dart';
+import 'category_model.dart';
 
 class ProductModel extends Equatable {
   final int id;
@@ -11,6 +12,7 @@ class ProductModel extends Equatable {
   final String? imageUrl;
   final String? createdAt;
   final BrandModel? brand;
+  final List<CategoryModel> categories;
 
   const ProductModel({
     required this.id,
@@ -22,10 +24,12 @@ class ProductModel extends Equatable {
     this.imageUrl,
     this.createdAt,
     this.brand,
+    this.categories = const [],
   });
 
   factory ProductModel.fromJson(Map<String, dynamic> json) {
     final brandJson = json['brand'] as Map<String, dynamic>?;
+    final categoriesJson = json['categories'] as List<dynamic>?;
     return ProductModel(
       id: json['id'] as int,
       name: json['name'] as String,
@@ -36,6 +40,10 @@ class ProductModel extends Equatable {
       imageUrl: json['image_url'] as String?,
       createdAt: json['created_at'] as String?,
       brand: brandJson != null ? BrandModel.fromJson(brandJson) : null,
+      categories: categoriesJson
+              ?.map((e) => CategoryModel.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          [],
     );
   }
 
@@ -50,5 +58,5 @@ class ProductModel extends Equatable {
       };
 
   @override
-  List<Object?> get props => [id, name, barcode, brandId, defaultUnit];
+  List<Object?> get props => [id, name, barcode, brandId, defaultUnit, categories];
 }
