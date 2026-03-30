@@ -66,4 +66,16 @@ class AppColors {
 
   // AppBar de la shell (púrpura oscuro)
   static const shellAppBar = Color(0xFF3C096C);
+
+  // Fondos de Accesos Rápidos – Catálogo (azul)
+  static const quickActionCatalogLight = Color(0xFFE3F2FD);
+  static const quickActionCatalogDark  = Color(0xFF1A3A5C);
+
+  // Fondos de Accesos Rápidos – Nuevo producto (ámbar)
+  static const quickActionNewProductLight = Color(0xFFFFF3BF);
+  static const quickActionNewProductDark  = Color(0xFF3D2B00);
+
+  // Fondos de Accesos Rápidos – Tiendas (teal)
+  static const quickActionStoresLight = Color(0xFFE0F7FA);
+  static const quickActionStoresDark  = Color(0xFF003D47);
 }

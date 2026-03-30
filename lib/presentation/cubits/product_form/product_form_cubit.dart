@@ -27,6 +27,9 @@ class ProductFormCubit extends Cubit<ProductFormState> {
   ) : super(const ProductFormInitial());
 
   Future<void> init({int? productId}) async {
+    final prevProducts = state is ProductFormReady
+        ? (state as ProductFormReady).allProducts
+        : <ProductModel>[];
     emit(const ProductFormLoading());
     try {
       final results = await Future.wait([
@@ -42,7 +45,8 @@ class ProductFormCubit extends Cubit<ProductFormState> {
         existing = await _productRepository.getProductById(productId);
       }
       emit(ProductFormReady(
-          brands: brands, stores: stores, categories: categories, existingProduct: existing));
+          brands: brands, stores: stores, categories: categories,
+          existingProduct: existing, allProducts: prevProducts));
     } catch (e) {
       emit(ProductFormError(friendlyError(e)));
     }
@@ -69,12 +73,23 @@ class ProductFormCubit extends Cubit<ProductFormState> {
   }
 
   Future<void> save(Map<String, dynamic> data, {int? productId}) async {
+    final prev = state is ProductFormReady ? state as ProductFormReady : null;
+    final prevProducts = prev?.allProducts ?? <ProductModel>[];
     emit(const ProductFormLoading());
     try {
       final product = productId != null
           ? await _productRepository.updateProduct(productId, data)
           : await _productRepository.createProduct(data);
-      emit(ProductFormSuccess(product));
+      final updatedProducts = productId != null
+          ? prevProducts.map((p) => p.id == productId ? product : p).toList()
+          : [...prevProducts, product];
+      emit(ProductFormSuccess(product, updatedProducts));
+      emit(ProductFormReady(
+        brands: prev?.brands ?? const [],
+        stores: prev?.stores ?? const [],
+        categories: prev?.categories ?? const [],
+        allProducts: updatedProducts,
+      ));
     } catch (e) {
       emit(ProductFormError(friendlyError(e)));
     }

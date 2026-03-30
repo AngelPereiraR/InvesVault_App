@@ -489,13 +489,21 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
                     icon: Icons.store_outlined,
                   );
                 }
-                return ListView(
-                  padding: const EdgeInsets.all(16),
+                return Column(
                   children: [
-                    ...filteredItems.map(
-                        (item) => _buildItemCard(item, showWarehouse: true)),
-                    const SizedBox(height: 12),
-                    _buildBuyButton(filteredItems),
+                    Expanded(
+                      child: ListView(
+                        padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+                        children: [
+                          ...filteredItems.map(
+                              (item) => _buildItemCard(item, showWarehouse: true)),
+                        ],
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                      child: _buildBuyButton(filteredItems),
+                    ),
                   ],
                 );
               }(),
@@ -697,13 +705,21 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
                     }
                     if (state is ShoppingListLoaded) {
                       final items = state.items;
-                      return ListView(
-                        padding: const EdgeInsets.all(16),
+                      return Column(
                         children: [
-                          ...items.map((item) =>
-                              _buildItemCard(item, showWarehouse: false)),
-                          const SizedBox(height: 12),
-                          _buildBuyButton(items),
+                          Expanded(
+                            child: ListView(
+                              padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+                              children: [
+                                ...items.map((item) =>
+                                    _buildItemCard(item, showWarehouse: false)),
+                              ],
+                            ),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+                            child: _buildBuyButton(items),
+                          ),
                         ],
                       );
                     }
@@ -907,25 +923,38 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
 
   Widget _buildBuyButton(List items) {
     final count = _checkedSet.length;
+    final visible = count > 0;
     final cs = Theme.of(context).colorScheme;
-    return SizedBox(
-      width: double.infinity,
-      child: ElevatedButton.icon(
-        style: ElevatedButton.styleFrom(
-          backgroundColor: cs.primary,
-          foregroundColor: cs.surface,
-          shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(14)),
-          elevation: 0,
-          textStyle:
-              const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
-        ),
-        icon: const Icon(Icons.shopping_cart_checkout),
-        label: Text(count == 0
-            ? 'Marca productos para comprar'
-            : 'Comprar ($count marcado${count == 1 ? '' : 's'})'),
-        onPressed: count == 0 ? null : () => _buy(items),
-      ),
+    return AnimatedSize(
+      duration: const Duration(milliseconds: 420),
+      curve: Curves.easeInOutCubic,
+      child: visible
+          ? Padding(
+              padding: const EdgeInsets.fromLTRB(0, 8, 0, 0),
+              child: AnimatedOpacity(
+                opacity: 1.0,
+                duration: const Duration(milliseconds: 380),
+                child: SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton.icon(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: cs.primary,
+                      foregroundColor: cs.surface,
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14)),
+                      elevation: 2,
+                      textStyle: const TextStyle(
+                          fontSize: 16, fontWeight: FontWeight.w700),
+                    ),
+                    icon: const Icon(Icons.shopping_cart_checkout),
+                    label: Text(
+                        'Comprar ($count marcado${count == 1 ? '' : 's'})'),
+                    onPressed: () => _buy(items),
+                  ),
+                ),
+              ),
+            )
+          : const SizedBox.shrink(),
     );
   }
 
@@ -1033,24 +1062,35 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
         : <int>{};
 
     int? selectedProductId;
+    String? selectedProductName;
     int qty = 1;
+    String productSearch = '';
+    final searchController = TextEditingController();
 
     await showDialog<void>(
       context: outerCtx,
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setInner) => BlocBuilder<ProductFormCubit, ProductFormState>(
           builder: (_, formState) {
-            final products = formState is ProductFormReady
+            final allProducts = formState is ProductFormReady
                 ? formState.allProducts
                     .where((p) => !alreadyInList.contains(p.id))
                     .toList()
                 : <dynamic>[];
+            final products = productSearch.isEmpty
+                ? allProducts
+                : allProducts
+                    .where((p) => (p.name as String)
+                        .toLowerCase()
+                        .contains(productSearch.toLowerCase()))
+                    .toList();
+            final keyboardHeight = MediaQuery.of(ctx).viewInsets.bottom;
             return Dialog(
               shape: const RoundedRectangleBorder(
                   borderRadius: BorderRadius.all(Radius.circular(20))),
               insetPadding:
                   const EdgeInsets.symmetric(horizontal: 24, vertical: 40),
-              child: SingleChildScrollView(
+              child: Padding(
                 padding: const EdgeInsets.all(24),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
@@ -1064,23 +1104,90 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
                     const SizedBox(height: 20),
                     if (formState is ProductFormLoading)
                       const Center(child: CircularProgressIndicator())
-                    else if (products.isEmpty)
+                    else if (allProducts.isEmpty)
                       Text('Todos los productos ya están en la lista.',
                           style: TextStyle(color: Theme.of(ctx).colorScheme.onSurfaceVariant))
-                    else
-                      DropdownButtonFormField<int>(
-                        isExpanded: true,
-                        value: selectedProductId,
-                        decoration: _fieldDeco(
-                            ctx, 'Producto', Icons.inventory_2_outlined),
-                        items: products
-                            .map((p) => DropdownMenuItem<int>(
-                                value: p.id as int,
-                                child: Text(p.name as String)))
-                            .toList(),
-                        onChanged: (v) =>
-                            setInner(() => selectedProductId = v),
+                    else ...[
+                      TextField(
+                        controller: searchController,
+                        decoration: _fieldDeco(ctx, 'Buscar producto', Icons.search)
+                            .copyWith(
+                          suffixIcon: productSearch.isNotEmpty
+                              ? IconButton(
+                                  icon: const Icon(Icons.clear),
+                                  onPressed: () {
+                                    searchController.clear();
+                                    setInner(() => productSearch = '');
+                                  },
+                                )
+                              : null,
+                        ),
+                        onChanged: (v) => setInner(() => productSearch = v),
                       ),
+                      const SizedBox(height: 8),
+                      if (selectedProductName != null)
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 12, vertical: 8),
+                          decoration: BoxDecoration(
+                            color: Theme.of(ctx).colorScheme.secondaryContainer,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(Icons.check_circle,
+                                  size: 16,
+                                  color: Theme.of(ctx).colorScheme.secondary),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(selectedProductName!,
+                                    style: TextStyle(
+                                        color: Theme.of(ctx)
+                                            .colorScheme
+                                            .onSecondaryContainer,
+                                        fontWeight: FontWeight.w500)),
+                              ),
+                            ],
+                          ),
+                        ),
+                      const SizedBox(height: 4),
+                      ConstrainedBox(
+                        constraints: BoxConstraints(
+                            maxHeight: keyboardHeight > 0 ? 100 : 180),
+                        child: products.isEmpty
+                            ? Padding(
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 8),
+                                child: Text('Sin resultados.',
+                                    style: TextStyle(
+                                        color: Theme.of(ctx)
+                                            .colorScheme
+                                            .onSurfaceVariant)),
+                              )
+                            : ListView.builder(
+                                shrinkWrap: true,
+                                itemCount: products.length,
+                                itemBuilder: (_, i) {
+                                  final p = products[i];
+                                  final selected =
+                                      selectedProductId == p.id as int;
+                                  return ListTile(
+                                    dense: true,
+                                    title: Text(p.name as String),
+                                    selected: selected,
+                                    selectedTileColor: Theme.of(ctx)
+                                        .colorScheme
+                                        .secondaryContainer
+                                        .withOpacity(0.4),
+                                    onTap: () => setInner(() {
+                                      selectedProductId = p.id as int;
+                                      selectedProductName = p.name as String;
+                                    }),
+                                  );
+                                },
+                              ),
+                      ),
+                    ],
                     const SizedBox(height: 16),
                     _qtyRow(ctx, qty, setInner),
                     const SizedBox(height: 24),
@@ -1101,9 +1208,10 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
         ),
       ),
     );
+    WidgetsBinding.instance.addPostFrameCallback((_) => searchController.dispose());
   }
 
-  //  Add dialog with warehouse selection  Tiendas tab 
+  //  Add dialog with warehouse selection  Tiendas tab
   Future<void> _showAddDialogWithWarehouseSelection(
       BuildContext outerCtx) async {
     final warehouseState = outerCtx.read<WarehouseCubit>().state;
@@ -1123,24 +1231,35 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
 
     int? selectedWarehouseId;
     int? selectedProductId;
+    String? selectedProductName;
     int qty = 1;
+    String productSearch = '';
+    final searchController = TextEditingController();
 
     await showDialog<void>(
       context: outerCtx,
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setInner) => BlocBuilder<ProductFormCubit, ProductFormState>(
           builder: (_, formState) {
-            final products = formState is ProductFormReady
+            final allProducts = formState is ProductFormReady
                 ? formState.allProducts
                     .where((p) => !alreadyInList.contains(p.id))
                     .toList()
                 : <dynamic>[];
+            final products = productSearch.isEmpty
+                ? allProducts
+                : allProducts
+                    .where((p) => (p.name as String)
+                        .toLowerCase()
+                        .contains(productSearch.toLowerCase()))
+                    .toList();
+            final keyboardHeight = MediaQuery.of(ctx).viewInsets.bottom;
             return Dialog(
               shape: const RoundedRectangleBorder(
                   borderRadius: BorderRadius.all(Radius.circular(20))),
               insetPadding:
                   const EdgeInsets.symmetric(horizontal: 24, vertical: 40),
-              child: SingleChildScrollView(
+              child: Padding(
                 padding: const EdgeInsets.all(24),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
@@ -1167,23 +1286,90 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
                     const SizedBox(height: 16),
                     if (formState is ProductFormLoading)
                       const Center(child: CircularProgressIndicator())
-                    else if (products.isEmpty)
+                    else if (allProducts.isEmpty)
                       Text('Todos los productos ya están en la lista.',
                           style: TextStyle(color: Theme.of(ctx).colorScheme.onSurfaceVariant))
-                    else
-                      DropdownButtonFormField<int>(
-                        isExpanded: true,
-                        value: selectedProductId,
-                        decoration: _fieldDeco(
-                            ctx, 'Producto', Icons.inventory_2_outlined),
-                        items: products
-                            .map((p) => DropdownMenuItem<int>(
-                                value: p.id as int,
-                                child: Text(p.name as String)))
-                            .toList(),
-                        onChanged: (v) =>
-                            setInner(() => selectedProductId = v),
+                    else ...[
+                      TextField(
+                        controller: searchController,
+                        decoration: _fieldDeco(ctx, 'Buscar producto', Icons.search)
+                            .copyWith(
+                          suffixIcon: productSearch.isNotEmpty
+                              ? IconButton(
+                                  icon: const Icon(Icons.clear),
+                                  onPressed: () {
+                                    searchController.clear();
+                                    setInner(() => productSearch = '');
+                                  },
+                                )
+                              : null,
+                        ),
+                        onChanged: (v) => setInner(() => productSearch = v),
                       ),
+                      const SizedBox(height: 8),
+                      if (selectedProductName != null)
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 12, vertical: 8),
+                          decoration: BoxDecoration(
+                            color: Theme.of(ctx).colorScheme.secondaryContainer,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(Icons.check_circle,
+                                  size: 16,
+                                  color: Theme.of(ctx).colorScheme.secondary),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(selectedProductName!,
+                                    style: TextStyle(
+                                        color: Theme.of(ctx)
+                                            .colorScheme
+                                            .onSecondaryContainer,
+                                        fontWeight: FontWeight.w500)),
+                              ),
+                            ],
+                          ),
+                        ),
+                      const SizedBox(height: 4),
+                      ConstrainedBox(
+                        constraints: BoxConstraints(
+                            maxHeight: keyboardHeight > 0 ? 100 : 180),
+                        child: products.isEmpty
+                            ? Padding(
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 8),
+                                child: Text('Sin resultados.',
+                                    style: TextStyle(
+                                        color: Theme.of(ctx)
+                                            .colorScheme
+                                            .onSurfaceVariant)),
+                              )
+                            : ListView.builder(
+                                shrinkWrap: true,
+                                itemCount: products.length,
+                                itemBuilder: (_, i) {
+                                  final p = products[i];
+                                  final selected =
+                                      selectedProductId == p.id as int;
+                                  return ListTile(
+                                    dense: true,
+                                    title: Text(p.name as String),
+                                    selected: selected,
+                                    selectedTileColor: Theme.of(ctx)
+                                        .colorScheme
+                                        .secondaryContainer
+                                        .withOpacity(0.4),
+                                    onTap: () => setInner(() {
+                                      selectedProductId = p.id as int;
+                                      selectedProductName = p.name as String;
+                                    }),
+                                  );
+                                },
+                              ),
+                      ),
+                    ],
                     const SizedBox(height: 16),
                     _qtyRow(ctx, qty, setInner),
                     const SizedBox(height: 24),
@@ -1205,6 +1391,7 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
         ),
       ),
     );
+    WidgetsBinding.instance.addPostFrameCallback((_) => searchController.dispose());
   }
 
   //  Dialog helpers

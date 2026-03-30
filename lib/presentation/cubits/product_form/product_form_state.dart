@@ -36,10 +36,11 @@ class ProductFormReady extends ProductFormState {
 
 class ProductFormSuccess extends ProductFormState {
   final ProductModel product;
-  const ProductFormSuccess(this.product);
+  final List<ProductModel> updatedProducts;
+  const ProductFormSuccess(this.product, this.updatedProducts);
 
   @override
-  List<Object?> get props => [product];
+  List<Object?> get props => [product, updatedProducts];
 }
 
 class ProductFormError extends ProductFormState {

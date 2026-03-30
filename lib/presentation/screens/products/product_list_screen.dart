@@ -3,7 +3,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../core/models/filter_params.dart';
 import '../../../core/router/app_router.dart';
-import '../../../data/models/category_model.dart';
 import '../../cubits/category/category_cubit.dart';
 import '../../cubits/product_list/product_list_cubit.dart';
 import '../../widgets/confirm_dialog.dart';

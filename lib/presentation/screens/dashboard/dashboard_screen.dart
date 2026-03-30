@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../core/router/app_router.dart';
+import '../../../core/theme/app_colors.dart';
 import '../../cubits/dashboard/dashboard_cubit.dart';
 import '../../widgets/empty_view.dart';
 import '../../widgets/error_view.dart';
@@ -161,8 +162,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   _QuickActionTile(
                     icon: Icons.swap_vert_circle_outlined,
                     label: 'Movimientos',
-                    backgroundColor: isDark ? cs.primaryContainer : const Color(0xFFD8F3DC),
-                    iconColor: cs.secondary,
+                    backgroundColor: isDark ? cs.primaryContainer : AppGreens.c100,
                     onTap: () =>
                       navigateToShellSection(context, '/stock-history'),
                   ),
@@ -170,35 +170,36 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     icon: Icons.add_business_outlined,
                     label: 'Nuevo almacén',
                     backgroundColor: isDark ? cs.secondaryContainer : const Color(0xFFE9D8FD),
-                    iconColor: cs.secondary,
                     onTap: () => showWarehouseDialog(context),
                   ),
                   _QuickActionTile(
                     icon: Icons.store_outlined,
                     label: 'Tiendas',
-                    backgroundColor: isDark ? cs.primaryContainer : const Color(0xFFDFF3E4),
-                    iconColor: cs.primary,
+                    backgroundColor: isDark
+                        ? AppColors.quickActionStoresDark
+                        : AppColors.quickActionStoresLight,
                     onTap: () => navigateToShellSection(context, '/stores'),
                   ),
                   _QuickActionTile(
                     icon: Icons.label_outlined,
                     label: 'Marcas',
                     backgroundColor: isDark ? cs.errorContainer : const Color(0xFFFDE2E4),
-                    iconColor: cs.error,
                     onTap: () => navigateToShellSection(context, '/brands'),
                   ),
                   _QuickActionTile(
                     icon: Icons.inventory_2_outlined,
                     label: 'Catálogo',
-                    backgroundColor: isDark ? cs.surfaceContainerHighest : const Color(0xFFE3F2FD),
-                    iconColor: cs.primary,
+                    backgroundColor: isDark
+                        ? AppColors.quickActionCatalogDark
+                        : AppColors.quickActionCatalogLight,
                     onTap: () => navigateToShellSection(context, '/products'),
                   ),
                   _QuickActionTile(
                     icon: Icons.add_box_outlined,
                     label: 'Nuevo producto',
-                    backgroundColor: isDark ? cs.surfaceContainerHighest : const Color(0xFFFFF3BF),
-                    iconColor: cs.secondary,
+                    backgroundColor: isDark
+                        ? AppColors.quickActionNewProductDark
+                        : AppColors.quickActionNewProductLight,
                     onTap: () =>
                         context.openAuxiliaryRoute('/products/new'),
                   ),
@@ -209,7 +210,33 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
               // ── RECENT WAREHOUSES ─────────────────────────────────────
               if (state.recentWarehouses.isNotEmpty) ...[
-                const _SectionTitle(title: 'Mis almacenes'),
+                Row(
+                  children: [
+                    Expanded(
+                      child: _SectionTitle(
+                        title: 'Mis almacenes',
+                        actionLabel: 'Ver todos',
+                        onAction: () => navigateToShellSection(context, '/warehouses'),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: cs.secondaryContainer,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Text(
+                        '${state.warehouseCount}',
+                        style: TextStyle(
+                          color: cs.onSecondaryContainer,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
                 const SizedBox(height: 10),
                 GridView.count(
                   shrinkWrap: true,
@@ -231,10 +258,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           '/warehouses/${s.warehouse.id}/detail',
                         ),
                       ),
-                    _WarehouseViewAllButton(
-                      onTap: () =>
-                          navigateToShellSection(context, '/warehouses'),
-                    ),
                   ],
                 ),
               ],
@@ -264,7 +287,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       child: Text(
                         '${state.lowStockCount}',
                         style: TextStyle(
-                            color: cs.error,
+                            color: cs.onErrorContainer,
                             fontSize: 12,
                             fontWeight: FontWeight.w700),
                       ),
@@ -360,19 +383,19 @@ class _QuickActionTile extends StatelessWidget {
   final IconData icon;
   final String label;
   final Color backgroundColor;
-  final Color iconColor;
   final VoidCallback onTap;
 
   const _QuickActionTile({
     required this.icon,
     required this.label,
     required this.backgroundColor,
-    required this.iconColor,
     required this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final foreground = isDark ? AppNeutrals.c100 : AppNeutrals.c600;
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -391,10 +414,12 @@ class _QuickActionTile extends StatelessWidget {
                 width: 52,
                 height: 52,
                 decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.25),
+                  color: isDark
+                      ? Colors.white.withValues(alpha: 0.18)
+                      : Colors.black.withValues(alpha: 0.10),
                   shape: BoxShape.circle,
                 ),
-                child: Icon(icon, color: iconColor, size: 26),
+                child: Icon(icon, color: foreground, size: 26),
               ),
               const SizedBox(height: 12),
               Text(
@@ -405,7 +430,7 @@ class _QuickActionTile extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.w700,
-                  color: iconColor,
+                  color: foreground,
                   height: 1.15,
                 ),
               ),
@@ -517,47 +542,6 @@ class _WarehouseButton extends StatelessWidget {
                 ],
               ),
             ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-// ─── Ver todos warehouses button ──────────────────────────────────────────────
-class _WarehouseViewAllButton extends StatelessWidget {
-  final VoidCallback onTap;
-  const _WarehouseViewAllButton({required this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        decoration: BoxDecoration(
-          color: cs.secondary.withValues(alpha: 0.06),
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: cs.secondary.withValues(alpha: 0.2)),
-        ),
-        child: Row(
-          children: [
-            Container(
-              width: 32,
-              height: 32,
-              decoration: BoxDecoration(
-                  color: cs.secondary.withValues(alpha: 0.12),
-                  shape: BoxShape.circle),
-              child: Icon(Icons.grid_view_rounded,
-                  color: cs.secondary, size: 18),
-            ),
-            const SizedBox(width: 10),
-            Text('Ver todos',
-                style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                    color: cs.secondary)),
           ],
         ),
       ),

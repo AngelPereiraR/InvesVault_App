@@ -36,11 +36,11 @@ class _GlobalSearchScreenState extends State<GlobalSearchScreen> {
         title: TextField(
           controller: _searchCtrl,
           autofocus: true,
-          style: TextStyle(color: cs.onPrimary),
-          cursorColor: cs.onPrimary,
+          style: const TextStyle(color: Colors.white),
+          cursorColor: Colors.white,
           decoration: InputDecoration(
             hintText: 'Buscar productos…',
-            hintStyle: TextStyle(color: cs.onPrimary.withValues(alpha: 0.54)),
+            hintStyle: TextStyle(color: Colors.white.withValues(alpha: 0.54)),
             border: InputBorder.none,
             filled: false,
           ),

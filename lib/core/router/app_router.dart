@@ -10,6 +10,8 @@ import '../../presentation/screens/products/barcode_scanner_screen.dart';
 import '../../presentation/screens/products/product_detail_screen.dart';
 import '../../presentation/screens/products/product_form_screen.dart';
 import '../../presentation/screens/products/product_list_screen.dart';
+import '../../presentation/screens/products/product_stock_history_screen.dart';
+import '../../presentation/screens/products/warehouse_product_config_screen.dart';
 import '../../presentation/screens/products/product_warehouses_screen.dart';
 import '../../presentation/screens/settings/settings_screen.dart';
 import '../../presentation/screens/shell/app_shell.dart';
@@ -296,6 +298,22 @@ Widget _buildPage(String route, Object? extra) {
     return ProductWarehousesScreen(
       productId: int.parse(productWarehousesMatch.group(1)!),
       productName: args?['productName'] as String? ?? '',
+    );
+  }
+
+  final productWarehouseConfigMatch =
+      RegExp(r'^/products/(\d+)/warehouse-config$').firstMatch(route);
+  if (productWarehouseConfigMatch != null) {
+    return const WarehouseProductConfigScreen();
+  }
+
+  final productHistoryMatch =
+      RegExp(r'^/products/(\d+)/history$').firstMatch(route);
+  if (productHistoryMatch != null) {
+    final args = extra as Map<String, dynamic>?;
+    return ProductStockHistoryScreen(
+      productId: int.parse(productHistoryMatch.group(1)!),
+      productName: args?['productName'] as String? ?? 'Producto',
     );
   }
 
