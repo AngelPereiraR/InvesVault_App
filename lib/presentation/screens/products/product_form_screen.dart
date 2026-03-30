@@ -3,7 +3,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../core/router/app_router.dart';
 import '../../cubits/product_form/product_form_cubit.dart';
-import '../../widgets/app_button.dart';
 import '../../widgets/app_text_field.dart';
 import '../../widgets/loading_indicator.dart';
 import '../../../core/utils/validators.dart';
@@ -188,10 +187,20 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
                     ),
                   ],
                   const SizedBox(height: 32),
-                  AppButton(
-                    label: isEdit ? 'Guardar cambios' : 'Crear producto',
-                    loading: state is ProductFormLoading,
-                    onPressed: () => _save(state),
+                  SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton(
+                      onPressed: state is ProductFormLoading
+                          ? null
+                          : () => _save(state),
+                      child: state is ProductFormLoading
+                          ? const SizedBox(
+                              height: 20,
+                              width: 20,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : Text(isEdit ? 'Guardar cambios' : 'Crear producto'),
+                    ),
                   ),
                   if (isEdit) ...[
                     const SizedBox(height: 12),

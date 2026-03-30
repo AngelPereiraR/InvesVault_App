@@ -45,6 +45,9 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
   // Debounce timers for backend qty saves (one per item id)
   final Map<int, Timer> _saveTimers = {};
 
+  // Sort order
+  ShoppingListSortOrder _sortOrder = ShoppingListSortOrder.alphabetical;
+
   // Multi-delete selection mode
   bool _deleteMode = false;
   final Set<int> _selectedForDelete = {};
@@ -56,6 +59,7 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
     final cubit = context.read<ShoppingListCubit>();
     _selectedStoreFilter = cubit.storeFilter;
     _selectedWarehouseId = cubit.selectedWarehouseId;
+    _sortOrder = cubit.sortOrder;
     _stPlanned = cubit.stPlanned;
     _stBuyQty = cubit.stBuyQty;
     _stChecked = cubit.stChecked;
@@ -427,39 +431,7 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
                         ),
                       ),
                     ),
-                    IconButton(
-                      icon: Icon(Icons.auto_awesome, color: cs.primary),
-                      tooltip: 'Generar automáticamente',
-                      onPressed: () => _showGenerateDialog(context),
-                    ),
-                    IconButton(
-                      icon: Icon(Icons.add_circle_outline, color: cs.secondary),
-                      tooltip: 'Añadir producto',
-                      onPressed: () =>
-                          _showAddDialogWithWarehouseSelection(context),
-                    ),
-                    IconButton(
-                      icon: Icon(
-                        Icons.info_outline,
-                        color: cs.onSurfaceVariant,
-                      ),
-                      tooltip: 'Cómo funciona la lista',
-                      onPressed: () => _showInfoDialog(context),
-                    ),
-                    IconButton(
-                      icon: Icon(
-                        Icons.checklist_rounded,
-                        color: _deleteMode
-                            ? cs.error
-                            : cs.onSurfaceVariant,
-                      ),
-                      tooltip: _deleteMode
-                          ? 'Salir del modo borrado'
-                          : 'Seleccionar para borrar',
-                      onPressed: () => _deleteMode
-                          ? _exitDeleteMode()
-                          : setState(() => _deleteMode = true),
-                    ),
+                    _buildTiendasActionsMenu(cs, items),
                   ],
                 ),
               ),
@@ -494,10 +466,7 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
                     Expanded(
                       child: ListView(
                         padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-                        children: [
-                          ...filteredItems.map(
-                              (item) => _buildItemCard(item, showWarehouse: true)),
-                        ],
+                        children: _buildItemWidgets(filteredItems, showWarehouse: true),
                       ),
                     ),
                     Padding(
@@ -575,84 +544,8 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
                       },
                     ),
                   ),
-                  const SizedBox(width: 8),
-                  // Generate all warehouses (always visible)
-                  IconButton(
-                    icon: Icon(Icons.auto_awesome_mosaic, color: cs.primary),
-                    tooltip: 'Generar todos los almacenes',
-                    onPressed: () async {
-                      await context
-                          .read<ShoppingListCubit>()
-                          .generateAll();
-                      if (_selectedWarehouseId != null &&
-                          context.mounted) {
-                        context
-                            .read<ShoppingListCubit>()
-                            .load(_selectedWarehouseId!);
-                      }
-                    },
-                  ),
-                  IconButton(
-                    icon: Icon(
-                      Icons.info_outline,
-                      color: cs.onSurfaceVariant,
-                    ),
-                    tooltip: 'Cómo funciona la lista',
-                    onPressed: () => _showInfoDialog(context),
-                  ),
-                  if (_selectedWarehouseId != null) ...[
-                    const SizedBox(width: 8),
-                    IconButton(
-                      icon: Icon(Icons.add_circle_outline, color: cs.secondary),
-                      tooltip: 'Añadir producto',
-                      onPressed: () => _showAddDialog(context),
-                    ),
-                    IconButton(
-                      icon: Icon(
-                        Icons.checklist_rounded,
-                        color: _deleteMode
-                            ? cs.error
-                            : cs.onSurfaceVariant,
-                      ),
-                      tooltip: _deleteMode
-                          ? 'Salir del modo borrado'
-                          : 'Seleccionar para borrar',
-                      onPressed: () => _deleteMode
-                          ? _exitDeleteMode()
-                          : setState(() => _deleteMode = true),
-                    ),
-                    IconButton(
-                      icon: Icon(Icons.auto_awesome, color: cs.primary),
-                      tooltip: 'Generar automáticamente',
-                      onPressed: () => context
-                          .read<ShoppingListCubit>()
-                          .generate(_selectedWarehouseId!),
-                    ),
-                    IconButton(
-                      icon: Icon(Icons.delete_sweep, color: cs.error),
-                      tooltip: 'Limpiar lista',
-                      onPressed: () async {
-                        final confirm = await showConfirmDialog(
-                          context,
-                          title: 'Limpiar lista',
-                          message:
-                              '¿Eliminar todos los elementos de la lista de compra?',
-                          confirmLabel: 'Limpiar',
-                          isDangerous: true,
-                        );
-                        if (confirm == true && context.mounted) {
-                          setState(() {
-                            _whPlanned.clear();
-                            _whBuyQty.clear();
-                            _whChecked.clear();
-                          });
-                          context
-                              .read<ShoppingListCubit>()
-                              .clearList(_selectedWarehouseId!);
-                        }
-                      },
-                    ),
-                  ],
+                  const SizedBox(width: 4),
+                  _buildAlmacenesActionsMenu(cs),
                 ],
               );
             },
@@ -710,10 +603,7 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
                           Expanded(
                             child: ListView(
                               padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-                              children: [
-                                ...items.map((item) =>
-                                    _buildItemCard(item, showWarehouse: false)),
-                              ],
+                              children: _buildItemWidgets(items, showWarehouse: false),
                             ),
                           ),
                           Padding(
@@ -727,6 +617,221 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
                   },
                 ),
         ),
+      ],
+    );
+  }
+
+  //  Sort helpers ──────────────────────────────────────────────────────────────
+  String _firstCategory(dynamic item) {
+    final cats = item.product?.categories;
+    if (cats == null || (cats as List).isEmpty) return 'Sin categoría';
+    return cats.first.name as String;
+  }
+
+  List<Widget> _buildItemWidgets(List items, {required bool showWarehouse}) {
+    if (_sortOrder == ShoppingListSortOrder.alphabetical) {
+      final sorted = List.of(items)
+        ..sort((a, b) => (a.product?.name as String? ?? '')
+            .toLowerCase()
+            .compareTo((b.product?.name as String? ?? '').toLowerCase()));
+      return sorted
+          .map((item) => _buildItemCard(item, showWarehouse: showWarehouse))
+          .toList();
+    } else {
+      // Group by first category
+      final Map<String, List> groups = {};
+      for (final item in items) {
+        final cat = _firstCategory(item);
+        groups.putIfAbsent(cat, () => []).add(item);
+      }
+      final sortedKeys = groups.keys.toList()..sort();
+      if (sortedKeys.remove('Sin categoría')) sortedKeys.add('Sin categoría');
+
+      final widgets = <Widget>[];
+      for (final key in sortedKeys) {
+        widgets.add(_buildCategoryHeader(key));
+        widgets.addAll(groups[key]!
+            .map((item) => _buildItemCard(item, showWarehouse: showWarehouse)));
+      }
+      return widgets;
+    }
+  }
+
+  Widget _buildCategoryHeader(String name) {
+    final cs = Theme.of(context).colorScheme;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(4, 10, 0, 4),
+      child: Text(
+        name.toUpperCase(),
+        style: TextStyle(
+          fontSize: 11,
+          fontWeight: FontWeight.w700,
+          color: cs.secondary,
+          letterSpacing: 0.8,
+        ),
+      ),
+    );
+  }
+
+  Widget _menuItem(IconData icon, String label, Color color) => Row(
+        children: [
+          Icon(icon, size: 18, color: color),
+          const SizedBox(width: 12),
+          Text(label),
+        ],
+      );
+
+  void _setSortOrder(ShoppingListSortOrder value) {
+    setState(() => _sortOrder = value);
+    context.read<ShoppingListCubit>().sortOrder = value;
+  }
+
+  Widget _buildTiendasActionsMenu(ColorScheme cs, List items) {
+    return PopupMenuButton<String>(
+      icon: Icon(Icons.more_vert, color: cs.onSurfaceVariant),
+      tooltip: 'Más opciones',
+      onSelected: (action) async {
+        switch (action) {
+          case 'generate':
+            _showGenerateDialog(context);
+          case 'add':
+            _showAddDialogWithWarehouseSelection(context);
+          case 'sort_alpha':
+            _setSortOrder(ShoppingListSortOrder.alphabetical);
+          case 'sort_cat':
+            _setSortOrder(ShoppingListSortOrder.byCategory);
+          case 'info':
+            _showInfoDialog(context);
+          case 'delete_mode':
+            setState(() => _deleteMode = true);
+          case 'clear':
+            final confirm = await showConfirmDialog(
+              context,
+              title: 'Limpiar lista',
+              message: '¿Eliminar todos los productos de todas las listas de compra?',
+              confirmLabel: 'Limpiar',
+              isDangerous: true,
+            );
+            if (confirm == true && context.mounted) {
+              setState(() {
+                _stPlanned.clear();
+                _stBuyQty.clear();
+                _stChecked.clear();
+              });
+              final toDelete = items
+                  .map((i) => (id: i.id as int, warehouseId: i.warehouseId as int))
+                  .toList();
+              context.read<ShoppingListCubit>().deleteItems(toDelete);
+            }
+        }
+      },
+      itemBuilder: (_) => [
+        PopupMenuItem(
+            value: 'generate',
+            child: _menuItem(Icons.auto_awesome, 'Generar automáticamente', cs.primary)),
+        PopupMenuItem(
+            value: 'add',
+            child: _menuItem(Icons.add_circle_outline, 'Añadir producto', cs.secondary)),
+        const PopupMenuDivider(),
+        CheckedPopupMenuItem(
+            value: 'sort_alpha',
+            checked: _sortOrder == ShoppingListSortOrder.alphabetical,
+            child: const Text('Orden alfabético')),
+        CheckedPopupMenuItem(
+            value: 'sort_cat',
+            checked: _sortOrder == ShoppingListSortOrder.byCategory,
+            child: const Text('Por categoría')),
+        const PopupMenuDivider(),
+        PopupMenuItem(
+            value: 'info',
+            child: _menuItem(Icons.info_outline, 'Cómo funciona', cs.onSurfaceVariant)),
+        PopupMenuItem(
+            value: 'delete_mode',
+            child: _menuItem(
+                Icons.checklist_rounded, 'Seleccionar para borrar', cs.onSurfaceVariant)),
+        if (items.isNotEmpty)
+          PopupMenuItem(
+              value: 'clear',
+              child: _menuItem(Icons.delete_sweep, 'Limpiar lista', cs.error)),
+      ],
+    );
+  }
+
+  Widget _buildAlmacenesActionsMenu(ColorScheme cs) {
+    return PopupMenuButton<String>(
+      icon: Icon(Icons.more_vert, color: cs.onSurfaceVariant),
+      tooltip: 'Más opciones',
+      onSelected: (action) async {
+        switch (action) {
+          case 'generate_all':
+            await context.read<ShoppingListCubit>().generateAll();
+            if (_selectedWarehouseId != null && context.mounted) {
+              context.read<ShoppingListCubit>().load(_selectedWarehouseId!);
+            }
+          case 'generate':
+            context.read<ShoppingListCubit>().generate(_selectedWarehouseId!);
+          case 'add':
+            _showAddDialog(context);
+          case 'sort_alpha':
+            _setSortOrder(ShoppingListSortOrder.alphabetical);
+          case 'sort_cat':
+            _setSortOrder(ShoppingListSortOrder.byCategory);
+          case 'delete_mode':
+            setState(() => _deleteMode = true);
+          case 'clear':
+            final confirm = await showConfirmDialog(
+              context,
+              title: 'Limpiar lista',
+              message: '¿Eliminar todos los elementos de la lista de compra?',
+              confirmLabel: 'Limpiar',
+              isDangerous: true,
+            );
+            if (confirm == true && context.mounted) {
+              setState(() {
+                _whPlanned.clear();
+                _whBuyQty.clear();
+                _whChecked.clear();
+              });
+              context.read<ShoppingListCubit>().clearList(_selectedWarehouseId!);
+            }
+          case 'info':
+            _showInfoDialog(context);
+        }
+      },
+      itemBuilder: (_) => [
+        PopupMenuItem(
+            value: 'generate_all',
+            child: _menuItem(
+                Icons.auto_awesome_mosaic, 'Generar todos los almacenes', cs.primary)),
+        if (_selectedWarehouseId != null) ...[
+          PopupMenuItem(
+              value: 'generate',
+              child: _menuItem(Icons.auto_awesome, 'Generar este almacén', cs.primary)),
+          PopupMenuItem(
+              value: 'add',
+              child: _menuItem(Icons.add_circle_outline, 'Añadir producto', cs.secondary)),
+          const PopupMenuDivider(),
+          CheckedPopupMenuItem(
+              value: 'sort_alpha',
+              checked: _sortOrder == ShoppingListSortOrder.alphabetical,
+              child: const Text('Orden alfabético')),
+          CheckedPopupMenuItem(
+              value: 'sort_cat',
+              checked: _sortOrder == ShoppingListSortOrder.byCategory,
+              child: const Text('Por categoría')),
+          const PopupMenuDivider(),
+          PopupMenuItem(
+              value: 'delete_mode',
+              child: _menuItem(
+                  Icons.checklist_rounded, 'Seleccionar para borrar', cs.onSurfaceVariant)),
+          PopupMenuItem(
+              value: 'clear',
+              child: _menuItem(Icons.delete_sweep, 'Limpiar lista', cs.error)),
+        ],
+        const PopupMenuDivider(),
+        PopupMenuItem(
+            value: 'info',
+            child: _menuItem(Icons.info_outline, 'Cómo funciona', cs.onSurfaceVariant)),
       ],
     );
   }

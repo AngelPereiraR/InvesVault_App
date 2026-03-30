@@ -8,6 +8,8 @@ import '../../../data/repositories/shopping_list_repository.dart';
 
 part 'shopping_list_state.dart';
 
+enum ShoppingListSortOrder { alphabetical, byCategory }
+
 class ShoppingListCubit extends Cubit<ShoppingListState> {
   final ShoppingListRepository _repository;
   ShoppingListCubit(this._repository) : super(const ShoppingListInitial());
@@ -19,6 +21,7 @@ class ShoppingListCubit extends Cubit<ShoppingListState> {
   // ── Persisted UI state (survives screen navigations) ──────────────────────
   int? storeFilter;
   int? selectedWarehouseId;
+  ShoppingListSortOrder sortOrder = ShoppingListSortOrder.alphabetical;
   final Map<int, int> stPlanned = {};
   final Map<int, int> stBuyQty = {};
   final Set<int> stChecked = {};

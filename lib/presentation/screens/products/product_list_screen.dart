@@ -163,41 +163,55 @@ class _ProductListScreenState extends State<ProductListScreen> {
                 ),
                 if (state.isSearching)
                   const LinearProgressIndicator(minHeight: 2),
-                // ── Category chips ──
+                const SizedBox(height: 8),
+                // ── Category chips + select button ──
                 BlocBuilder<CategoryCubit, CategoryState>(
                   builder: (context, catState) {
-                    if (catState is! CategoryLoaded || catState.categories.isEmpty) {
-                      return const SizedBox.shrink();
-                    }
-                    final categories = catState.categories;
+                    final hasCategories = catState is CategoryLoaded && catState.categories.isNotEmpty;
+                    final categories = hasCategories ? catState.categories : <dynamic>[];
                     return SizedBox(
                       height: 42,
-                      child: ListView(
-                        scrollDirection: Axis.horizontal,
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: Row(
                         children: [
-                          Padding(
-                            padding: const EdgeInsets.only(right: 6),
-                            child: FilterChip(
-                              label: const Text('Todas'),
-                              selected: _selectedCategoryId == null,
-                              onSelected: (_) => _applyFilter(clear: true),
+                          Expanded(
+                            child: ListView(
+                              scrollDirection: Axis.horizontal,
+                              padding: const EdgeInsets.only(left: 16),
+                              children: [
+                                if (hasCategories) ...[
+                                  Padding(
+                                    padding: const EdgeInsets.only(right: 6),
+                                    child: FilterChip(
+                                      label: const Text('Todas'),
+                                      selected: _selectedCategoryId == null,
+                                      onSelected: (_) => _applyFilter(clear: true),
+                                    ),
+                                  ),
+                                  ...categories.map((cat) => Padding(
+                                        padding: const EdgeInsets.only(right: 6),
+                                        child: FilterChip(
+                                          label: Text(cat.name),
+                                          selected: _selectedCategoryId == cat.id,
+                                          onSelected: (_) => _applyFilter(categoryId: cat.id),
+                                        ),
+                                      )),
+                                ],
+                              ],
                             ),
                           ),
-                          ...categories.map((cat) => Padding(
-                                padding: const EdgeInsets.only(right: 6),
-                                child: FilterChip(
-                                  label: Text(cat.name),
-                                  selected: _selectedCategoryId == cat.id,
-                                  onSelected: (_) => _applyFilter(categoryId: cat.id),
-                                ),
-                              )),
+                          IconButton(
+                            icon: Icon(Icons.checklist_rounded,
+                                color: Theme.of(context).colorScheme.onSurfaceVariant),
+                            tooltip: 'Seleccionar para borrar',
+                            onPressed: () => setState(() => _deleteMode = true),
+                          ),
                         ],
                       ),
                     );
                   },
                 ),
               ],
+              const SizedBox(height: 8),
               // ── Toolbar ──
               if (_deleteMode)
                 DeleteModeBar(
@@ -207,16 +221,6 @@ class _ProductListScreenState extends State<ProductListScreen> {
                   emptyLabel: 'Selecciona productos',
                   selectedSingular: 'producto seleccionado',
                   selectedPlural: 'productos seleccionados',
-                )
-              else
-                Align(
-                  alignment: Alignment.centerRight,
-                  child: IconButton(
-                    icon: Icon(Icons.checklist_rounded,
-                        color: Theme.of(context).colorScheme.onSurfaceVariant),
-                    tooltip: 'Seleccionar para borrar',
-                    onPressed: () => setState(() => _deleteMode = true),
-                  ),
                 ),
               // ── Grid ──
               Expanded(
@@ -277,7 +281,15 @@ class _ProductListScreenState extends State<ProductListScreen> {
                       return GestureDetector(
                         onTap: _deleteMode
                             ? () => _toggleSelect(product.id)
-                            : null,
+                            : () async {
+                                await context.push(
+                                    '/products/${product.id}/edit');
+                                if (context.mounted) {
+                                  context
+                                      .read<ProductListCubit>()
+                                      .refresh();
+                                }
+                              },
                         child: Container(
                           decoration: BoxDecoration(
                             color: isSelected && _deleteMode
@@ -329,33 +341,32 @@ class _ProductListScreenState extends State<ProductListScreen> {
                                         size: 20,
                                       )
                                     else
-                                      _ProductPopupMenu(
-                                        onEdit: () async {
-                                          await context.push(
-                                              '/products/${product.id}/edit');
-                                          if (context.mounted) {
-                                            context
-                                                .read<ProductListCubit>()
-                                                .refresh();
-                                          }
-                                        },
-                                        onDelete: () async {
-                                          final confirm =
-                                              await showConfirmDialog(
-                                            context,
-                                            title: 'Eliminar producto',
-                                            message:
-                                                '¿Eliminar "${product.name}"? Esta acción no se puede deshacer.',
-                                            confirmLabel: 'Eliminar',
-                                            isDangerous: true,
-                                          );
-                                          if (confirm == true &&
-                                              context.mounted) {
-                                            context
-                                                .read<ProductListCubit>()
-                                                .delete(product.id);
-                                          }
-                                        },
+                                      SizedBox(
+                                        width: 30,
+                                        height: 30,
+                                        child: IconButton(
+                                          padding: EdgeInsets.zero,
+                                          iconSize: 18,
+                                          icon: Icon(Icons.delete_outline,
+                                              color: cs.error),
+                                          onPressed: () async {
+                                            final confirm =
+                                                await showConfirmDialog(
+                                              context,
+                                              title: 'Eliminar producto',
+                                              message:
+                                                  '¿Eliminar "${product.name}"? Esta acción no se puede deshacer.',
+                                              confirmLabel: 'Eliminar',
+                                              isDangerous: true,
+                                            );
+                                            if (confirm == true &&
+                                                context.mounted) {
+                                              context
+                                                  .read<ProductListCubit>()
+                                                  .delete(product.id);
+                                            }
+                                          },
+                                        ),
                                       ),
                                   ],
                                 ),
@@ -401,34 +412,6 @@ class _ProductListScreenState extends State<ProductListScreen> {
         }
         return const SizedBox();
       },
-    );
-  }
-}
-
-// ─── Product popup menu ───────────────────────────────────────────────────────
-class _ProductPopupMenu extends StatelessWidget {
-  final VoidCallback onEdit;
-  final VoidCallback onDelete;
-
-  const _ProductPopupMenu({required this.onEdit, required this.onDelete});
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      width: 30,
-      height: 30,
-      child: PopupMenuButton<String>(
-        padding: EdgeInsets.zero,
-        iconSize: 18,
-        onSelected: (v) {
-          if (v == 'edit') onEdit();
-          if (v == 'delete') onDelete();
-        },
-        itemBuilder: (_) => const [
-          PopupMenuItem(value: 'edit', child: Text('Editar')),
-          PopupMenuItem(value: 'delete', child: Text('Eliminar')),
-        ],
-      ),
     );
   }
 }

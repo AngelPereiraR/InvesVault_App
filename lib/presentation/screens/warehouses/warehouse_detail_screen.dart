@@ -236,6 +236,7 @@ class _WarehouseDetailScreenState extends State<WarehouseDetailScreen> {
               ),
               if (state.isSearching)
                 const LinearProgressIndicator(minHeight: 2),
+              const SizedBox(height: 8),
               // ── Category chips ──
               BlocBuilder<CategoryCubit, CategoryState>(
                 builder: (context, catState) {
