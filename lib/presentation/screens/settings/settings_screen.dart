@@ -138,7 +138,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             const ListTile(
               leading: Icon(Icons.info_outline),
               title: Text('InvesVault'),
-              subtitle: Text('Versión 1.0.11'),
+              subtitle: Text('Versión 1.0.12'),
               contentPadding: EdgeInsets.zero,
             ),
 
