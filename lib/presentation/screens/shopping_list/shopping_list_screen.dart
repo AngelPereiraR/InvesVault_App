@@ -1334,7 +1334,7 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
         ? shoppingState.items.map((i) => i.productId).toSet()
         : <int>{};
 
-    int? selectedWarehouseId;
+    int? selectedWarehouseId = -1;
     int? selectedProductId;
     String? selectedProductName;
     int qty = 1;
@@ -1364,7 +1364,8 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
                   borderRadius: BorderRadius.all(Radius.circular(20))),
               insetPadding:
                   const EdgeInsets.symmetric(horizontal: 24, vertical: 40),
-              child: Padding(
+              child: SingleChildScrollView(
+                child: Padding(
                 padding: const EdgeInsets.all(24),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
@@ -1381,10 +1382,13 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
                       value: selectedWarehouseId,
                       decoration:
                           _fieldDeco(ctx, 'Almacén', Icons.warehouse_outlined),
-                      items: warehouseState.warehouses
-                          .map((w) => DropdownMenuItem<int>(
-                              value: w.id, child: Text(w.name)))
-                          .toList(),
+                      items: [
+                        const DropdownMenuItem<int>(
+                            value: -1, child: Text('Todos los almacenes')),
+                        ...warehouseState.warehouses.map((w) =>
+                            DropdownMenuItem<int>(
+                                value: w.id, child: Text(w.name))),
+                      ],
                       onChanged: (v) =>
                           setInner(() => selectedWarehouseId = v),
                     ),
@@ -1483,20 +1487,28 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
                       outerCtx: outerCtx,
                       enabled: selectedWarehouseId != null &&
                           selectedProductId != null,
-                      onConfirm: () => outerCtx
-                          .read<ShoppingListCubit>()
-                          .addItem(selectedWarehouseId!, selectedProductId!,
-                              qty.toDouble()),
+                      onConfirm: () {
+                        if (selectedWarehouseId == -1) {
+                          for (final w in warehouseState.warehouses) {
+                            outerCtx.read<ShoppingListCubit>().addItem(
+                                w.id, selectedProductId!, qty.toDouble());
+                          }
+                        } else {
+                          outerCtx.read<ShoppingListCubit>().addItem(
+                              selectedWarehouseId!, selectedProductId!,
+                              qty.toDouble());
+                        }
+                      },
                     ),
                   ],
                 ),
               ),
-            );
+            ),
+          );
           },
         ),
       ),
     );
-    WidgetsBinding.instance.addPostFrameCallback((_) => searchController.dispose());
   }
 
   //  Dialog helpers
