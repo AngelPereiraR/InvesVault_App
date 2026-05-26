@@ -49,18 +49,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return BlocBuilder<DashboardCubit, DashboardState>(
       builder: (context, state) {
-        if (state is DashboardLoading || state is DashboardInitial) {
-          return const LoadingIndicator(message: 'Cargando…');
-        }
-        if (state is DashboardError) {
-          return ErrorView(
-            message: state.message,
-            onRetry: () => context.read<DashboardCubit>().load(),
-          );
-        }
-        if (state is! DashboardLoaded) return const SizedBox();
-
-        return RefreshIndicator(
+        final bool isLoaded = state is DashboardLoaded;
+        Widget secondContent;
+        if (isLoaded) {
+          secondContent = RefreshIndicator(
           onRefresh: () => context.read<DashboardCubit>().refresh(),
           child: ListView(
             controller: _scrollCtrl,
@@ -314,6 +306,22 @@ class _DashboardScreenState extends State<DashboardScreen> {
               const SizedBox(height: 80),
             ],
           ),
+        );
+        } else {
+          secondContent = const SizedBox();
+        }
+        return AnimatedCrossFade(
+          duration: const Duration(milliseconds: 450),
+          firstChild: state is DashboardError
+              ? ErrorView(
+                  message: state.message,
+                  onRetry: () => context.read<DashboardCubit>().load(),
+                )
+              : const LoadingIndicator(message: 'Cargando…'),
+          secondChild: secondContent,
+          crossFadeState: isLoaded
+              ? CrossFadeState.showSecond
+              : CrossFadeState.showFirst,
         );
       },
     );

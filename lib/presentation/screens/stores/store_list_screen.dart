@@ -102,20 +102,10 @@ class _StoreListScreenState extends State<StoreListScreen> {
       },
       buildWhen: (prev, curr) => !(curr is StoreError && prev is StoreLoaded),
       builder: (context, state) {
-        if (state is StoreDeleting) {
-          return const LoadingIndicator(message: 'Eliminando…');
-        }
-        if (state is StoreLoading || state is StoreInitial) {
-          return const LoadingIndicator();
-        }
-        if (state is StoreError) {
-          return ErrorView(
-            message: state.message,
-            onRetry: () => context.read<StoreCubit>().load(),
-          );
-        }
-        if (state is StoreLoaded) {
-          return Column(
+        final bool isLoaded = state is StoreLoaded;
+        Widget loadedContent;
+        if (isLoaded) {
+          loadedContent = Column(
             children: [
               // ── Search (hidden in delete mode) ──
               if (!_deleteMode) ...[
@@ -306,8 +296,22 @@ class _StoreListScreenState extends State<StoreListScreen> {
                 ),
             ],
           );
+        } else {
+          loadedContent = const SizedBox();
         }
-        return const SizedBox();
+        return AnimatedCrossFade(
+          duration: const Duration(milliseconds: 450),
+          firstChild: state is StoreError
+              ? ErrorView(
+                  message: state.message,
+                  onRetry: () => context.read<StoreCubit>().load(),
+                )
+              : const LoadingIndicator(),
+          secondChild: loadedContent,
+          crossFadeState: isLoaded
+              ? CrossFadeState.showSecond
+              : CrossFadeState.showFirst,
+        );
       },
     );
   }

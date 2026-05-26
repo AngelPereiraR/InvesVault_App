@@ -645,19 +645,9 @@ class _WarehouseListScreenState extends State<WarehouseListScreen> {
               }
             },
             builder: (context, state) {
-              if (state is WarehouseDeleting) {
-                return const LoadingIndicator(message: 'Eliminando…');
-              }
-              if (state is WarehouseLoading || state is WarehouseInitial) {
-                return const LoadingIndicator();
-              }
-              if (state is WarehouseError) {
-                return ErrorView(
-                  message: state.message,
-                  onRetry: () => context.read<WarehouseCubit>().load(),
-                );
-              }
-              if (state is WarehouseLoaded) {
+              final bool isLoaded = state is WarehouseLoaded;
+              Widget loadedContent;
+              if (isLoaded) {
                 final cs = Theme.of(context).colorScheme;
                 final authState = context.read<AuthCubit>().state;
                 final currentUserId =
@@ -665,7 +655,7 @@ class _WarehouseListScreenState extends State<WarehouseListScreen> {
                 final hasOwned = state.warehouses
                     .any((w) => w.ownerId == currentUserId);
 
-                return Column(
+                loadedContent = Column(
                   children: [
                     // ── Loading previous indicator ──
                     if (state.isLoadingPrevious)
@@ -813,9 +803,23 @@ class _WarehouseListScreenState extends State<WarehouseListScreen> {
                         child: Center(child: CircularProgressIndicator()),
                       ),
                   ],
-                );
+                  );
+              } else {
+                loadedContent = const SizedBox();
               }
-              return const SizedBox();
+              return AnimatedCrossFade(
+                duration: const Duration(milliseconds: 450),
+                firstChild: state is WarehouseError
+                    ? ErrorView(
+                        message: state.message,
+                        onRetry: () => context.read<WarehouseCubit>().load(),
+                      )
+                    : const LoadingIndicator(),
+                secondChild: loadedContent,
+                crossFadeState: isLoaded
+                    ? CrossFadeState.showSecond
+                    : CrossFadeState.showFirst,
+              );
             },
           ),
 

@@ -117,20 +117,10 @@ class _ProductListScreenState extends State<ProductListScreen> {
       buildWhen: (prev, curr) =>
           !(curr is ProductListError && prev is ProductListLoaded),
       builder: (context, state) {
-        if (state is ProductListDeleting) {
-          return const LoadingIndicator(message: 'Eliminando…');
-        }
-        if (state is ProductListLoading || state is ProductListInitial) {
-          return const LoadingIndicator();
-        }
-        if (state is ProductListError) {
-          return ErrorView(
-            message: state.message,
-            onRetry: () => context.read<ProductListCubit>().load(),
-          );
-        }
-        if (state is ProductListLoaded) {
-          return Column(
+        final bool isLoaded = state is ProductListLoaded;
+        Widget loadedContent;
+        if (isLoaded) {
+          loadedContent = Column(
             children: [
               // ── Loading previous indicator ──
               if (state.isLoadingPrevious)
@@ -409,8 +399,22 @@ class _ProductListScreenState extends State<ProductListScreen> {
                 ),
             ],
           );
+        } else {
+          loadedContent = const SizedBox();
         }
-        return const SizedBox();
+        return AnimatedCrossFade(
+          duration: const Duration(milliseconds: 450),
+          firstChild: state is ProductListError
+              ? ErrorView(
+                  message: state.message,
+                  onRetry: () => context.read<ProductListCubit>().load(),
+                )
+              : const LoadingIndicator(),
+          secondChild: loadedContent,
+          crossFadeState: isLoaded
+              ? CrossFadeState.showSecond
+              : CrossFadeState.showFirst,
+        );
       },
     );
   }

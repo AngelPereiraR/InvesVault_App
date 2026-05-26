@@ -110,26 +110,14 @@ class ProductListTile extends StatelessWidget {
                 visualDensity: VisualDensity.compact,
               ),
             if (onDelete != null)
-              PopupMenuButton<String>(
-                tooltip: 'Más acciones',
-                onSelected: (value) {
-                  if (value == 'delete') {
-                    onDelete?.call();
-                  }
-                },
-                itemBuilder: (context) => [
-                  PopupMenuItem<String>(
-                    value: 'delete',
-                    child: Row(
-                      children: [
-                        Icon(Icons.delete_outline,
-                            color: Theme.of(context).colorScheme.error),
-                        const SizedBox(width: 10),
-                        const Text('Eliminar del almacén'),
-                      ],
-                    ),
-                  ),
-                ],
+              IconButton(
+                icon: Icon(Icons.delete_outline,
+                    color: Theme.of(context).colorScheme.error),
+                tooltip: 'Eliminar del almacén',
+                onPressed: onDelete,
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(),
+                visualDensity: VisualDensity.compact,
               ),
           ],
         ],

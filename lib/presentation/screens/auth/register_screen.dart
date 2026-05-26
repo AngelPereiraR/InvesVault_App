@@ -5,6 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../core/router/app_router.dart';
 import '../../cubits/auth/auth_cubit.dart';
 import '../../widgets/confirm_dialog.dart';
+import '../../widgets/theme_settings_sheet.dart';
 import '../../../core/utils/validators.dart';
 
 class RegisterScreen extends StatefulWidget {
@@ -314,13 +315,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 alignment: Alignment.topRight,
                 child: Padding(
                   padding: const EdgeInsets.only(top: 4, right: 4),
-                  child: IconButton(
+                    child: IconButton(
                     icon: Icon(
                       Icons.settings_outlined,
                       color: cs.secondary.withValues(alpha: 0.7),
                     ),
                     tooltip: 'Ajustes',
-                    onPressed: () {},
+                    onPressed: () => showThemeSettingsSheet(context),
                   ),
                 ),
               ),

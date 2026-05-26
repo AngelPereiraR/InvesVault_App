@@ -439,41 +439,54 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
             //  Content area
             Expanded(
               child: () {
+                Widget tabContent;
                 if (state is ShoppingListDeleting) {
-                  return const LoadingIndicator(message: 'Eliminando…');
-                }
-                if (state is ShoppingListLoading ||
+                  tabContent = const LoadingIndicator(message: 'Eliminando…');
+                } else if (state is ShoppingListLoading ||
                     state is ShoppingListInitial) {
-                  return const LoadingIndicator();
-                }
-                if (state is ShoppingListError) {
-                  return ErrorView(
+                  tabContent = const LoadingIndicator();
+                } else if (state is ShoppingListError) {
+                  tabContent = ErrorView(
                     message: state.message,
                     onRetry: () =>
                         context.read<ShoppingListCubit>().loadAll(),
                   );
-                }
-                if (filteredItems.isEmpty) {
-                  return EmptyView(
+                } else if (filteredItems.isEmpty) {
+                  tabContent = EmptyView(
                     message: items.isEmpty
                         ? 'No hay productos en ninguna lista de compra.\nPulsa ✨ para generarla automáticamente.'
                         : 'No hay productos en esta tienda',
                     icon: Icons.store_outlined,
                   );
-                }
-                return Column(
-                  children: [
-                    Expanded(
-                      child: ListView(
-                        padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-                        children: _buildItemWidgets(filteredItems, showWarehouse: true),
+                } else {
+                  tabContent = Column(
+                    children: [
+                      Expanded(
+                        child: ListView(
+                          padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+                          children: _buildItemWidgets(filteredItems, showWarehouse: true),
+                        ),
                       ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-                      child: _buildBuyButton(filteredItems),
-                    ),
-                  ],
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                        child: _buildBuyButton(filteredItems),
+                      ),
+                    ],
+                  );
+                }
+                return AnimatedCrossFade(
+                  duration: const Duration(milliseconds: 450),
+                  firstChild: state is ShoppingListError
+                      ? ErrorView(
+                          message: state.message,
+                          onRetry: () =>
+                              context.read<ShoppingListCubit>().loadAll(),
+                        )
+                      : const LoadingIndicator(),
+                  secondChild: tabContent,
+                  crossFadeState: state is ShoppingListLoaded
+                      ? CrossFadeState.showSecond
+                      : CrossFadeState.showFirst,
                 );
               }(),
             ),
@@ -575,30 +588,28 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
                       !(curr is ShoppingListError &&
                           prev is ShoppingListLoaded),
                   builder: (context, state) {
+                    Widget tabContent;
                     if (state is ShoppingListLoading ||
                         state is ShoppingListInitial) {
-                      return const LoadingIndicator();
-                    }
-                    if (state is ShoppingListError) {
-                      return ErrorView(
+                      tabContent = const LoadingIndicator();
+                    } else if (state is ShoppingListError) {
+                      tabContent = ErrorView(
                         message: state.message,
                         onRetry: () => context
                             .read<ShoppingListCubit>()
                             .load(_selectedWarehouseId!),
                       );
-                    }
-                    if (state is ShoppingListLoaded && state.items.isEmpty) {
-                      return EmptyView(
+                    } else if (state is ShoppingListLoaded && state.items.isEmpty) {
+                      tabContent = EmptyView(
                         message: 'La lista de compra está vacía',
                         actionLabel: 'Generar automáticamente',
                         onAction: () => context
                             .read<ShoppingListCubit>()
                             .generate(_selectedWarehouseId!),
                       );
-                    }
-                    if (state is ShoppingListLoaded) {
+                    } else if (state is ShoppingListLoaded) {
                       final items = state.items;
-                      return Column(
+                      tabContent = Column(
                         children: [
                           Expanded(
                             child: ListView(
@@ -612,8 +623,24 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
                           ),
                         ],
                       );
+                    } else {
+                      tabContent = const SizedBox();
                     }
-                    return const SizedBox();
+                    return AnimatedCrossFade(
+                      duration: const Duration(milliseconds: 450),
+                      firstChild: state is ShoppingListError
+                          ? ErrorView(
+                              message: state.message,
+                              onRetry: () => context
+                                  .read<ShoppingListCubit>()
+                                  .load(_selectedWarehouseId!),
+                            )
+                          : const LoadingIndicator(),
+                      secondChild: tabContent,
+                      crossFadeState: state is ShoppingListLoaded
+                          ? CrossFadeState.showSecond
+                          : CrossFadeState.showFirst,
+                    );
                   },
                 ),
         ),
@@ -951,7 +978,7 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
                       style: TextStyle(
                           fontSize: 11,
                           color: buyAll
-                              ? AppColors.success
+                              ? AppColors.successText
                               : AppColors.warning),
                     ),
                   ],

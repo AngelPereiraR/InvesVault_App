@@ -77,20 +77,10 @@ class _CategoryListScreenState extends State<CategoryListScreen> {
       },
       buildWhen: (prev, curr) => !(curr is CategoryError && prev is CategoryLoaded),
       builder: (context, state) {
-        if (state is CategoryDeleting) {
-          return const LoadingIndicator(message: 'Eliminando…');
-        }
-        if (state is CategoryLoading || state is CategoryInitial) {
-          return const LoadingIndicator();
-        }
-        if (state is CategoryError) {
-          return ErrorView(
-            message: state.message,
-            onRetry: () => context.read<CategoryCubit>().load(),
-          );
-        }
-        if (state is CategoryLoaded) {
-          return Column(
+        final bool isLoaded = state is CategoryLoaded;
+        Widget loadedContent;
+        if (isLoaded) {
+          loadedContent = Column(
             children: [
               // ── Toolbar ──
               if (_deleteMode)
@@ -230,8 +220,22 @@ class _CategoryListScreenState extends State<CategoryListScreen> {
               ),
             ],
           );
+        } else {
+          loadedContent = const SizedBox();
         }
-        return const SizedBox();
+        return AnimatedCrossFade(
+          duration: const Duration(milliseconds: 450),
+          firstChild: state is CategoryError
+              ? ErrorView(
+                  message: state.message,
+                  onRetry: () => context.read<CategoryCubit>().load(),
+                )
+              : const LoadingIndicator(),
+          secondChild: loadedContent,
+          crossFadeState: isLoaded
+              ? CrossFadeState.showSecond
+              : CrossFadeState.showFirst,
+        );
       },
     );
   }

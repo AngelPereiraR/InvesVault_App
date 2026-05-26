@@ -7,6 +7,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../core/router/app_router.dart';
 import '../../cubits/auth/auth_cubit.dart';
 import '../../widgets/confirm_dialog.dart';
+import '../../widgets/theme_settings_sheet.dart';
 
 class WelcomeScreen extends StatefulWidget {
   const WelcomeScreen({super.key});
@@ -138,7 +139,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                     icon: Icon(Icons.settings_outlined,
                         color: cs.secondary.withValues(alpha: 0.7)),
                     tooltip: 'Ajustes',
-                    onPressed: () {}, // TODO: settings
+                    onPressed: () => showThemeSettingsSheet(context),
                   ),
                 ],
               ),
@@ -186,9 +187,33 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                   ),
                 ),
 
-                const SizedBox(height: 28),
+                const SizedBox(height: 20),
 
-                // CTA button
+                // Swipe hint (visible only on non-last slides)
+                if (_currentPage < _slides.length - 1)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 8),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.chevron_left,
+                            size: 16, color: cs.onPrimary.withValues(alpha: 0.6)),
+                        Text(
+                          'Desliza para continuar',
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: cs.onPrimary.withValues(alpha: 0.6),
+                          ),
+                        ),
+                        Icon(Icons.chevron_right,
+                            size: 16, color: cs.onPrimary.withValues(alpha: 0.6)),
+                      ],
+                    ),
+                  ),
+
+                const SizedBox(height: 8),
+
+                // CTA button (changes label based on slide)
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
@@ -204,8 +229,17 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                         fontWeight: FontWeight.w700,
                       ),
                     ),
-                    onPressed: _start,
-                    child: const Text('Comienza Ahora'),
+                    onPressed: _currentPage < _slides.length - 1
+                        ? () => _pageController.nextPage(
+                              duration: const Duration(milliseconds: 300),
+                              curve: Curves.easeInOut,
+                            )
+                        : _start,
+                    child: Text(
+                      _currentPage < _slides.length - 1
+                          ? 'Siguiente'
+                          : 'Comienza Ahora',
+                    ),
                   ),
                 ),
               ],

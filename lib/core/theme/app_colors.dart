@@ -50,7 +50,7 @@ class AppColors {
   // Texto
   static const textPrimary   = AppNeutrals.c600;  // #121212
   static const textSecondary = AppNeutrals.c500;  // #424242
-  static const textHint      = AppNeutrals.c400;  // #9E9E9E
+  static const textHint      = Color(0xFF757575); // WCAG AA 4.6:1 sobre blanco
 
   // Bordes / divisores
   static const border = AppNeutrals.c300;         // #E0E0E0
@@ -59,6 +59,7 @@ class AppColors {
   static const danger  = Color(0xFFEF4444);
   static const warning = Color(0xFFF59E0B);
   static const success = AppGreens.c300;
+  static const successText = AppGreens.c600;
 
   // Sombras (negro con opacidad)
   static const shadowLight = Color(0x1A121212);   // 10 % opacidad

@@ -32,6 +32,7 @@ class AppDrawer extends StatelessWidget {
           Expanded(
             child: SafeArea(
               top: false,
+              bottom: true,
               child: ListView(
                 padding: EdgeInsets.zero,
               children: [

@@ -167,18 +167,9 @@ class _StockChangeHistoryScreenState
                       !(curr is StockChangeError &&
                           prev is StockChangeLoaded),
                   builder: (context, state) {
-                    if (state is StockChangeLoading ||
-                        state is StockChangeInitial) {
-                      return const LoadingIndicator();
-                    }
-                    if (state is StockChangeError) {
-                      return ErrorView(
-                        message: state.message,
-                        onRetry: () =>
-                            _loadChanges(_selectedWarehouseId!),
-                      );
-                    }
-                    if (state is StockChangeLoaded) {
+                    final bool isLoaded = state is StockChangeLoaded;
+                    Widget loadedContent;
+                    if (isLoaded) {
                       final items = _typeFilter == 'all'
                           ? state.changes
                           : state.changes
@@ -186,13 +177,12 @@ class _StockChangeHistoryScreenState
                               .toList();
 
                       if (items.isEmpty) {
-                        return const EmptyView(
+                        loadedContent = const EmptyView(
                           message: 'No hay movimientos registrados',
                           icon: Icons.history_toggle_off_outlined,
                         );
-                      }
-
-                      return Column(
+                      } else {
+                        loadedContent = Column(
                         children: [
                           Expanded(
                             child: ListView.builder(
@@ -209,6 +199,11 @@ class _StockChangeHistoryScreenState
                               ? AppColors.warning
                               : isEntry
                                   ? AppColors.success
+                                  : cs.error;
+                          final textColor = isAdjust
+                              ? AppColors.warning
+                              : isEntry
+                                  ? AppColors.successText
                                   : cs.error;
                           final icon = isAdjust
                               ? Icons.tune
@@ -271,12 +266,12 @@ class _StockChangeHistoryScreenState
                                           borderRadius:
                                               BorderRadius.circular(6),
                                         ),
-                                        child: Text(
-                                          '$sign${c.changeQuantity}',
-                                          style: TextStyle(
-                                              fontSize: 12,
-                                              fontWeight: FontWeight.w700,
-                                              color: color),
+                                          child: Text(
+                                            '$sign${c.changeQuantity}',
+                                            style: TextStyle(
+                                                fontSize: 12,
+                                                fontWeight: FontWeight.w700,
+                                                color: textColor),
                                         ),
                                       ),
                                       if (c.reason != null &&
@@ -335,8 +330,24 @@ class _StockChangeHistoryScreenState
                             ),
                         ],
                       );
+                      }
+                    } else {
+                      loadedContent = const SizedBox();
                     }
-                    return const SizedBox();
+                    return AnimatedCrossFade(
+                      duration: const Duration(milliseconds: 450),
+                      firstChild: state is StockChangeError
+                          ? ErrorView(
+                              message: state.message,
+                              onRetry: () =>
+                                  _loadChanges(_selectedWarehouseId!),
+                            )
+                          : const LoadingIndicator(),
+                      secondChild: loadedContent,
+                      crossFadeState: isLoaded
+                          ? CrossFadeState.showSecond
+                          : CrossFadeState.showFirst,
+                    );
                   },
                 ),
         ),

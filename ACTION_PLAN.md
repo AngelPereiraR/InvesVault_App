@@ -12,7 +12,7 @@ Deben implementarse primero. Corrigen problemas de usabilidad, completan funcion
 
 ---
 
-### A1. Implementar acceso a settings desde las pantallas auth
+### ✅ A1. Implementar acceso a settings desde las pantallas auth
 
 **Origen**: NAV-5, NAV-6, NAV-7 / UX-3
 
@@ -45,7 +45,7 @@ Deben implementarse primero. Corrigen problemas de usabilidad, completan funcion
 
 ---
 
-### A3. Menú contextual (⋮) → botón directo en WarehouseDetail
+### ✅ A3. Menú contextual (⋮) → botón directo en WarehouseDetail
 
 **Origen**: NAV-13 / UI-2.3
 
@@ -95,7 +95,7 @@ Deben implementarse primero. Corrigen problemas de usabilidad, completan funcion
 
 ---
 
-### A6. Indicador de swipe + botón "Siguiente" en onboarding
+### ✅ A6. Indicador de swipe + botón "Siguiente" en onboarding
 
 **Origen**: NAV-6 / UI-13
 
@@ -113,7 +113,7 @@ Deben implementarse primero. Corrigen problemas de usabilidad, completan funcion
 
 ---
 
-### A7. Corregir contraste de colores (WCAG AA)
+### ✅ A7. Corregir contraste de colores (WCAG AA)
 
 **Origen**: UI-5
 
@@ -133,7 +133,7 @@ Deben implementarse primero. Corrigen problemas de usabilidad, completan funcion
 
 ---
 
-### A8. SafeArea correcto en drawer
+### ✅ A8. SafeArea correcto en drawer
 
 **Origen**: UI-3.2 / UI-7
 
@@ -184,7 +184,7 @@ Deben implementarse primero. Corrigen problemas de usabilidad, completan funcion
 
 ---
 
-### A11. AnimatedSwitcher entre estados de carga y contenido
+### ✅ A11. AnimatedSwitcher entre estados de carga y contenido
 
 **Origen**: UX-2 / UI-9 / UI-11.2
 
@@ -811,9 +811,9 @@ Usar `tag` único (ej: `'warehouse-${id}'`, `'product-${id}'`). Envolver el elem
 
 ## Orden de Ejecución Recomendado
 
-### Fase 1 — Correcciones rápidas (Alta, esfuerzo bajo)
-Ejecutar primero por alto impacto y mínimo riesgo:
-A1, A3, A6, A7, A8, A11, A12, A13
+### Fase 1 — Correcciones rápidas (Alta, esfuerzo bajo) ✅
+Ejecutadas:
+~~A1~~, ~~A3~~, ~~A6~~, ~~A7~~, ~~A8~~, ~~A11~~, A12, A13
 
 ### Fase 2 — Funcionalidad core (Alta, esfuerzo medio)
 A2, A4, A5, A9, A10, A14, A15

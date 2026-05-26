@@ -102,20 +102,10 @@ class _BrandListScreenState extends State<BrandListScreen> {
       },
       buildWhen: (prev, curr) => !(curr is BrandError && prev is BrandLoaded),
       builder: (context, state) {
-        if (state is BrandDeleting) {
-          return const LoadingIndicator(message: 'Eliminando…');
-        }
-        if (state is BrandLoading || state is BrandInitial) {
-          return const LoadingIndicator();
-        }
-        if (state is BrandError) {
-          return ErrorView(
-            message: state.message,
-            onRetry: () => context.read<BrandCubit>().load(),
-          );
-        }
-        if (state is BrandLoaded) {
-          return Column(
+        final bool isLoaded = state is BrandLoaded;
+        Widget loadedContent;
+        if (isLoaded) {
+          loadedContent = Column(
             children: [
               // ── Search (hidden in delete mode) ──
               if (!_deleteMode) ...[
@@ -295,8 +285,22 @@ class _BrandListScreenState extends State<BrandListScreen> {
                 ),
             ],
           );
+      } else {
+          loadedContent = const SizedBox();
         }
-        return const SizedBox();
+        return AnimatedCrossFade(
+          duration: const Duration(milliseconds: 450),
+          firstChild: state is BrandError
+              ? ErrorView(
+                  message: state.message,
+                  onRetry: () => context.read<BrandCubit>().load(),
+                )
+              : const LoadingIndicator(),
+          secondChild: loadedContent,
+          crossFadeState: isLoaded
+              ? CrossFadeState.showSecond
+              : CrossFadeState.showFirst,
+        );
       },
     );
   }

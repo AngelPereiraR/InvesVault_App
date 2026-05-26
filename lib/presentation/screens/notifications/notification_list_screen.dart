@@ -87,19 +87,18 @@ class _NotificationListScreenState extends State<NotificationListScreen> {
             ],
           ),
           body: SafeArea(top: false, child: () {
-            if (state is NotificationLoading ||
-                state is NotificationInitial) {
-              return const LoadingIndicator();
-            }
-            if (state is NotificationError) {
-              return ErrorView(
-                message: state.message,
-                onRetry: () =>
-                    context.read<NotificationCubit>().load(),
-              );
-            }
-            if (state is NotificationLoaded) {
-              return Column(
+                Widget tabContent;
+                if (state is NotificationLoading ||
+                    state is NotificationInitial) {
+                  tabContent = const LoadingIndicator();
+                } else if (state is NotificationError) {
+                  tabContent = ErrorView(
+                    message: state.message,
+                    onRetry: () =>
+                        context.read<NotificationCubit>().load(),
+                  );
+                } else if (state is NotificationLoaded) {
+              tabContent = Column(
                 children: [
                   Padding(
                     padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
@@ -209,8 +208,23 @@ class _NotificationListScreenState extends State<NotificationListScreen> {
                     ),
                 ],
               );
+            } else {
+              tabContent = const SizedBox();
             }
-            return const SizedBox();
+            return AnimatedCrossFade(
+              duration: const Duration(milliseconds: 450),
+              firstChild: state is NotificationError
+                  ? ErrorView(
+                      message: state.message,
+                      onRetry: () =>
+                          context.read<NotificationCubit>().load(),
+                    )
+                  : const LoadingIndicator(),
+              secondChild: tabContent,
+              crossFadeState: state is NotificationLoaded
+                  ? CrossFadeState.showSecond
+                  : CrossFadeState.showFirst,
+            );
           }()),
         );
       },

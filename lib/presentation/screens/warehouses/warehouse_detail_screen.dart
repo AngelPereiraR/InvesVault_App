@@ -144,28 +144,11 @@ class _WarehouseDetailScreenState extends State<WarehouseDetailScreen> {
 
     return BlocBuilder<WarehouseDetailCubit, WarehouseDetailState>(
       builder: (context, state) {
-        if (state is WarehouseDetailLoading ||
-            state is WarehouseDetailInitial) {
-          return const LoadingIndicator();
-        }
-        if (state is WarehouseDetailError) {
-          return ErrorView(
-            message: state.message,
-            onRetry: () => context
-                .read<WarehouseDetailCubit>()
-                .load(widget.warehouseId,
-                    userId: userId,
-                    params: FilterParams(
-                      limit: _pageLimit,
-                      categoryId: _selectedCategoryId,
-                    )),
-          );
-        }
-        if (state is! WarehouseDetailLoaded) return const SizedBox();
-
-        final lowCount = state.products.where((p) => p.isLowStock).length;
-
-        return Column(
+        final bool isLoaded = state is WarehouseDetailLoaded;
+        Widget loadedContent;
+        if (isLoaded) {
+          final lowCount = state.products.where((p) => p.isLowStock).length;
+          loadedContent = Column(
           children: [
             // ── Header actions bar ─
             if (_deleteMode)
@@ -415,6 +398,29 @@ class _WarehouseDetailScreenState extends State<WarehouseDetailScreen> {
                 child: Center(child: CircularProgressIndicator()),
               ),
           ],
+        );
+        } else {
+          loadedContent = const SizedBox();
+        }
+        return AnimatedCrossFade(
+          duration: const Duration(milliseconds: 450),
+          firstChild: state is WarehouseDetailError
+              ? ErrorView(
+                  message: state.message,
+                  onRetry: () => context
+                      .read<WarehouseDetailCubit>()
+                      .load(widget.warehouseId,
+                          userId: userId,
+                          params: FilterParams(
+                            limit: _pageLimit,
+                            categoryId: _selectedCategoryId,
+                          )),
+                )
+              : const LoadingIndicator(),
+          secondChild: loadedContent,
+          crossFadeState: isLoaded
+              ? CrossFadeState.showSecond
+              : CrossFadeState.showFirst,
         );
       },
     );
