@@ -177,7 +177,31 @@ class _ProductSearchTile extends StatelessWidget {
           child: product.imageUrl != null
               ? ClipOval(
                   child: Image.network(product.imageUrl!,
-                      fit: BoxFit.cover))
+                      fit: BoxFit.cover,
+                      loadingBuilder: (context, child, progress) =>
+                          progress == null
+                              ? child
+                              : Container(
+                                  width: 44,
+                                  height: 44,
+                                  decoration: BoxDecoration(
+                                    color: cs.primaryContainer,
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: Icon(Icons.image_outlined,
+                                      color: cs.secondary, size: 20),
+                                ),
+                      errorBuilder: (_, __, ___) => Container(
+                            width: 44,
+                            height: 44,
+                            decoration: BoxDecoration(
+                              color: cs.primaryContainer,
+                              shape: BoxShape.circle,
+                            ),
+                            child: Icon(Icons.image_outlined,
+                                color: cs.secondary, size: 20),
+                          )),
+                )
               : Icon(Icons.inventory_2_outlined,
                   color: cs.secondary, size: 22),
         ),

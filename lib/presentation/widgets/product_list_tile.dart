@@ -40,8 +40,31 @@ class ProductListTile extends StatelessWidget {
                 width: 48,
                 height: 48,
                 fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) =>
-                    const Icon(Icons.image_not_supported),
+                loadingBuilder: (context, child, progress) =>
+                    progress == null
+                        ? child
+                        : Container(
+                            width: 48,
+                            height: 48,
+                            decoration: BoxDecoration(
+                              color: theme.colorScheme.surfaceContainerHighest,
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Icon(Icons.image_outlined,
+                                size: 20,
+                                color: theme.colorScheme.onSurfaceVariant),
+                          ),
+                errorBuilder: (_, __, ___) => Container(
+                    width: 48,
+                    height: 48,
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.surfaceContainerHighest,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Icon(Icons.image_outlined,
+                        size: 20,
+                        color: theme.colorScheme.onSurfaceVariant),
+                  ),
               ),
             )
           : CircleAvatar(

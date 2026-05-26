@@ -4,6 +4,13 @@ import 'package:google_fonts/google_fonts.dart';
 import 'app_colors.dart';
 
 class AppTheme {
+  static const _pageTransition = PageTransitionsTheme(
+    builders: {
+      TargetPlatform.android: FadeUpwardsPageTransitionsBuilder(),
+      TargetPlatform.iOS: FadeUpwardsPageTransitionsBuilder(),
+    },
+  );
+
   // ── Tipografía ─────────────────────────────────────────────────────────────
   static TextTheme _buildTextTheme({required bool dark}) {
     final textColor = dark ? AppNeutrals.c200 : AppColors.textPrimary;
@@ -74,6 +81,7 @@ class AppTheme {
         ),
         textTheme: _buildTextTheme(dark: false),
         scaffoldBackgroundColor: AppNeutrals.c150,
+        pageTransitionsTheme: _pageTransition,
         appBarTheme: AppBarTheme(
           backgroundColor: AppColors.shellAppBar,
           foregroundColor: AppColors.surface,
@@ -202,6 +210,7 @@ class AppTheme {
           shadow: AppColors.shadowDark,
         ),
         textTheme: _buildTextTheme(dark: true),
+        pageTransitionsTheme: _pageTransition,
         appBarTheme: AppBarTheme(
           backgroundColor: AppPurples.c600,
           foregroundColor: AppNeutrals.c200,

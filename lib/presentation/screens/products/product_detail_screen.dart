@@ -93,7 +93,34 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(16),
                       child: Image.network(product!.imageUrl!,
-                          height: 160, fit: BoxFit.cover),
+                          height: 160, fit: BoxFit.cover,
+                          loadingBuilder: (context, child, progress) =>
+                              progress == null
+                                  ? child
+                                  : Container(
+                                      height: 160,
+                                      decoration: BoxDecoration(
+                                        color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                                        borderRadius: BorderRadius.circular(16),
+                                      ),
+                                      child: Center(
+                                        child: Icon(Icons.image_outlined,
+                                            size: 40,
+                                            color: Theme.of(context).colorScheme.onSurfaceVariant),
+                                      ),
+                                    ),
+                          errorBuilder: (_, __, ___) => Container(
+                                height: 160,
+                                decoration: BoxDecoration(
+                                  color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                                child: Center(
+                                  child: Icon(Icons.image_outlined,
+                                      size: 40,
+                                      color: Theme.of(context).colorScheme.onSurfaceVariant),
+                                ),
+                              )),
                     ),
                   ),
                 const SizedBox(height: 16),

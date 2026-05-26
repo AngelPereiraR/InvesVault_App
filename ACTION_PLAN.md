@@ -184,7 +184,7 @@ Deben implementarse primero. Corrigen problemas de usabilidad, completan funcion
 
 ---
 
-### ✅ A11. AnimatedSwitcher entre estados de carga y contenido
+### ✅ A11. AnimatedCrossFade entre estados de carga y contenido
 
 **Origen**: UX-2 / UI-9 / UI-11.2
 
@@ -200,7 +200,7 @@ Deben implementarse primero. Corrigen problemas de usabilidad, completan funcion
 
 ---
 
-### A12. Placeholder visual durante carga de imágenes
+### ✅ A12. Placeholder visual durante carga de imágenes
 
 **Origen**: UX-5 / UI-6
 
@@ -215,7 +215,7 @@ Deben implementarse primero. Corrigen problemas de usabilidad, completan funcion
 
 ---
 
-### A13. Animaciones de transición entre pantallas
+### ✅ A13. Animaciones de transición entre pantallas
 
 **Origen**: UX-6 / UI-9
 
@@ -813,7 +813,7 @@ Usar `tag` único (ej: `'warehouse-${id}'`, `'product-${id}'`). Envolver el elem
 
 ### Fase 1 — Correcciones rápidas (Alta, esfuerzo bajo) ✅
 Ejecutadas:
-~~A1~~, ~~A3~~, ~~A6~~, ~~A7~~, ~~A8~~, ~~A11~~, A12, A13
+~~A1~~, ~~A3~~, ~~A6~~, ~~A7~~, ~~A8~~, ~~A11~~, ~~A12~~, ~~A13~~
 
 ### Fase 2 — Funcionalidad core (Alta, esfuerzo medio)
 A2, A4, A5, A9, A10, A14, A15
