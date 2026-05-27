@@ -25,4 +25,6 @@ class WarehouseRepository {
       _datasource.updateWarehouse(id, data);
 
   Future<void> deleteWarehouse(int id) => _datasource.deleteWarehouse(id);
+
+  Future<void> restoreWarehouse(int id) => _datasource.restoreWarehouse(id);
 }

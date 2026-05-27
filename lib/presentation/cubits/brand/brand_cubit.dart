@@ -131,6 +131,11 @@ class BrandCubit extends Cubit<BrandState> {
     }
   }
 
+  Future<void> restore(int id) async {
+    await _repository.restoreBrand(id);
+    await load(_currentParams);
+  }
+
   Future<void> deleteItems(List<int> ids) async {
     emit(const BrandDeleting());
     try {

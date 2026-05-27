@@ -131,6 +131,11 @@ class StoreCubit extends Cubit<StoreState> {
     }
   }
 
+  Future<void> restore(int id) async {
+    await _repository.restoreStore(id);
+    await load(_currentParams);
+  }
+
   Future<void> deleteItems(List<int> ids) async {
     emit(const StoreDeleting());
     try {

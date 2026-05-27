@@ -14,4 +14,6 @@ class CategoryRepository {
       _datasource.updateCategory(id, name);
 
   Future<void> deleteCategory(int id) => _datasource.deleteCategory(id);
+
+  Future<void> restoreCategory(int id) => _datasource.restoreCategory(id);
 }

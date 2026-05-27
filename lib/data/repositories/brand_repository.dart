@@ -16,4 +16,6 @@ class BrandRepository {
       _datasource.updateBrand(id, name);
 
   Future<void> deleteBrand(int id) => _datasource.deleteBrand(id);
+
+  Future<void> restoreBrand(int id) => _datasource.restoreBrand(id);
 }

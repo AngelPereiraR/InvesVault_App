@@ -93,6 +93,16 @@ abstract class ApiConstants {
       '/warehouse-products/$warehouseProductId/batches';
   static String batchById(int id) => '/warehouse-product-batches/$id';
 
+  // Restore
+  static String productRestore(int id) => '/products/$id/restore';
+  static String brandRestore(int id) => '/brands/$id/restore';
+  static String categoryRestore(int id) => '/categories/$id/restore';
+  static String storeRestore(int id) => '/stores/$id/restore';
+  static String warehouseRestore(int id) => '/warehouses/$id/restore';
+  static String warehouseProductRestore(int id) => '/warehouse-products/$id/restore';
+  static String shoppingListRestore(int id) => '/shopping-list/restore/$id';
+  static String notificationRestore(int id) => '/notifications/$id/restore';
+
   // Categories
   static const String categories = '/categories';
   static String categoryById(int id) => '/categories/$id';

@@ -27,4 +27,7 @@ class CategoryRemoteDatasource {
 
   Future<void> deleteCategory(int id) =>
       _dio.delete(ApiConstants.categoryById(id));
+
+  Future<void> restoreCategory(int id) =>
+      _dio.post(ApiConstants.categoryRestore(id));
 }

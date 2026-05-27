@@ -31,4 +31,7 @@ class BrandRemoteDatasource {
 
   Future<void> deleteBrand(int id) =>
       _dio.delete(ApiConstants.brandById(id));
+
+  Future<void> restoreBrand(int id) =>
+      _dio.post(ApiConstants.brandRestore(id));
 }

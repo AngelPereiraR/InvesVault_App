@@ -161,6 +161,11 @@ class ShoppingListCubit extends Cubit<ShoppingListState> {
     }
   }
 
+  Future<void> restoreItem(int id, int warehouseId) async {
+    await _repository.restoreItem(id);
+    await _reload(warehouseId);
+  }
+
   Future<void> clearList(int warehouseId) async {
     emit(const ShoppingListLoading());
     try {

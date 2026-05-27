@@ -107,7 +107,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
               padding: const EdgeInsets.fromLTRB(20, 12, 8, 0),
               child: Row(
                 children: [
-                  Container(
+                  SizedBox(
                     width: 40,
                     height: 40,
                     child:

@@ -117,7 +117,7 @@ class _WarehouseProductConfigScreenState
                         return const SizedBox();
                       }
                       return DropdownButtonFormField<int?>(
-                        value: _storeId,
+                        initialValue: _storeId,
                         decoration: const InputDecoration(
                           labelText: 'Tienda (última compra)',
                           prefixIcon: Icon(Icons.store_outlined),

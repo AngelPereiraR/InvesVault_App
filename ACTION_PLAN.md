@@ -60,7 +60,7 @@ Deben implementarse primero. Corrigen problemas de usabilidad, completan funcion
 
 ---
 
-### A4. Tap en catálogo → detalle de producto, no editar
+### ✅ A4. Tap en catálogo → detalle de producto, no editar
 
 **Origen**: NAV-14 / UX-5
 
@@ -76,7 +76,7 @@ Deben implementarse primero. Corrigen problemas de usabilidad, completan funcion
 
 ---
 
-### A5. Notificaciones navegables al origen
+### ✅ A5. Notificaciones navegables al origen
 
 **Origen**: NAV-19 / UX-3
 
@@ -251,7 +251,7 @@ Deben implementarse primero. Corrigen problemas de usabilidad, completan funcion
 
 ---
 
-### A15. Pull-to-refresh en todas las listas
+### ✅ A15. Pull-to-refresh en todas las listas
 
 **Origen**: UX-2 / UX-5 / NAV-18
 
@@ -816,7 +816,7 @@ Ejecutadas:
 ~~A1~~, ~~A3~~, ~~A6~~, ~~A7~~, ~~A8~~, ~~A11~~, ~~A12~~, ~~A13~~
 
 ### Fase 2 — Funcionalidad core (Alta, esfuerzo medio)
-A2, A4, A5, A9, A10, A14, A15
+A2, ~~A4~~, ~~A5~~, ~~A9~~, A10, A14, ~~A15~~
 
 ### Fase 3 — Consistencia y pulido (Media)
 M2, M4, M5, M9, M11, M12, M13, M15, M16, M17

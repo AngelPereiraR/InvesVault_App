@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../core/models/filter_params.dart';
 import '../../../core/router/app_router.dart';
+
 import '../../cubits/category/category_cubit.dart';
 import '../../cubits/product_list/product_list_cubit.dart';
 import '../../widgets/confirm_dialog.dart';
@@ -10,7 +11,7 @@ import '../../widgets/delete_mode_bar.dart';
 import '../../widgets/empty_view.dart';
 import '../../widgets/error_view.dart';
 import '../../widgets/loading_indicator.dart';
-
+import '../../widgets/undo_snackbar.dart';
 class ProductListScreen extends StatefulWidget {
   const ProductListScreen({super.key});
 
@@ -271,15 +272,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
                       return GestureDetector(
                         onTap: _deleteMode
                             ? () => _toggleSelect(product.id)
-                            : () async {
-                                await context.push(
-                                    '/products/${product.id}/edit');
-                                if (context.mounted) {
-                                  context
-                                      .read<ProductListCubit>()
-                                      .refresh();
-                                }
-                              },
+                            : null,
                         child: Container(
                           decoration: BoxDecoration(
                             color: isSelected && _deleteMode
@@ -331,32 +324,66 @@ class _ProductListScreenState extends State<ProductListScreen> {
                                         size: 20,
                                       )
                                     else
-                                      SizedBox(
-                                        width: 30,
-                                        height: 30,
-                                        child: IconButton(
-                                          padding: EdgeInsets.zero,
-                                          iconSize: 18,
-                                          icon: Icon(Icons.delete_outline,
-                                              color: cs.error),
-                                          onPressed: () async {
-                                            final confirm =
-                                                await showConfirmDialog(
-                                              context,
-                                              title: 'Eliminar producto',
-                                              message:
-                                                  '¿Eliminar "${product.name}"? Esta acción no se puede deshacer.',
-                                              confirmLabel: 'Eliminar',
-                                              isDangerous: true,
-                                            );
-                                            if (confirm == true &&
-                                                context.mounted) {
-                                              context
-                                                  .read<ProductListCubit>()
-                                                  .delete(product.id);
-                                            }
-                                          },
-                                        ),
+                                      Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          SizedBox(
+                                            width: 30,
+                                            height: 30,
+                                            child: IconButton(
+                                              padding: EdgeInsets.zero,
+                                              iconSize: 18,
+                                              icon: Icon(Icons.edit_outlined,
+                                                  color: cs.secondary),
+                                              onPressed: () async {
+                                                await context.push('/products/${product.id}/edit');
+                                                if (context.mounted) {
+                                                  context.read<ProductListCubit>().refresh();
+                                                }
+                                              },
+                                            ),
+                                          ),
+                                          SizedBox(
+                                            width: 30,
+                                            height: 30,
+                                            child: IconButton(
+                                              padding: EdgeInsets.zero,
+                                              iconSize: 18,
+                                              icon: Icon(Icons.delete_outline,
+                                                  color: cs.error),
+                                              onPressed: () async {
+                                                final confirm = await showConfirmDialog(
+                                                  context,
+                                                  title: 'Eliminar producto',
+                                                  message:
+                                                      '¿Eliminar "${product.name}"? Esta acción no se puede deshacer.',
+                                                  confirmLabel: 'Eliminar',
+                                                  isDangerous: true,
+                                                );
+                                                if (confirm == true &&
+                                                    context.mounted) {
+                                                  final deletedId = product.id;
+                                                  final deletedName =
+                                                      product.name;
+                                                  await context
+                                                      .read<ProductListCubit>()
+                                                      .delete(deletedId);
+                                                  if (!mounted) return;
+                                                  final cubit = context
+                                                      .read<ProductListCubit>();
+                                                  UndoSnackBar.show(
+                                                    context,
+                                                    message:
+                                                        '$deletedName eliminado correctamente',
+                                                    onUndo: () =>
+                                                        cubit.restore(
+                                                            deletedId),
+                                                  );
+                                                }
+                                              },
+                                            ),
+                                          ),
+                                        ],
                                       ),
                                   ],
                                 ),

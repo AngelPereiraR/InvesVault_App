@@ -153,6 +153,11 @@ class NotificationCubit extends Cubit<NotificationState> {
     }
   }
 
+  Future<void> restore(int id) async {
+    await _repository.restoreNotification(id);
+    await load(_currentParams);
+  }
+
   Future<void> clearAll() async {
     try {
       await _repository.clearAll();

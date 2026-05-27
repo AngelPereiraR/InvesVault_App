@@ -32,4 +32,7 @@ class StoreRemoteDatasource {
 
   Future<void> deleteStore(int id) =>
       _dio.delete(ApiConstants.storeById(id));
+
+  Future<void> restoreStore(int id) =>
+      _dio.post(ApiConstants.storeRestore(id));
 }

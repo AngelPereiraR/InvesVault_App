@@ -136,7 +136,7 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
                   ),
                   const SizedBox(height: 16),
                   DropdownButtonFormField<int>(
-                    value: _selectedBrandId,
+                    initialValue: _selectedBrandId,
                     decoration:
                         const InputDecoration(labelText: 'Marca (opcional)'),
                     items: state.brands
@@ -148,7 +148,7 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
                   ),
                   const SizedBox(height: 16),
                   DropdownButtonFormField<String>(
-                    value: _unit,
+                    initialValue: _unit,
                     decoration:
                         const InputDecoration(labelText: 'Unidad por defecto'),
                     items: const ['unidad', 'kg', 'g', 'l', 'ml', 'caja', 'paquete', 'bolsa', 'bandeja', 'empezado']

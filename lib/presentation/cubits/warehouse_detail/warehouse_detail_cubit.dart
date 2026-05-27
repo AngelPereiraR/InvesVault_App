@@ -322,6 +322,11 @@ class WarehouseDetailCubit extends Cubit<WarehouseDetailState> {
     }
   }
 
+  Future<void> restoreProduct(int id, int warehouseId) async {
+    await _warehouseProductRepository.restoreProduct(id);
+    await load(warehouseId, userId: _lastUserId, params: _currentParams);
+  }
+
   Future<void> removeProducts(List<int> ids, int warehouseId) async {
     final current = state;
     if (current is! WarehouseDetailLoaded) return;

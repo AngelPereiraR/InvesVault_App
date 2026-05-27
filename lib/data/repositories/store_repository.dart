@@ -16,4 +16,6 @@ class StoreRepository {
       _datasource.updateStore(id, data);
 
   Future<void> deleteStore(int id) => _datasource.deleteStore(id);
+
+  Future<void> restoreStore(int id) => _datasource.restoreStore(id);
 }

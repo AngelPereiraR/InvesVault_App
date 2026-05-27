@@ -6,7 +6,7 @@ import '../../widgets/confirm_dialog.dart';
 import '../../widgets/delete_mode_bar.dart';
 import '../../widgets/empty_view.dart';
 import '../../widgets/error_view.dart';
-import '../../widgets/loading_indicator.dart';
+import '../../widgets/undo_snackbar.dart';import '../../widgets/loading_indicator.dart';
 
 class CategoryListScreen extends StatefulWidget {
   const CategoryListScreen({super.key});
@@ -203,9 +203,22 @@ class _CategoryListScreenState extends State<CategoryListScreen> {
                                                 );
                                                 if (confirm == true &&
                                                     context.mounted) {
-                                                  context
+                                                  final deletedId = cat.id;
+                                                  final deletedName = cat.name;
+                                                  await context
                                                       .read<CategoryCubit>()
-                                                      .delete(cat.id);
+                                                      .delete(deletedId);
+                                                  if (!mounted) return;
+                                                  final cubit = context
+                                                      .read<CategoryCubit>();
+                                                  UndoSnackBar.show(
+                                                    context,
+                                                    message:
+                                                        '$deletedName eliminada correctamente',
+                                                    onUndo: () =>
+                                                        cubit.restore(
+                                                            deletedId),
+                                                  );
                                                 }
                                               },
                                             ),

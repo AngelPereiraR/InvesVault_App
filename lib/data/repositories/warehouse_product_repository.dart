@@ -21,6 +21,8 @@ class WarehouseProductRepository {
 
   Future<void> deleteProduct(int id) => _datasource.deleteProduct(id);
 
+  Future<void> restoreProduct(int id) => _datasource.restoreProduct(id);
+
   Future<List<WarehouseProductModel>> getWarehousesByProduct(int productId) =>
       _datasource.getWarehousesByProduct(productId);
 

@@ -3,12 +3,13 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 
 import '../../../core/models/filter_params.dart';
+import '../../../core/router/app_router.dart';
 import '../../cubits/notification/notification_cubit.dart';
 import '../../widgets/confirm_dialog.dart';
 import '../../widgets/empty_view.dart';
 import '../../widgets/error_view.dart';
 import '../../widgets/loading_indicator.dart';
-
+import '../../widgets/undo_snackbar.dart';
 class NotificationListScreen extends StatefulWidget {
   const NotificationListScreen({super.key});
 
@@ -157,8 +158,19 @@ class _NotificationListScreenState extends State<NotificationListScreen> {
                         child: Icon(Icons.delete,
                             color: Theme.of(context).colorScheme.onError),
                       ),
-                      onDismissed: (_) =>
-                          context.read<NotificationCubit>().delete(n.id),
+                      onDismissed: (_) async {
+                        final deletedId = n.id;
+                        await context
+                            .read<NotificationCubit>()
+                            .delete(deletedId);
+                        if (!mounted) return;
+                        final cubit = context.read<NotificationCubit>();
+                        UndoSnackBar.show(
+                          context,
+                          message: 'Notificación eliminada',
+                          onUndo: () => cubit.restore(deletedId),
+                        );
+                      },
                       child: ListTile(
                         tileColor: n.isRead
                             ? null
@@ -190,11 +202,16 @@ class _NotificationListScreenState extends State<NotificationListScreen> {
                                     : FontWeight.bold)),
                         subtitle: Text(DateFormat('dd/MM/yy HH:mm')
                             .format(DateTime.tryParse(n.createdAt ?? '') ?? DateTime.now())),
-                        onTap: n.isRead
-                            ? null
-                            : () => context
-                                .read<NotificationCubit>()
-                                .markRead(n.id),
+                    onTap: () {
+                      if (!n.isRead) {
+                        context.read<NotificationCubit>().markRead(n.id);
+                      }
+                      if (n.type == 'shared' && n.warehouseId > 0) {
+                        context.openAuxiliaryRoute('/warehouses/${n.warehouseId}/detail');
+                      } else if (n.warehouseId > 0) {
+                        context.openAuxiliaryRoute('/warehouses/${n.warehouseId}/detail');
+                      }
+                    },
                       ),
                     );
                         },

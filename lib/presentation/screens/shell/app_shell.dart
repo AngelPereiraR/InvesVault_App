@@ -94,7 +94,7 @@ class _AppShellState extends State<AppShell> {
                   style: TextStyle(fontSize: 13, color: Theme.of(dCtx).colorScheme.onSurfaceVariant)),
               const SizedBox(height: 16),
               DropdownButtonFormField<int>(
-                value: selectedId,
+                initialValue: selectedId,
                 decoration: const InputDecoration(
                   labelText: 'Almacén',
                   border: OutlineInputBorder(),

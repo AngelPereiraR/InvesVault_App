@@ -32,6 +32,9 @@ class NotificationRemoteDatasource {
   Future<void> deleteNotification(int id) =>
       _dio.delete(ApiConstants.notificationDelete(id));
 
+  Future<void> restoreNotification(int id) =>
+      _dio.post(ApiConstants.notificationRestore(id));
+
   Future<void> clearAll() =>
       _dio.delete(ApiConstants.notificationsClearAll);
 }

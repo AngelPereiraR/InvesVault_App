@@ -41,4 +41,7 @@ class WarehouseRemoteDatasource {
 
   Future<void> deleteWarehouse(int id) =>
       _dio.delete(ApiConstants.warehouseById(id));
+
+  Future<void> restoreWarehouse(int id) =>
+      _dio.post(ApiConstants.warehouseRestore(id));
 }

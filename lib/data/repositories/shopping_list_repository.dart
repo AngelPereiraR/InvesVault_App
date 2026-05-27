@@ -24,6 +24,8 @@ class ShoppingListRepository {
 
   Future<void> removeItem(int id) => _datasource.removeItem(id);
 
+  Future<void> restoreItem(int id) => _datasource.restoreItem(id);
+
   Future<void> clearList(int warehouseId) =>
       _datasource.clearList(warehouseId);
 

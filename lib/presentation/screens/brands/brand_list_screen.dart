@@ -8,7 +8,7 @@ import '../../widgets/delete_mode_bar.dart';
 import '../../widgets/empty_view.dart';
 import '../../widgets/error_view.dart';
 import '../../widgets/loading_indicator.dart';
-
+import '../../widgets/undo_snackbar.dart';
 class BrandListScreen extends StatefulWidget {
   const BrandListScreen({super.key});
 
@@ -263,9 +263,21 @@ class _BrandListScreenState extends State<BrandListScreen> {
                                           );
                                           if (confirm == true &&
                                               context.mounted) {
-                                            context
+                                            final deletedId = brand.id;
+                                            final deletedName = brand.name;
+                                            await context
                                                 .read<BrandCubit>()
-                                                .delete(brand.id);
+                                                .delete(deletedId);
+                                            if (!mounted) return;
+                                            final cubit =
+                                                context.read<BrandCubit>();
+                                            UndoSnackBar.show(
+                                              context,
+                                              message:
+                                                  '$deletedName eliminada correctamente',
+                                              onUndo: () =>
+                                                  cubit.restore(deletedId),
+                                            );
                                           }
                                         },
                                       ),

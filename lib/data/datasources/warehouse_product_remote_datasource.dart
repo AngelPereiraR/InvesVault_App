@@ -56,6 +56,9 @@ class WarehouseProductRemoteDatasource {
   Future<void> deleteProduct(int id) =>
       _dio.delete(ApiConstants.warehouseProductById(id));
 
+  Future<void> restoreProduct(int id) =>
+      _dio.post(ApiConstants.warehouseProductRestore(id));
+
   Future<List<WarehouseProductModel>> getWarehousesByProduct(int productId) async {
     try {
       final response = await _dio.get(ApiConstants.productWarehouses(productId));

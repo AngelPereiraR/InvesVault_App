@@ -16,5 +16,8 @@ class NotificationRepository {
   Future<void> deleteNotification(int id) =>
       _datasource.deleteNotification(id);
 
+  Future<void> restoreNotification(int id) =>
+      _datasource.restoreNotification(id);
+
   Future<void> clearAll() => _datasource.clearAll();
 }

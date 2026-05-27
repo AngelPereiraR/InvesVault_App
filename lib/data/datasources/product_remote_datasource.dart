@@ -37,4 +37,7 @@ class ProductRemoteDatasource {
 
   Future<void> deleteProduct(int id) =>
       _dio.delete(ApiConstants.productById(id));
+
+  Future<void> restoreProduct(int id) =>
+      _dio.post(ApiConstants.productRestore(id));
 }

@@ -13,7 +13,7 @@ import '../../widgets/delete_mode_bar.dart';
 import '../../widgets/empty_view.dart';
 import '../../widgets/error_view.dart';
 import '../../widgets/loading_indicator.dart';
-import '../../widgets/low_stock_badge.dart';
+import '../../widgets/undo_snackbar.dart';import '../../widgets/low_stock_badge.dart';
 import '../../widgets/product_list_tile.dart';
 
 class WarehouseDetailScreen extends StatefulWidget {
@@ -366,12 +366,28 @@ class _WarehouseDetailScreenState extends State<WarehouseDetailScreen> {
                                             );
                                             if (confirm == true &&
                                                 context.mounted) {
-                                              context
-                                                  .read<WarehouseDetailCubit>()
+                                              final deletedId = item.id;
+                                              await context
+                                                  .read<
+                                                      WarehouseDetailCubit>()
                                                   .removeProduct(
-                                                    item.id,
+                                                    deletedId,
                                                     widget.warehouseId,
                                                   );
+                                              if (!mounted) return;
+                                              final cubit = context
+                                                  .read<
+                                                      WarehouseDetailCubit>();
+                                              UndoSnackBar.show(
+                                                context,
+                                                message:
+                                                    '${item.product?.name ?? 'Producto'} eliminado del almacén',
+                                                onUndo: () =>
+                                                    cubit.restoreProduct(
+                                                  deletedId,
+                                                  widget.warehouseId,
+                                                ),
+                                              );
                                             }
                                           },
                                     trailing: _deleteMode
@@ -556,7 +572,7 @@ class _AddProductSheetState extends State<_AddProductSheet> {
                         );
                       }
                       return DropdownButtonFormField<int>(
-                        value: _selectedProductId,
+                        initialValue: _selectedProductId,
                         decoration:
                             const InputDecoration(labelText: 'Producto'),
                         items: filtered
@@ -615,7 +631,7 @@ class _AddProductSheetState extends State<_AddProductSheet> {
                             return const SizedBox();
                           }
                           return DropdownButtonFormField<int?>(
-                            value: _storeId,
+                            initialValue: _storeId,
                             decoration: const InputDecoration(
                               labelText: 'Tienda (opcional)',
                               prefixIcon: Icon(Icons.store_outlined),

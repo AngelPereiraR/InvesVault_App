@@ -13,6 +13,7 @@ import '../../widgets/confirm_dialog.dart';
 import '../../widgets/empty_view.dart';
 import '../../widgets/error_view.dart';
 import '../../widgets/loading_indicator.dart';
+import '../../widgets/undo_snackbar.dart';
 
 class ShoppingListScreen extends StatefulWidget {
   const ShoppingListScreen({super.key});
@@ -462,9 +463,15 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
                   tabContent = Column(
                     children: [
                       Expanded(
-                        child: ListView(
-                          padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-                          children: _buildItemWidgets(filteredItems, showWarehouse: true),
+                        child: RefreshIndicator(
+                          onRefresh: () {
+                            setState(() { _checkedSet.clear(); _stPlanned.clear(); _stBuyQty.clear(); });
+                            return context.read<ShoppingListCubit>().loadAll();
+                          },
+                          child: ListView(
+                            padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+                            children: _buildItemWidgets(filteredItems, showWarehouse: true),
+                          ),
                         ),
                       ),
                       Padding(
@@ -524,7 +531,7 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
                   Expanded(
                     child: DropdownButtonFormField<int?>(
                       isExpanded: true,
-                      value: _selectedWarehouseId,
+                      initialValue: _selectedWarehouseId,
                       decoration: InputDecoration(
                         labelText: 'Almacén',
                         prefixIcon: Icon(Icons.warehouse_outlined,
@@ -612,9 +619,15 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
                       tabContent = Column(
                         children: [
                           Expanded(
-                            child: ListView(
-                              padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-                              children: _buildItemWidgets(items, showWarehouse: false),
+                            child: RefreshIndicator(
+                              onRefresh: () {
+                                setState(() { _whChecked.clear(); _whPlanned.clear(); _whBuyQty.clear(); });
+                                return context.read<ShoppingListCubit>().load(_selectedWarehouseId!);
+                              },
+                              child: ListView(
+                                padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+                                children: _buildItemWidgets(items, showWarehouse: false),
+                              ),
                             ),
                           ),
                           Padding(
@@ -1037,14 +1050,25 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
                 isDangerous: true,
               );
               if (confirm != true || !context.mounted) return;
+              final deletedId = item.id as int;
+              final deletedWarehouseId = item.warehouseId as int;
+              final deletedName = item.product?.name as String? ?? 'Producto';
               setState(() {
-                _checkedSet.remove(item.id as int);
-                _planned.remove(item.id as int);
-                _buyQtyMap.remove(item.id as int);
+                _checkedSet.remove(deletedId);
+                _planned.remove(deletedId);
+                _buyQtyMap.remove(deletedId);
               });
-              context
+              await context
                   .read<ShoppingListCubit>()
-                  .removeItem(item.id as int, item.warehouseId as int);
+                  .removeItem(deletedId, deletedWarehouseId);
+              if (!mounted) return;
+              final cubit = context.read<ShoppingListCubit>();
+              UndoSnackBar.show(
+                context,
+                message: '$deletedName eliminado de la lista',
+                onUndo: () => cubit.restoreItem(
+                    deletedId, deletedWarehouseId),
+              );
             },
           ),
         ],
@@ -1132,7 +1156,7 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
                 const SizedBox(height: 20),
                 DropdownButtonFormField<int>(
                   isExpanded: true,
-                  value: selectedWarehouseId,
+                  initialValue: selectedWarehouseId,
                   decoration:
                       _fieldDeco(ctx, 'Almacén', Icons.warehouse_outlined),
                   items: [
@@ -1148,8 +1172,7 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
                     ),
                     ...warehouseState.warehouses
                         .map((w) => DropdownMenuItem<int>(
-                            value: w.id, child: Text(w.name)))
-                        .toList(),
+                            value: w.id, child: Text(w.name))),
                   ],
                   onChanged: (v) =>
                       setInner(() => selectedWarehouseId = v),
@@ -1310,7 +1333,7 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
                                     selectedTileColor: Theme.of(ctx)
                                         .colorScheme
                                         .secondaryContainer
-                                        .withOpacity(0.4),
+                                        .withValues(alpha: 0.4),
                                     onTap: () => setInner(() {
                                       selectedProductId = p.id as int;
                                       selectedProductName = p.name as String;
@@ -1406,7 +1429,7 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
                     const SizedBox(height: 20),
                     DropdownButtonFormField<int>(
                       isExpanded: true,
-                      value: selectedWarehouseId,
+                      initialValue: selectedWarehouseId,
                       decoration:
                           _fieldDeco(ctx, 'Almacén', Icons.warehouse_outlined),
                       items: [
@@ -1496,7 +1519,7 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
                                     selectedTileColor: Theme.of(ctx)
                                         .colorScheme
                                         .secondaryContainer
-                                        .withOpacity(0.4),
+                                        .withValues(alpha: 0.4),
                                     onTap: () => setInner(() {
                                       selectedProductId = p.id as int;
                                       selectedProductName = p.name as String;

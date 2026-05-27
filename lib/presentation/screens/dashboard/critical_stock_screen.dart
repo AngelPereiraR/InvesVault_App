@@ -39,7 +39,9 @@ class CriticalStockScreen extends StatelessWidget {
             );
           }
 
-          return ListView.builder(
+          return RefreshIndicator(
+            onRefresh: () => context.read<DashboardCubit>().refresh(),
+            child: ListView.builder(
             padding: const EdgeInsets.all(16),
             itemCount: items.length,
             itemBuilder: (context, index) {
@@ -96,7 +98,8 @@ class CriticalStockScreen extends StatelessWidget {
                 ),
               );
             },
-          );
+          ),
+        );
         },
       ),
     );

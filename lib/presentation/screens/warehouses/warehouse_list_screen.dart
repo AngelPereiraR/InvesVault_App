@@ -14,6 +14,7 @@ import '../../widgets/delete_mode_bar.dart';
 import '../../widgets/empty_view.dart';
 import '../../widgets/error_view.dart';
 import '../../widgets/loading_indicator.dart';
+import '../../widgets/undo_snackbar.dart';
 import '../../../core/utils/validators.dart';
 
 /// Muestra un diálogo con dos pestañas: Información y Colaboradores.
@@ -624,18 +625,6 @@ class _WarehouseListScreenState extends State<WarehouseListScreen> {
           // ── Main content ─────────────────────────────────────────────────
           BlocConsumer<WarehouseCubit, WarehouseState>(
             listener: (context, state) {
-              if (state is WarehouseActionSuccess) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text(state.message)),
-                );
-              }
-              if (state is WarehouseCreated) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                      content: Text(
-                          '"${state.warehouse.name}" creado correctamente')),
-                );
-              }
               if (state is WarehouseError) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
@@ -787,9 +776,21 @@ class _WarehouseListScreenState extends State<WarehouseListScreen> {
                                       );
                                       if (confirm == true &&
                                           context.mounted) {
-                                        context
+                                        final deletedId = w.id;
+                                        final deletedName = w.name;
+                                        await context
                                             .read<WarehouseCubit>()
-                                            .delete(w.id);
+                                            .delete(deletedId);
+                                        if (!mounted) return;
+                                        final cubit =
+                                            context.read<WarehouseCubit>();
+                                        UndoSnackBar.show(
+                                          context,
+                                          message:
+                                              '$deletedName eliminado correctamente',
+                                          onUndo: () =>
+                                              cubit.restore(deletedId),
+                                        );
                                       }
                                     },
                             );

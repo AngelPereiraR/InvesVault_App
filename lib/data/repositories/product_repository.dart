@@ -19,4 +19,6 @@ class ProductRepository {
       _datasource.updateProduct(id, data);
 
   Future<void> deleteProduct(int id) => _datasource.deleteProduct(id);
+
+  Future<void> restoreProduct(int id) => _datasource.restoreProduct(id);
 }

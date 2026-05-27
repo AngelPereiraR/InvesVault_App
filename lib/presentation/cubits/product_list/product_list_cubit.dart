@@ -182,6 +182,22 @@ class ProductListCubit extends Cubit<ProductListState> {
     }
   }
 
+  Future<void> restore(int id) async {
+    await _repository.restoreProduct(id);
+    final current = state;
+    if (current is ProductListLoaded) {
+      final params = _currentParams.copyWith(page: current.currentPage);
+      final products = await _repository.getProducts(params);
+      final limit = _currentParams.limit ?? 20;
+      emit(ProductListLoaded(
+        products,
+        hasMore: products.length >= limit,
+        currentPage: current.currentPage,
+        firstPage: current.currentPage,
+      ));
+    }
+  }
+
   Future<void> deleteItems(List<int> ids) async {
     final current = state;
     if (current is! ProductListLoaded) {

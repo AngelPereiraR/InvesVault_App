@@ -49,6 +49,11 @@ class CategoryCubit extends Cubit<CategoryState> {
     }
   }
 
+  Future<void> restore(int id) async {
+    await _repository.restoreCategory(id);
+    await load();
+  }
+
   Future<void> deleteItems(List<int> ids) async {
     emit(const CategoryDeleting());
     try {

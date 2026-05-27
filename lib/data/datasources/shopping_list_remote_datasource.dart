@@ -62,6 +62,9 @@ class ShoppingListRemoteDatasource {
   Future<void> removeItem(int id) =>
       _dio.delete(ApiConstants.shoppingListRemove(id));
 
+  Future<void> restoreItem(int id) =>
+      _dio.post(ApiConstants.shoppingListRestore(id));
+
   Future<void> clearList(int warehouseId) =>
       _dio.delete(ApiConstants.shoppingListClear(warehouseId));
 

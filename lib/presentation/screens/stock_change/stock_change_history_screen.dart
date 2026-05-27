@@ -39,8 +39,8 @@ class _StockChangeHistoryScreenState
     _pageLimit = (h / 92).ceil() + 3;
   }
 
-  void _loadChanges(int warehouseId) {
-    context
+  Future<void> _loadChanges(int warehouseId) async {
+    await context
         .read<StockChangeCubit>()
         .loadByWarehouse(warehouseId, FilterParams(limit: _pageLimit));
   }
@@ -72,7 +72,7 @@ class _StockChangeHistoryScreenState
             builder: (context, state) {
               if (state is! WarehouseLoaded) return const LoadingIndicator();
               return DropdownButtonFormField<int?>(
-                value: _selectedWarehouseId,
+                initialValue: _selectedWarehouseId,
                 decoration: InputDecoration(
                   labelText: 'Almacén',
                   prefixIcon:
@@ -185,7 +185,9 @@ class _StockChangeHistoryScreenState
                         loadedContent = Column(
                         children: [
                           Expanded(
-                            child: ListView.builder(
+                            child: RefreshIndicator(
+                              onRefresh: () => _loadChanges(_selectedWarehouseId!),
+                              child: ListView.builder(
                         controller: _scrollController,
                         padding: const EdgeInsets.symmetric(
                             horizontal: 16, vertical: 8),
@@ -322,7 +324,8 @@ class _StockChangeHistoryScreenState
                           );
                         },
                       ),
-                          ),
+                      ),
+                      ),
                           if (state.isLoadingMore)
                             const Padding(
                               padding: EdgeInsets.all(12),

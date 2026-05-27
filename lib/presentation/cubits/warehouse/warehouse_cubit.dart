@@ -193,6 +193,11 @@ class WarehouseCubit extends Cubit<WarehouseState> {
     }
   }
 
+  Future<void> restore(int id) async {
+    await _repository.restoreWarehouse(id);
+    await load(_currentParams);
+  }
+
   Future<void> deleteItems(List<int> ids) async {
     final previous = state;
     emit(const WarehouseDeleting());
