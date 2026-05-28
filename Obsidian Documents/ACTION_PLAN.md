@@ -1,6 +1,13 @@
 # Plan de Acción — InvesVault App
 
-Plan unificado de mejora de UX, UI y navegación basado en los tres análisis previos. Las tareas están ordenadas por prioridad y agrupadas por área temática. Cada tarea describe qué hacer, por qué, y qué impacto tiene, sin entrar en código.
+Plan unificado de mejora de UX, UI y navegación basado en los tres análisis previos.
+
+**Documentos fuente:**
+- [[UI_ANALYSIS]] — Análisis de interfaz visual, componentes y sistema de diseño
+- [[UX_ANALYSIS]] — Análisis de experiencia de usuario, flujos y estados
+- [[NAVIGATION_ANALYSIS]] — Análisis de navegación pantalla por pantalla
+
+Las tareas están ordenadas por prioridad y agrupadas por área temática. Cada tarea describe qué hacer, por qué, y qué impacto tiene, sin entrar en código.
 
 Todas las funcionalidades actualmente visibles pero no operativas son características planificadas que deben implementarse, no eliminarse.
 
