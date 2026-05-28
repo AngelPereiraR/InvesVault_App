@@ -110,7 +110,6 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "ACTION_PLAN.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -120,7 +119,7 @@
                 "unlinkedCollapsed": true
               },
               "icon": "links-coming-in",
-              "title": "Backlinks for ACTION_PLAN"
+              "title": "Backlinks"
             }
           },
           {
@@ -129,12 +128,11 @@
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "ACTION_PLAN.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               },
               "icon": "links-going-out",
-              "title": "Outgoing links from ACTION_PLAN"
+              "title": "Outgoing links"
             }
           },
           {
@@ -172,13 +170,12 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "ACTION_PLAN.md",
                 "followCursor": false,
                 "showSearch": false,
                 "searchQuery": ""
               },
               "icon": "lucide-list",
-              "title": "Outline of ACTION_PLAN"
+              "title": "Outline"
             }
           }
         ]
@@ -199,6 +196,40 @@
       "bases:Create new base": false
     }
   },
-  "active": "4315014194d1b697",
-  "lastOpenFiles": []
+  "active": "23a7d48b99ce5028",
+  "lastOpenFiles": [
+    "Tasks/high/✅ A3 - Menú contextual a botón directo.md",
+    "ACTION_PLAN.md",
+    "Tasks/high.md",
+    "Tasks/high/A2 - Recuperación de contraseña.md",
+    "Tasks/low/B15 - Modo offline.md",
+    "Tasks/low/B14 - Migrar EmptyState.md",
+    "Tasks/low/B13 - Unificar DeleteModeBar.md",
+    "Tasks/low/B12 - Logo animado splash.md",
+    "Tasks/low/B11 - NavigationRail tablets.md",
+    "Tasks/low/B10 - Ilustraciones SVG onboarding.md",
+    "Tasks/low/B9 - Preview generación lista.md",
+    "Tasks/low/B8 - Coach marks shopping list.md",
+    "Tasks/low/B7 - Hero animations.md",
+    "Tasks/low/B6 - Biometría login.md",
+    "Tasks/low/B5 - Barra búsqueda ayuda.md",
+    "Tasks/low/B4 - Búsqueda local warehouse.md",
+    "Tasks/low/B3 - Seleccionar todo shopping list.md",
+    "Tasks/low/B2 - TextInputAction.next.md",
+    "Tasks/low/B1 - Fortaleza contraseña.md",
+    "Tasks/medium/M21 - Notificaciones deep-link.md",
+    "Tasks/medium/M20 - Confirmación salir formularios.md",
+    "Tasks/medium/M19 - Eliminación optimista.md",
+    "Tasks/medium/M18 - AnimatedList warehouse.md",
+    "Tasks/medium/M17 - AnimatedTheme.md",
+    "Tasks/medium/M16 - Semantics labels.md",
+    "Tasks/medium/M15 - Tooltips en IconButton.md",
+    "Tasks/low",
+    "Tasks/medium",
+    "Tasks/high",
+    "Tasks",
+    "Tasks/Baja",
+    "Tasks/Media",
+    "Tasks/Alta"
+  ]
 }

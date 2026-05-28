@@ -1,0 +1,25 @@
+# Medium Priority Tasks
+
+Tareas de prioridad media del [[ACTION_PLAN]].
+
+- [[Tasks/medium/M1 - Bottom Navigation Bar]]
+- [[Tasks/medium/M2 - Icono QR independiente]]
+- [[Tasks/medium/M3 - Reorganizar menú ShoppingList]]
+- [[Tasks/medium/M4 - Animación éxito escáner]]
+- [[Tasks/medium/M5 - Barra búsqueda en Categorías]]
+- [[Tasks/medium/M6 - Unificar FilterChips]]
+- [[Tasks/medium/M7 - Sticky headers shopping list]]
+- [[Tasks/medium/M8 - AppCard widget]]
+- [[Tasks/medium/M9 - Sistema espaciado]]
+- [[Tasks/medium/M10 - Responsive grid]]
+- [[Tasks/medium/M11 - Shopping list sin reflow]]
+- [[Tasks/medium/M12 - Unificar Login y Register]]
+- [[Tasks/medium/M13 - autofillHints]]
+- [[Tasks/medium/M14 - Indicador total items]]
+- [[Tasks/medium/M15 - Tooltips en IconButton]]
+- [[Tasks/medium/M16 - Semantics labels]]
+- [[Tasks/medium/M17 - AnimatedTheme]]
+- [[Tasks/medium/M18 - AnimatedList warehouse]]
+- [[Tasks/medium/M19 - Eliminación optimista]]
+- [[Tasks/medium/M20 - Confirmación salir formularios]]
+- [[Tasks/medium/M21 - Notificaciones deep-link]]
