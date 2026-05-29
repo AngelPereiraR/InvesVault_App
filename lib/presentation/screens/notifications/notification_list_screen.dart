@@ -6,6 +6,7 @@ import '../../../core/models/filter_params.dart';
 import '../../../core/router/app_router.dart';
 import '../../cubits/notification/notification_cubit.dart';
 import '../../widgets/confirm_dialog.dart';
+import '../../widgets/app_search_bar.dart';
 import '../../widgets/empty_view.dart';
 import '../../widgets/error_view.dart';
 import '../../widgets/skeleton_widgets.dart';
@@ -103,29 +104,14 @@ class _NotificationListScreenState extends State<NotificationListScreen> {
                 children: [
                   Padding(
                     padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
-                    child: TextField(
+                    child: AppSearchBar(
                       controller: _searchCtrl,
-                      decoration: InputDecoration(
-                        hintText: 'Buscar notificación…',
-                        prefixIcon: const Icon(Icons.search),
-                        suffixIcon: _searchCtrl.text.isNotEmpty
-                            ? IconButton(
-                                icon: const Icon(Icons.clear),
-                                onPressed: () {
-                                  _searchCtrl.clear();
-                                  context
-                                      .read<NotificationCubit>()
-                                      .search('');
-                                },
-                              )
-                            : null,
-                      ),
+                      hintText: 'Buscar notificación…',
+                      isSearching: state.isSearching,
                       onChanged: (q) =>
                           context.read<NotificationCubit>().search(q),
                     ),
                   ),
-                  if (state.isSearching)
-                    const LinearProgressIndicator(minHeight: 2),
                   Expanded(
                     child: state.notifications.isEmpty
                         ? EmptyView(

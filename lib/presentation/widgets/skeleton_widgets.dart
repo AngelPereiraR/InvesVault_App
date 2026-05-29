@@ -588,6 +588,210 @@ class StockChangeHistorySkeleton extends StatelessWidget {
   }
 }
 
+// ─── ProductDetail Skeleton ─────────────────────────────────────────────────
+
+class ProductDetailSkeleton extends StatelessWidget {
+  const ProductDetailSkeleton({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return AppShimmer(
+      child: SingleChildScrollView(
+        physics: const NeverScrollableScrollPhysics(),
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Center(
+              child: SkeletonBox(
+                width: double.infinity,
+                height: 160,
+                borderRadius: 16,
+              ),
+            ),
+            const SizedBox(height: 16),
+            SkeletonLine(width: 200, height: 22),
+            const SizedBox(height: 4),
+            SkeletonLine(width: 120, height: 15),
+            const SizedBox(height: 24),
+            ...List.generate(
+              6,
+              (_) => Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    SkeletonLine(width: 100, height: 14),
+                    SkeletonLine(width: 80, height: 14),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 24),
+            SkeletonBox(height: 44, borderRadius: 12),
+            const SizedBox(height: 16),
+            SkeletonBox(height: 44, borderRadius: 12),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ─── ProductWarehouses Skeleton ──────────────────────────────────────────────
+
+class ProductWarehousesSkeleton extends StatelessWidget {
+  const ProductWarehousesSkeleton({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return _shimmerList(
+      count: 6,
+      spacing: 8,
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+      itemBuilder: (_) => Row(
+        children: [
+          SkeletonAvatar(size: 40),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                SkeletonLine(width: 140, height: 14),
+                const SizedBox(height: 4),
+                SkeletonLine(width: 100, height: 11),
+                const SizedBox(height: 2),
+                SkeletonLine(width: 80, height: 11),
+              ],
+            ),
+          ),
+          const SizedBox(width: 8),
+          SkeletonBox(width: 20, height: 20, borderRadius: 4),
+        ],
+      ),
+    );
+  }
+}
+
+// ─── ProductStockHistory Skeleton ────────────────────────────────────────────
+
+class ProductStockHistorySkeleton extends StatelessWidget {
+  const ProductStockHistorySkeleton({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return AppShimmer(
+      child: ListView(
+        padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+        children: [
+          SizedBox(
+            height: 36,
+            child: ListView(
+              scrollDirection: Axis.horizontal,
+              physics: const NeverScrollableScrollPhysics(),
+              children: List.generate(
+                4,
+                (_) => Padding(
+                  padding: const EdgeInsets.only(right: 8),
+                  child:
+                      SkeletonBox(width: 80, height: 36, borderRadius: 18),
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: 12),
+          ...List.generate(
+            6,
+            (_) => Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  SkeletonAvatar(size: 40),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            SkeletonBox(
+                              width: 40,
+                              height: 22,
+                              borderRadius: 6,
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: SkeletonLine(height: 11),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 4),
+                        Row(
+                          children: [
+                            SkeletonBox(
+                              width: 14,
+                              height: 14,
+                              borderRadius: 7,
+                            ),
+                            const SizedBox(width: 4),
+                            SkeletonLine(width: 60, height: 11),
+                            const SizedBox(width: 12),
+                            SkeletonBox(
+                              width: 14,
+                              height: 14,
+                              borderRadius: 7,
+                            ),
+                            const SizedBox(width: 4),
+                            SkeletonLine(width: 80, height: 11),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ─── SearchScreen Skeleton ───────────────────────────────────────────────────
+
+class SearchScreenSkeleton extends StatelessWidget {
+  const SearchScreenSkeleton({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return _shimmerList(
+      count: 6,
+      spacing: 8,
+      padding: const EdgeInsets.all(12),
+      itemBuilder: (_) => Row(
+        children: [
+          SkeletonAvatar(size: 44),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                SkeletonLine(width: 180, height: 15),
+                const SizedBox(height: 6),
+                SkeletonLine(width: 120, height: 12),
+              ],
+            ),
+          ),
+          const SizedBox(width: 8),
+          SkeletonBox(width: 20, height: 20, borderRadius: 4),
+        ],
+      ),
+    );
+  }
+}
+
 // ─── NotificationList Skeleton ───────────────────────────────────────────────
 
 class NotificationListSkeleton extends StatelessWidget {

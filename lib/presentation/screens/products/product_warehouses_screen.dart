@@ -11,7 +11,7 @@ import '../../cubits/product_warehouses/product_warehouses_cubit.dart';
 import '../../dialogs/add_product_to_warehouse_dialog.dart';
 import '../../widgets/empty_view.dart';
 import '../../widgets/error_view.dart';
-import '../../widgets/loading_indicator.dart';
+import '../../widgets/skeleton_widgets.dart';
 
 class ProductWarehousesScreen extends StatefulWidget {
   final int productId;
@@ -79,7 +79,7 @@ class _ProductWarehousesScreenState extends State<ProductWarehousesScreen> {
           builder: (context, state) {
             if (state is ProductWarehousesLoading ||
                 state is ProductWarehousesInitial) {
-              return const LoadingIndicator();
+              return const ProductWarehousesSkeleton();
             }
             if (state is ProductWarehousesError) {
               return ErrorView(

@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../core/router/app_router.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../cubits/dashboard/dashboard_cubit.dart';
+import '../../widgets/app_search_bar.dart';
 import '../../widgets/empty_view.dart';
 import '../../widgets/error_view.dart';
 import '../../widgets/skeleton_widgets.dart';
@@ -21,6 +22,7 @@ class DashboardScreen extends StatefulWidget {
 class _DashboardScreenState extends State<DashboardScreen> {
   final _scrollCtrl = ScrollController();
   final _lowStockKey = GlobalKey();
+  final _searchCtrl = TextEditingController();
 
   @override
   void initState() {
@@ -31,6 +33,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   @override
   void dispose() {
     _scrollCtrl.dispose();
+    _searchCtrl.dispose();
     super.dispose();
   }
 
@@ -101,38 +104,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
               const SizedBox(height: 18),
 
               // ── SEARCH BAR ──────────────────────────────────────────
-              GestureDetector(
+              AppSearchBar(
+                controller: _searchCtrl,
+                hintText: 'Buscar productos…',
                 onTap: () => context.openAuxiliaryRoute('/search'),
-                child: Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                  decoration: BoxDecoration(
-                    color: cs.surface,
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: cs.outlineVariant, width: 1.5),
-                    boxShadow: [
-                      BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.04),
-                          blurRadius: 8,
-                          offset: const Offset(0, 2)),
-                    ],
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(Icons.search, color: cs.onSurfaceVariant, size: 20),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: Text(
-                          'Buscar productos…',
-                          style: TextStyle(
-                              color: cs.onSurfaceVariant, fontSize: 14),
-                        ),
-                      ),
-                      Icon(Icons.qr_code_scanner,
-                          color: cs.secondary.withValues(alpha: 0.7), size: 22),
-                    ],
-                  ),
-                ),
+                onChanged: (_) {},
+                trailing: Icon(Icons.qr_code_scanner,
+                    color: cs.secondary.withValues(alpha: 0.7), size: 22),
               ),
 
               const SizedBox(height: 24),

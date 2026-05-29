@@ -5,7 +5,7 @@ import 'package:intl/intl.dart';
 import '../../../core/models/filter_params.dart';
 import '../../cubits/stock_change/stock_change_cubit.dart';
 import '../../widgets/error_view.dart';
-import '../../widgets/loading_indicator.dart';
+import '../../widgets/skeleton_widgets.dart';
 
 class ProductStockHistoryScreen extends StatefulWidget {
   final int productId;
@@ -66,7 +66,7 @@ class _ProductStockHistoryScreenState
               child: BlocBuilder<StockChangeCubit, StockChangeState>(
                 builder: (context, state) {
                   if (state is StockChangeLoading) {
-                    return const LoadingIndicator();
+                    return const ProductStockHistorySkeleton();
                   }
                   if (state is StockChangeError) {
                     return ErrorView(message: state.message);

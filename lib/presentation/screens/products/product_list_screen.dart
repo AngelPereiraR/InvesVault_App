@@ -9,6 +9,7 @@ import '../../cubits/product_list/product_list_cubit.dart';
 import '../../widgets/confirm_dialog.dart';
 import '../../widgets/delete_mode_bar.dart';
 import '../../widgets/empty_view.dart';
+import '../../widgets/app_search_bar.dart';
 import '../../widgets/error_view.dart';
 import '../../widgets/skeleton_widgets.dart';
 import '../../widgets/undo_snackbar.dart';
@@ -133,27 +134,14 @@ class _ProductListScreenState extends State<ProductListScreen> {
               if (!_deleteMode) ...[
                 Padding(
                   padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
-                  child: TextField(
+                  child: AppSearchBar(
                     controller: _searchCtrl,
-                    decoration: InputDecoration(
-                      hintText: 'Buscar producto…',
-                      prefixIcon: const Icon(Icons.search),
-                      suffixIcon: _searchCtrl.text.isNotEmpty
-                          ? IconButton(
-                              icon: const Icon(Icons.clear),
-                              onPressed: () {
-                                _searchCtrl.clear();
-                                context.read<ProductListCubit>().search('');
-                              },
-                            )
-                          : null,
-                    ),
+                    hintText: 'Buscar producto…',
+                    isSearching: state.isSearching,
                     onChanged: (q) =>
                         context.read<ProductListCubit>().search(q),
                   ),
                 ),
-                if (state.isSearching)
-                  const LinearProgressIndicator(minHeight: 2),
                 const SizedBox(height: 8),
                 // ── Category chips + select button ──
                 BlocBuilder<CategoryCubit, CategoryState>(

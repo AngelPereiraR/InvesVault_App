@@ -10,8 +10,8 @@ import '../../cubits/product_detail/product_detail_cubit.dart';
 import '../../cubits/stock_change/stock_change_cubit.dart';
 import '../../dialogs/add_edit_batch_dialog.dart';
 import '../../widgets/error_view.dart';
-import '../../widgets/loading_indicator.dart';
 import '../../widgets/quantity_stepper.dart';
+import '../../widgets/skeleton_widgets.dart';
 
 class ProductDetailScreen extends StatefulWidget {
   final int warehouseProductId;
@@ -72,7 +72,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
         },
         builder: (context, state) {
           if (state is ProductDetailLoading || state is ProductDetailInitial) {
-            return const LoadingIndicator();
+            return const ProductDetailSkeleton();
           }
           if (state is ProductDetailError) {
             return ErrorView(message: state.message);

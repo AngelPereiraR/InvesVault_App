@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../core/router/app_router.dart';
 import '../../cubits/product_form/product_form_cubit.dart';
 import '../../../data/models/product_model.dart';
+import '../../widgets/skeleton_widgets.dart';
 
 class GlobalSearchScreen extends StatefulWidget {
   const GlobalSearchScreen({super.key});
@@ -60,7 +61,7 @@ class _GlobalSearchScreenState extends State<GlobalSearchScreen> {
       body: SafeArea(top: false, child: BlocBuilder<ProductFormCubit, ProductFormState>(
         builder: (context, state) {
           if (state is ProductFormLoading || state is ProductFormInitial) {
-            return const Center(child: CircularProgressIndicator());
+            return const SearchScreenSkeleton();
           }
           if (state is ProductFormError) {
             return Center(

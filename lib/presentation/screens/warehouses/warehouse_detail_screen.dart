@@ -11,6 +11,7 @@ import '../../cubits/warehouse_detail/warehouse_detail_cubit.dart';
 import '../../widgets/confirm_dialog.dart';
 import '../../widgets/delete_mode_bar.dart';
 import '../../widgets/empty_view.dart';
+import '../../widgets/app_search_bar.dart';
 import '../../widgets/error_view.dart';
 import '../../widgets/loading_indicator.dart';
 import '../../widgets/skeleton_widgets.dart';
@@ -197,29 +198,14 @@ class _WarehouseDetailScreenState extends State<WarehouseDetailScreen> {
               Padding(
                 padding:
                     const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                child: TextField(
+                child: AppSearchBar(
                   controller: _searchCtrl,
-                  decoration: InputDecoration(
-                    hintText: 'Buscar producto…',
-                    prefixIcon: const Icon(Icons.search),
-                    suffixIcon: _searchCtrl.text.isNotEmpty
-                        ? IconButton(
-                            icon: const Icon(Icons.clear),
-                            onPressed: () {
-                              _searchCtrl.clear();
-                              context
-                                  .read<WarehouseDetailCubit>()
-                                  .search('');
-                            },
-                          )
-                        : null,
-                  ),
+                  hintText: 'Buscar producto…',
+                  isSearching: state.isSearching,
                   onChanged: (q) =>
                       context.read<WarehouseDetailCubit>().search(q),
                 ),
               ),
-              if (state.isSearching)
-                const LinearProgressIndicator(minHeight: 2),
               const SizedBox(height: 8),
               // ── Category chips ──
               BlocBuilder<CategoryCubit, CategoryState>(
