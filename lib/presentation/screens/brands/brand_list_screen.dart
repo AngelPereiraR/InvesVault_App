@@ -7,7 +7,7 @@ import '../../widgets/confirm_dialog.dart';
 import '../../widgets/delete_mode_bar.dart';
 import '../../widgets/empty_view.dart';
 import '../../widgets/error_view.dart';
-import '../../widgets/loading_indicator.dart';
+import '../../widgets/skeleton_widgets.dart';
 import '../../widgets/undo_snackbar.dart';
 class BrandListScreen extends StatefulWidget {
   const BrandListScreen({super.key});
@@ -307,7 +307,7 @@ class _BrandListScreenState extends State<BrandListScreen> {
                   message: state.message,
                   onRetry: () => context.read<BrandCubit>().load(),
                 )
-              : const LoadingIndicator(),
+              : const BrandListSkeleton(),
           secondChild: loadedContent,
           crossFadeState: isLoaded
               ? CrossFadeState.showSecond

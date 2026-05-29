@@ -37,7 +37,7 @@ A1, A3, A6, A7, A8, A11, A12, A13
 
 ### Fase 2 — Funcionalidad core
 Alta prioridad, esfuerzo medio:
-⏳ A2, ✅ A4, ✅ A5, ✅ A9, ⏳ A10, ⏳ A14, ✅ A15
+⏳ A2, ✅ A4, ✅ A5, ✅ A9, ✅ A10, ⏳ A14, ✅ A15
 
 ### Fase 3 — Consistencia y pulido
 Media prioridad:
@@ -57,7 +57,7 @@ B1 a B15 (priorizar B3, B6, B7, B13, B14)
 
 | Prioridad | ✅ Completadas | ⏳ Pendientes | Total |
 |-----------|:-:|:-:|:-:|
-| Alta | 12 | 3 | 15 |
+| Alta | 13 | 2 | 15 |
 | Media | 0 | 21 | 21 |
 | Baja | 0 | 15 | 15 |
 | **Total** | **12** | **39** | **51** |

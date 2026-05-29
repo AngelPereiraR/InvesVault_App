@@ -5,7 +5,6 @@ Tareas de prioridad alta del [[ACTION_PLAN]].
 ## Pendientes
 
 - [[Tasks/high/A2 - Recuperación de contraseña]]
-- [[Tasks/high/A10 - Skeleton screens]]
 - [[Tasks/high/A14 - AppSearchBar]]
 
 ## Completadas
@@ -18,6 +17,7 @@ Tareas de prioridad alta del [[ACTION_PLAN]].
 - [[Tasks/high/✅ A7 - Contraste WCAG]]
 - [[Tasks/high/✅ A8 - SafeArea en drawer]]
 - [[Tasks/high/✅ A9 - SnackBar Deshacer]]
+- [[Tasks/high/✅ A10 - Skeleton screens]]
 - [[Tasks/high/✅ A11 - AnimatedCrossFade]]
 - [[Tasks/high/✅ A12 - Placeholder imágenes]]
 - [[Tasks/high/✅ A13 - Transiciones entre pantallas]]

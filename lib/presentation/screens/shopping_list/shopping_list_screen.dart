@@ -13,6 +13,7 @@ import '../../widgets/confirm_dialog.dart';
 import '../../widgets/empty_view.dart';
 import '../../widgets/error_view.dart';
 import '../../widgets/loading_indicator.dart';
+import '../../widgets/skeleton_widgets.dart';
 import '../../widgets/undo_snackbar.dart';
 
 class ShoppingListScreen extends StatefulWidget {
@@ -489,7 +490,7 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
                           onRetry: () =>
                               context.read<ShoppingListCubit>().loadAll(),
                         )
-                      : const LoadingIndicator(),
+                      : const ShoppingListSkeleton(),
                   secondChild: tabContent,
                   crossFadeState: state is ShoppingListLoaded
                       ? CrossFadeState.showSecond

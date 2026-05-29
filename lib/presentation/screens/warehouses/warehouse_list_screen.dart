@@ -3,19 +3,19 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../core/models/filter_params.dart';
 import '../../../core/router/app_router.dart';
+import '../../../core/utils/validators.dart';
+import '../../../data/models/warehouse_model.dart';
+import '../../../data/models/warehouse_user_model.dart';
 import '../../cubits/auth/auth_cubit.dart';
 import '../../cubits/warehouse/warehouse_cubit.dart';
 import '../../cubits/warehouse_user/warehouse_user_cubit.dart';
-import '../../../data/models/warehouse_model.dart';
-import '../../../data/models/warehouse_user_model.dart';
 import '../../widgets/app_text_field.dart';
 import '../../widgets/confirm_dialog.dart';
 import '../../widgets/delete_mode_bar.dart';
 import '../../widgets/empty_view.dart';
 import '../../widgets/error_view.dart';
-import '../../widgets/loading_indicator.dart';
+import '../../widgets/skeleton_widgets.dart';
 import '../../widgets/undo_snackbar.dart';
-import '../../../core/utils/validators.dart';
 
 /// Muestra un diálogo con dos pestañas: Información y Colaboradores.
 /// Para nuevo almacén, la pestaña Colaboradores se activa tras la creación.
@@ -815,7 +815,7 @@ class _WarehouseListScreenState extends State<WarehouseListScreen> {
                         message: state.message,
                         onRetry: () => context.read<WarehouseCubit>().load(),
                       )
-                    : const LoadingIndicator(),
+                    : const WarehouseListSkeleton(),
                 secondChild: loadedContent,
                 crossFadeState: isLoaded
                     ? CrossFadeState.showSecond

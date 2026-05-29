@@ -7,7 +7,7 @@ import '../../widgets/confirm_dialog.dart';
 import '../../widgets/delete_mode_bar.dart';
 import '../../widgets/empty_view.dart';
 import '../../widgets/error_view.dart';
-import '../../widgets/loading_indicator.dart';
+import '../../widgets/skeleton_widgets.dart';
 import '../../widgets/undo_snackbar.dart';
 class StoreListScreen extends StatefulWidget {
   const StoreListScreen({super.key});
@@ -318,7 +318,7 @@ class _StoreListScreenState extends State<StoreListScreen> {
                   message: state.message,
                   onRetry: () => context.read<StoreCubit>().load(),
                 )
-              : const LoadingIndicator(),
+              : const StoreListSkeleton(),
           secondChild: loadedContent,
           crossFadeState: isLoaded
               ? CrossFadeState.showSecond

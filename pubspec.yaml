@@ -38,6 +38,9 @@ dependencies:
   # Cached images
   cached_network_image: ^3.3.1
 
+  # Shimmer skeleton loading
+  shimmer: ^3.0.0
+
   # Internationalization
   intl: ^0.20.2
 

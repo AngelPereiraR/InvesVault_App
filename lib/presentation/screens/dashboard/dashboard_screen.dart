@@ -6,8 +6,9 @@ import '../../../core/theme/app_colors.dart';
 import '../../cubits/dashboard/dashboard_cubit.dart';
 import '../../widgets/empty_view.dart';
 import '../../widgets/error_view.dart';
-import '../../widgets/loading_indicator.dart';
-import '../warehouses/warehouse_list_screen.dart' show showWarehouseDialog;
+import '../../widgets/skeleton_widgets.dart';
+import '../warehouses/warehouse_list_screen.dart'
+    show showWarehouseDialog;
 
 
 class DashboardScreen extends StatefulWidget {
@@ -317,7 +318,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   message: state.message,
                   onRetry: () => context.read<DashboardCubit>().load(),
                 )
-              : const LoadingIndicator(message: 'Cargando…'),
+              : const DashboardSkeleton(),
           secondChild: secondContent,
           crossFadeState: isLoaded
               ? CrossFadeState.showSecond

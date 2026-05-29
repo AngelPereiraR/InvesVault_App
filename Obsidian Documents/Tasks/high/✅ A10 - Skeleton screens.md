@@ -1,7 +1,7 @@
 # A10 — Skeleton screens
 
 **Origen**: #UX-11
-**Prioridad**: Alta | **Estado**: Pendiente | **Esfuerzo**: Medio
+**Prioridad**: Alta | **Estado**: ✅ Completada | **Esfuerzo**: Medio
 
 ## Problema
 Todas las listas muestran un `CircularProgressIndicator` genérico durante la carga inicial. El usuario no ve estructura anticipada, lo que incrementa la percepción de lentitud (UX_ANALYSIS.md:67, UI_ANALYSIS.md:864).

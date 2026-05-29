@@ -8,7 +8,7 @@ import '../../cubits/notification/notification_cubit.dart';
 import '../../widgets/confirm_dialog.dart';
 import '../../widgets/empty_view.dart';
 import '../../widgets/error_view.dart';
-import '../../widgets/loading_indicator.dart';
+import '../../widgets/skeleton_widgets.dart';
 import '../../widgets/undo_snackbar.dart';
 class NotificationListScreen extends StatefulWidget {
   const NotificationListScreen({super.key});
@@ -91,7 +91,7 @@ class _NotificationListScreenState extends State<NotificationListScreen> {
                 Widget tabContent;
                 if (state is NotificationLoading ||
                     state is NotificationInitial) {
-                  tabContent = const LoadingIndicator();
+                  tabContent = const NotificationListSkeleton();
                 } else if (state is NotificationError) {
                   tabContent = ErrorView(
                     message: state.message,
@@ -236,7 +236,7 @@ class _NotificationListScreenState extends State<NotificationListScreen> {
                       onRetry: () =>
                           context.read<NotificationCubit>().load(),
                     )
-                  : const LoadingIndicator(),
+                  : const NotificationListSkeleton(),
               secondChild: tabContent,
               crossFadeState: state is NotificationLoaded
                   ? CrossFadeState.showSecond

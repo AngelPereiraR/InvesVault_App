@@ -11,24 +11,20 @@
             "id": "4315014194d1b697",
             "type": "leaf",
             "state": {
-              "type": "markdown",
-              "state": {
-                "file": "ACTION_PLAN.md",
-                "mode": "source",
-                "source": false
-              },
+              "type": "empty",
+              "state": {},
               "icon": "lucide-file",
-              "title": "ACTION_PLAN"
+              "title": "New tab"
             }
           }
         ]
       },
       {
-        "id": "73405117b974066b",
+        "id": "5e1cfb2f24737fb5",
         "type": "tabs",
         "children": [
           {
-            "id": "23a7d48b99ce5028",
+            "id": "9d70f3babf140201",
             "type": "leaf",
             "state": {
               "type": "graph",
@@ -196,10 +192,14 @@
       "bases:Create new base": false
     }
   },
-  "active": "23a7d48b99ce5028",
+  "active": "9d70f3babf140201",
   "lastOpenFiles": [
-    "Tasks/high/✅ A3 - Menú contextual a botón directo.md",
+    "Tasks/high/✅ A10 - Skeleton screens.md",
+    "Tasks/high/A10 - Skeleton screens.md",
     "ACTION_PLAN.md",
+    "NAVIGATION_ANALYSIS.md",
+    "Tasks/high/✅ A1 - Acceso a settings en auth.md",
+    "Tasks/high/✅ A3 - Menú contextual a botón directo.md",
     "Tasks/high.md",
     "Tasks/high/A2 - Recuperación de contraseña.md",
     "Tasks/low/B15 - Modo offline.md",
@@ -220,10 +220,6 @@
     "Tasks/medium/M21 - Notificaciones deep-link.md",
     "Tasks/medium/M20 - Confirmación salir formularios.md",
     "Tasks/medium/M19 - Eliminación optimista.md",
-    "Tasks/medium/M18 - AnimatedList warehouse.md",
-    "Tasks/medium/M17 - AnimatedTheme.md",
-    "Tasks/medium/M16 - Semantics labels.md",
-    "Tasks/medium/M15 - Tooltips en IconButton.md",
     "Tasks/low",
     "Tasks/medium",
     "Tasks/high",

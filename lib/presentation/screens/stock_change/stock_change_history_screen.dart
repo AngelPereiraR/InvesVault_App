@@ -9,6 +9,7 @@ import '../../cubits/warehouse/warehouse_cubit.dart';
 import '../../widgets/empty_view.dart';
 import '../../widgets/error_view.dart';
 import '../../widgets/loading_indicator.dart';
+import '../../widgets/skeleton_widgets.dart';
 
 class StockChangeHistoryScreen extends StatefulWidget {
   const StockChangeHistoryScreen({super.key});
@@ -345,7 +346,7 @@ class _StockChangeHistoryScreenState
                               onRetry: () =>
                                   _loadChanges(_selectedWarehouseId!),
                             )
-                          : const LoadingIndicator(),
+                          : const StockChangeHistorySkeleton(),
                       secondChild: loadedContent,
                       crossFadeState: isLoaded
                           ? CrossFadeState.showSecond
